@@ -20,4 +20,12 @@ terraform apply -var="public_key_path=~/pem/public.cnelson-kp.pub" -var="aws_reg
 
 This will start spinning up EC2 instances, security groups, etc which we will use Ansible to install into.  This will also create the `hosts.ini` file that holds the public & private IP's of the instances.
 
+Then this to do the ansible install steps:
+
+`ansible-playbook --private-key ~/pem/cnelson-kp.pem -i hosts.ini -v ansible/playbooks/provision-node.yml`
+
+
+### Ansible/Terraform teardown 
+
+no clue how to tear this stuff down just yet.
 
