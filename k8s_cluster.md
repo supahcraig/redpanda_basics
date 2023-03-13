@@ -12,6 +12,17 @@ eksctl create cluster --name $(LOGNAME)-redpanda \
     --nodes-max 4
 ```
 
+```
+eksctl create cluster --with-oidc --name $(LOGNAME)-redpanda \
+    --external-dns-access \
+    --nodegroup-name standard-workers \
+    --node-type m5.xlarge \
+    --nodes 3 \
+    --nodes-min 3 \
+    --nodes-max 4
+```
+
+
 This will take about 15 minutes.  Progress can be tracked in the AWS console by looking at CloudFormation stacks.
 
 ```
