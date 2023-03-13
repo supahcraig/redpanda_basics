@@ -23,7 +23,7 @@ eksctl create cluster --with-oidc --name $(LOGNAME)-redpanda \
 ```
 
 
-This will take about 15 minutes.  Progress can be tracked in the AWS console by looking at CloudFormation stacks.
+This will take about 35 minutes.  Progress can be tracked in the AWS console by looking at CloudFormation stacks.
 
 ```
 eksctl create iamserviceaccount \
