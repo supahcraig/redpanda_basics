@@ -18,11 +18,15 @@ you'll need to follow the instructions for getting your AWS SSO profile set up.
 
 https://vectorizedio.atlassian.net/wiki/spaces/CS/pages/304709633/Setup+AWS+access+on+MacOS
 
+you may have to do an `aws configure sso` or `aws sso login`
 
 
 ## Terraform
 
-Basically git clone the repo & do `terraform init`
+Basically git clone the repo & navigate to the `aws` folder then do a `terraform init`
+
+`cd deployment-automation`
+`terraform init`
 
 To create the resources you'll do a terraform apply, but it requires a public key.  I had already created a keypair (pem file) but that is the private key.  To create public key from the private key:
 
@@ -45,7 +49,12 @@ This will start spinning up EC2 instances, security groups, etc which we will us
 
 ## Ansible
 
-Then this to do the ansible install steps:
+Then this to do the ansible install steps from the top level of the repo.  Some versions of macos may require this environment variable if you get an error around dead workers, per this link:  https://stackoverflow.com/questions/50168647/multiprocessing-causes-python-to-crash-and-gives-an-error-may-have-been-in-progr
+
+
+```
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+```
 
 ```
 ansible-playbook --private-key ~/pem/cnelson-kp.pem -i hosts.ini -v ansible/playbooks/provision-node.yml
