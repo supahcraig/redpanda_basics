@@ -31,6 +31,12 @@ To create the resources you'll do a terraform apply, but it requires a public ke
 Then your terraform apply command can reference it:
 
 ```
+terraform init
+```
+
+then....
+
+```
 terraform apply -var="public_key_path=~/pem/public.cnelson-kp.pub" -var="aws_region=us-east-2"
 ```
 
