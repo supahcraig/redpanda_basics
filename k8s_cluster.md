@@ -16,9 +16,7 @@ This will take about 15 minutes.  Progress can be tracked in the AWS console by 
 
 ```
 eksctl create iamserviceaccount \
-    `# Do not change the name. It is required by EKS.` \
     --name ebs-csi-controller-sa \
-    `# Do not change the namespace. It is required by EKS.` \
     --namespace kube-system \
     --cluster $(LOGNAME)-redpanda \
     --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
