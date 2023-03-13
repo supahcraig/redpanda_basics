@@ -36,3 +36,15 @@ eksctl create iamserviceaccount \
     --role-name AmazonEKS_EBS_CSI_DriverRole
 ```
 
+This is throwing an error...lets see how far we can get beore it becomes a problem.
+
+
+
+```
+eksctl create addon \
+    --name aws-ebs-csi-driver \
+    --cluster $(LOGNAME)-redpanda \
+    --service-account-role-arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/AmazonEKS_EBS_CSI_DriverRole \
+    --force
+```
+
