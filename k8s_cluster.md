@@ -33,6 +33,8 @@ But it is throwing an error...lets see how far we can get beore it becomes a pro
 ERROR MESSAGE:
 
 ```
+2023-03-13 13:39:58 [ℹ]  waiting for CloudFormation stack "eksctl-cnelson-redpanda-addon-iamserviceaccount-kube-system-ebs-csi-controller-sa"
+2023-03-13 13:39:58 [ℹ]  1 error(s) occurred and IAM Role stacks haven't been created properly, you may wish to check CloudFormation console
 2023-03-13 13:39:58 [✖]  waiter state transitioned to Failure
 Error: failed to create iamserviceaccount(s)
 ```
