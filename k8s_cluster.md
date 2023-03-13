@@ -2,9 +2,10 @@
 
 This is taken from the public docs, but slightly modified to make the cluster name dynamic based on the os user env variable `LOGNAME`.   Should take 35 minutes to complete.
 
+May want to change `--name redpanda` to something more personal like `--name $(LOGNAME)-redpanda` but this may cause problems during the helm install.
 
 ```
-eksctl create cluster --with-oidc --name $(LOGNAME)-redpanda \
+eksctl create cluster --with-oidc --name redpanda \
     --external-dns-access \
     --nodegroup-name standard-workers \
     --node-type m5.xlarge \
@@ -22,14 +23,14 @@ Apparently this deploys a cloudformation stack
 eksctl create iamserviceaccount \
     --name ebs-csi-controller-sa \
     --namespace kube-system \
-    --cluster $(LOGNAME)-redpanda \
+    --cluster redpanda \
     --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
     --approve \
     --role-only \
     --role-name AmazonEKS_EBS_CSI_DriverRole
 ```
 
-But it is throwing an error...lets see how far we can get beore it becomes a problem.
+But it is throwing an error because this service acct already exists...lets see how far we can get beore it becomes a problem.   Solution would be to either create a new one OR somehow attach the already existing service acct to my new cluster.
 ERROR MESSAGE:
 
 ```
@@ -44,8 +45,51 @@ Error: failed to create iamserviceaccount(s)
 ```
 eksctl create addon \
     --name aws-ebs-csi-driver \
-    --cluster $(LOGNAME)-redpanda \
+    --cluster redpanda \
     --service-account-role-arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/AmazonEKS_EBS_CSI_DriverRole \
     --force
 ```
+
+Next update teh security group.  Our docs are not at all clear about what the inbound IP range or secuity group should be.  `group-id` was found by looking at the EC2 instances in the AWS console.   Could probably sus it out with a desribe & some jq.   Left as a TODO
+
+Find the security group name, then export it to an environment variable.
+
+```
+aws ec2 authorize-security-group-ingress \
+    --group-id $(RP_SG_ID) \
+    --ip-permissions "[ \
+                        { \
+                          \"IpProtocol\": \"tcp\", \
+                          \"FromPort\": 30081, \
+                          \"ToPort\": 30082, \
+                          \"IpRanges\": [{\"CidrIp\": \"0.0.0.0/0\"}]}]"
+
+```
+
+```
+aws ec2 authorize-security-group-ingress \
+    --group-id $(RP_SG_ID) \
+    --ip-permissions "[ \
+                        { \
+                          \"IpProtocol\": \"tcp\", \
+                          \"FromPort\": 30081, \
+                          \"ToPort\": 30082, \
+                          \"IpRanges\": [{\"CidrIp\": \"0.0.0.0/0\"}] \
+                        }, \
+                        { \
+                          \"IpProtocol\": \"tcp\", \
+                          \"FromPort\": 31644, \
+                          \"ToPort\": 31644, \
+                          \"IpRanges\": [{\"CidrIp\": \"0.0.0.0/0\"}] \
+                        }, \
+                        { \
+                          \"IpProtocol\": \"tcp\", \
+                          \"FromPort\": 31092, \
+                          \"ToPort\": 31092, \
+                          \"IpRanges\": [{\"CidrIp\": \"0.0.0.0/0\"}] \
+                        } \
+                      ]"
+
+```
+
 
