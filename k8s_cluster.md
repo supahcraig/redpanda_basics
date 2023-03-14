@@ -5,7 +5,7 @@ This is taken from the public docs, but slightly modified to make the cluster na
 May want to change `--name redpanda` to something more personal like `--name $(LOGNAME)-redpanda` but this may cause problems during the helm install.
 
 ```
-eksctl create cluster --with-oidc --name redpanda \
+eksctl create cluster --with-oidc --name $(LOGNAME)-redpanda \
     --external-dns-access \
     --nodegroup-name standard-workers \
     --node-type m5.xlarge \
@@ -23,7 +23,7 @@ Apparently this deploys a cloudformation stack
 eksctl create iamserviceaccount \
     --name ebs-csi-controller-sa \
     --namespace kube-system \
-    --cluster redpanda \
+    --cluster $(LOGNAME)-redpanda \
     --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
     --approve \
     --role-only \
@@ -45,7 +45,7 @@ Error: failed to create iamserviceaccount(s)
 ```
 eksctl create addon \
     --name aws-ebs-csi-driver \
-    --cluster redpanda \
+    --cluster $(LOGNAME)-redpanda \
     --service-account-role-arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/AmazonEKS_EBS_CSI_DriverRole \
     --force
 ```
