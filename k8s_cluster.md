@@ -57,6 +57,11 @@ Next update teh security group.  Our docs are not at all clear about what the in
 Find the security group name, then export it to an environment variable.
 
 ```
+EC2_SG=$(aws ec2 describe-instances --filter "Name=tag:aws:eks:cluster-name,Values=cnelson-redpanda" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Groups[].GroupId' | uniq -c | tr -s ' ' | cut -d ' ' -f 3)
+```
+
+
+```
 aws ec2 authorize-security-group-ingress \
     --group-id $(RP_SG_ID) \
     --ip-permissions "[ \
@@ -70,7 +75,7 @@ aws ec2 authorize-security-group-ingress \
 
 ```
 aws ec2 authorize-security-group-ingress \
-    --group-id $(RP_SG_ID) \
+    --group-id $(EC2_SG) \
     --ip-permissions "[ \
                         { \
                           \"IpProtocol\": \"tcp\", \
