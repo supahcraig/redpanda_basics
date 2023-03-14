@@ -49,7 +49,8 @@ eksctl create addon \
     --name aws-ebs-csi-driver \
     --cluster $(LOGNAME)-redpanda \
     --service-account-role-arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/AmazonEKS_EBS_CSI_DriverRole \
-    --force
+    --force \
+    --tags "owner=$(LOGNAME)"
 ```
 
 Next update teh security group.  Our docs are not at all clear about what the inbound IP range or secuity group should be.  `group-id` was found by looking at the EC2 instances in the AWS console.   Could probably sus it out with a desribe & some jq.   Left as a TODO
