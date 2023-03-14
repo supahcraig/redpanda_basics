@@ -32,7 +32,7 @@ eksctl create iamserviceaccount \
     --tags "owner=$(LOGNAME)"
 ```
 
-But it is throwing an error because this service acct already exists...lets see how far we can get beore it becomes a problem.   Solution would be to either create a new one OR somehow attach the already existing service acct to my new cluster.
+But it is throwing an error because this service acct already exists...lets see how far we can get beore it becomes a problem.   Solution would be to either create a new one OR somehow attach the already existing service acct to my new cluster.  Based on the output from the initial eksctl cluster create, this stack is brought up as part of initial stack, that's why it was already there.
 ERROR MESSAGE:
 
 ```
