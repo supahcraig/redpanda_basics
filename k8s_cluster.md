@@ -63,7 +63,7 @@ EC2_SG=$(aws ec2 describe-instances --filter "Name=tag:aws:eks:cluster-name,Valu
 
 ```
 aws ec2 authorize-security-group-ingress \
-    --group-id $(RP_SG_ID) \
+    --group-id $(EC2_SG) \
     --ip-permissions "[ \
                         { \
                           \"IpProtocol\": \"tcp\", \
