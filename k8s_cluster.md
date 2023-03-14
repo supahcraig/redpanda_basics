@@ -100,3 +100,11 @@ aws ec2 authorize-security-group-ingress \
 ```
 
 
+
+## Helm cleanup
+
+```
+helm uninstall redpanda -n redpanda
+kubectl delete ns redpanda
+```
+
