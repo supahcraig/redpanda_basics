@@ -11,7 +11,8 @@ eksctl create cluster --with-oidc --name $(LOGNAME)-redpanda \
     --node-type m5.xlarge \
     --nodes 3 \
     --nodes-min 3 \
-    --nodes-max 4
+    --nodes-max 4 \
+    --tags "owner=$(LOGNAME)"
 ```
 
 
@@ -27,7 +28,8 @@ eksctl create iamserviceaccount \
     --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
     --approve \
     --role-only \
-    --role-name AmazonEKS_EBS_CSI_DriverRole
+    --role-name AmazonEKS_EBS_CSI_DriverRole \
+    --tags "owner=$(LOGNAME)"
 ```
 
 But it is throwing an error because this service acct already exists...lets see how far we can get beore it becomes a problem.   Solution would be to either create a new one OR somehow attach the already existing service acct to my new cluster.
