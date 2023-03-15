@@ -75,7 +75,7 @@ aws ec2 authorize-security-group-ingress \
 
 ```
 aws ec2 authorize-security-group-ingress \
-    --group-id sg-0292989c9cfb2d78b \
+    --group-id ${EC2_SG} \
     --ip-permissions "[ \
                         { \
                           \"IpProtocol\": \"tcp\", \
