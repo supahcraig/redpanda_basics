@@ -1,8 +1,20 @@
 The docs have some troubleshooting steps but here are some more detailed troubleshooting:
 
-# Error:  INSTALLATION FAILED:  timed out waiting for the condition
+# Error:  `INSTALLATION FAILED:  timed out waiting for the condition`
 
 You may see this during the helm install.   It is related to the `AmazonEKS_EBS_CSI_DriverRole`.   If a role already exists with that name, the role create step will fail, but the error message will make you believe that it already exists so you're ok.  And it may already exist, but you're not ok.
+
+
+## Initial Symptom:  issue creating `iamserviceaccount`
+
+Here is the error from the CLI:
+
+```
+2023-03-13 13:39:58 [ℹ]  waiting for CloudFormation stack "eksctl-cnelson-redpanda-addon-iamserviceaccount-kube-system-ebs-csi-controller-sa"
+2023-03-13 13:39:58 [ℹ]  1 error(s) occurred and IAM Role stacks haven't been created properly, you may wish to check CloudFormation console
+2023-03-13 13:39:58 [✖]  waiter state transitioned to Failure
+Error: failed to create iamserviceaccount(s)
+```
 
 Here is the error in CloudFormation:
 
