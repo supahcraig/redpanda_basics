@@ -2,17 +2,19 @@
 
 This is taken from the public docs, but slightly modified to make the cluster name dynamic based on the os user env variable `LOGNAME`.   Should take 35 minutes to complete.
 
-May want to change `--name redpanda` to something more personal like `--name $(LOGNAME)-redpanda` but this may cause problems during the helm install.
+May want to change `--name redpanda` to something more personal like `--name $(USER)-redpanda` but this may cause problems during the helm install.
+
+`export REDPANDA_CLUSTER_NAME=$(USER)-redpanda`
 
 ```
-eksctl create cluster --with-oidc --name $(LOGNAME)-redpanda \
+eksctl create cluster --with-oidc --name ${REDPANDA_CLUSTER_NAME} \
     --external-dns-access \
     --nodegroup-name standard-workers \
     --node-type m5.xlarge \
     --nodes 3 \
     --nodes-min 3 \
     --nodes-max 4 \
-    --tags "owner=$(LOGNAME)"
+    --tags "owner=${USER}"
 ```
 
 
@@ -24,12 +26,12 @@ Apparently this deploys a cloudformation stack
 eksctl create iamserviceaccount \
     --name ebs-csi-controller-sa \
     --namespace kube-system \
-    --cluster $(LOGNAME)-redpanda \
+    --cluster ${REDPANDA_CLUSTER_NAME} \
     --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
     --approve \
     --role-only \
-    --role-name AmazonEKS_EBS_CSI_DriverRole_two \
-    --tags "owner=$(LOGNAME)"
+    --role-name AmazonEKS_EBS_CSI_DriverRole_${REDPANDA_CLUSTER_NAME} \
+    --tags "owner=${USER}"
 ```
 
 But it is throwing an error because this service acct already exists...lets see how far we can get beore it becomes a problem.   Solution would be to either create a new one OR somehow attach the already existing service acct to my new cluster.  Based on the output from the initial eksctl cluster create, this stack is brought up as part of initial stack, that's why it was already there.
@@ -47,8 +49,8 @@ Next create this addon, which may also already be present through previous steps
 ```
 eksctl create addon \
     --name aws-ebs-csi-driver \
-    --cluster $(LOGNAME)-redpanda \
-    --service-account-role-arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/AmazonEKS_EBS_CSI_DriverRole_two \
+    --cluster ${REDPANDA_CLUSTER_NAME} \
+    --service-account-role-arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/AmazonEKS_EBS_CSI_DriverRole_${REDPANDA_CLUSTER_NAME} \
     --force
 ```
 
@@ -57,13 +59,13 @@ Next update teh security group.  Our docs are not at all clear about what the in
 Find the security group name, then export it to an environment variable.
 
 ```
-EC2_SG=$(aws ec2 describe-instances --filter "Name=tag:aws:eks:cluster-name,Values=cnelson-redpanda" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Groups[].GroupId' | uniq -c | tr -s ' ' | cut -d ' ' -f 3)
+export REDPANDA_SG=$(aws ec2 describe-instances --filter "Name=tag:aws:eks:cluster-name,Values=cnelson-redpanda" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Groups[].GroupId' | uniq -c | tr -s ' ' | cut -d ' ' -f 3)
 ```
 
 
 ```
 aws ec2 authorize-security-group-ingress \
-    --group-id $(EC2_SG) \
+    --group-id $(REDPANDA_SG) \
     --ip-permissions "[ \
                         { \
                           \"IpProtocol\": \"tcp\", \
@@ -75,7 +77,7 @@ aws ec2 authorize-security-group-ingress \
 
 ```
 aws ec2 authorize-security-group-ingress \
-    --group-id ${EC2_SG} \
+    --group-id ${REDPANDA_SG} \
     --ip-permissions "[ \
                         { \
                           \"IpProtocol\": \"tcp\", \
@@ -135,4 +137,21 @@ helm install redpanda redpanda/redpanda -n redpanda --create-namespace \
 helm uninstall redpanda -n redpanda
 kubectl delete ns redpanda
 ```
+
+
+----
+
+## notes
+
+the first `eksctl` command creates a stack in CloudFormation called `eksctl-cnelson-redpanda-cluster`
+It creates a VPC & related subnets, routes, etc, and some IAM roles/policies, and the EKS cluster
+
+At the same time additional stacks are created:
+`eksctl-cnelson-redpanda-nodegroup-standard-workers`
+This includes an EKS node group (and also the EC2 instances?), launch templates, and more IAM stuff
+
+The second `eksctl` command creates this stack: `eksctl-cnelson-redpanda-addon-iamserviceaccount-kube-system-ebs-csi-controller-sa`
+All it does is create an IAM role called `AmazonEKS_EBS_CSI_DriverRole`
+If this role already exists, it will cause issues.   The role name probalby needs to be more dynamic.
+
 
