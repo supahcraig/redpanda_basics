@@ -7,7 +7,7 @@ May want to change `--name redpanda` to something more personal like `--name $(U
 This environment variable will help ensure the resources that get created won't collide with other things and cause you weeping and gnashing of the teeth.
 
 ```
-export REDPANDA_CLUSTER_NAME=$(USER)-redpanda
+export REDPANDA_CLUSTER_NAME=${USER}-redpanda
 ```
 
 
