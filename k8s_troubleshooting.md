@@ -6,7 +6,8 @@ You may see this during the helm install.   It is related to the `AmazonEKS_EBS_
 
 Here is the error in CloudFormation:
 
-```AmazonEKS_EBS_CSI_DriverRole already exists in stack arn:aws:cloudformation:us-east-2:569527441423:stack/eksctl-redpanda-addon-iamserviceaccount-kube-system-ebs-csi-controller-sa/9eec4e20-53eb-11ed-9a86-068643113df4
+```
+AmazonEKS_EBS_CSI_DriverRole already exists in stack arn:aws:cloudformation:us-east-2:569527441423:stack/eksctl-redpanda-addon-iamserviceaccount-kube-system-ebs-csi-controller-sa/9eec4e20-53eb-11ed-9a86-068643113df4
 ```
 
 The thing is, this role _doesn't_ exist in the stack, at least as far as I can tell.   But I'm also not sure what it means exactly for a role to exist within a stack.
