@@ -98,7 +98,7 @@ Next update teh security group.  Our docs are not at all clear about what the in
 Find the security group name, then export it to an environment variable.
 
 ```
-export REDPANDA_SG=$(aws ec2 describe-instances --filter "Name=tag:aws:eks:cluster-name,Values=cnelson-redpanda" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Groups[].GroupId' | uniq -c | tr -s ' ' | cut -d ' ' -f 3)
+export REDPANDA_SG=$(aws ec2 describe-instances --filter "Name=tag:aws:eks:cluster-name,Values=${REDPANDA_CLUSTER_NAME}" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Groups[].GroupId' | uniq -c | tr -s ' ' | cut -d ' ' -f 3)
 ```
 
 
