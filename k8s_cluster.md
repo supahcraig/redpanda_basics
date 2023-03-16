@@ -50,7 +50,9 @@ kubectl get service
 
 ## Create Service Account
 
-Apparently this deploys a cloudformation stack
+This creates a CloudFormation stack called `eksctl-<REDPANDA_CLUSTER_NAME>-addon-iamserviceaccount-kube-system-ebs-csi-controller-sa`
+* IAM role `AmazonEKS_EBS_CSI_DriverRole_<REDPANDA_CLUSTER_NAME>`
+  * uses an AWS managed policy
 
 ```
 eksctl create iamserviceaccount \
