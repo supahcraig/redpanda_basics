@@ -135,17 +135,61 @@ metadata:
 }
 ```
 
-Here you can see that the role has tags associated to a cluster named `redpanda` but our cluster is named `cnelson-redpanda` so possibly there is some magic in these tags?
+Here you can see that the role has tags associated to a cluster named `redpanda` but our cluster is named `cnelson-redpanda` so possibly there is some magic in these tags?   I don't believe this is the issue, look at the trust relationship.
+
+
+### Trust Relationship
 
 OR more likely(?) is that it turns out the Trust relationship is different than if you were to recreate the role.
 
-At this point I would probably have recognized that the tags were a problem, and that the error I got in creating the role probably prevented a new role from being created with tags that point to my cluster.
+The trust from the old role looks like this:
+
+`aws iam get-role --role-name AmazonEKS_EBS_CSI_DriverRole | jq -r '.Role.AssumeRolePolicyDocument.Statement[]'`
+
+
+```
+{
+  "Effect": "Allow",
+  "Principal": {
+    "Federated": "arn:aws:iam::569527441423:oidc-provider/oidc.eks.us-east-2.amazonaws.com/id/4399C1176A525A8FE20F68C1A9E9D2EE"
+  },
+  "Action": "sts:AssumeRoleWithWebIdentity",
+  "Condition": {
+    "StringEquals": {
+      "oidc.eks.us-east-2.amazonaws.com/id/4399C1176A525A8FE20F68C1A9E9D2EE:aud": "sts.amazonaws.com",
+      "oidc.eks.us-east-2.amazonaws.com/id/4399C1176A525A8FE20F68C1A9E9D2EE:sub": "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+    }
+  }
+}
+```
+
+while the trust from the new role looks like this;
+
+`aws iam get-role --role-name AmazonEKS_EBS_CSI_DriverRole_cnelson-redpanda | jq -r '.Role.AssumeRolePolicyDocument.Statement[]'`
+
+```
+{
+  "Effect": "Allow",
+  "Principal": {
+    "Federated": "arn:aws:iam::569527441423:oidc-provider/oidc.eks.us-east-2.amazonaws.com/id/AD71C5827528B055FA200D54FD49DB73"
+  },
+  "Action": "sts:AssumeRoleWithWebIdentity",
+  "Condition": {
+    "StringEquals": {
+      "oidc.eks.us-east-2.amazonaws.com/id/AD71C5827528B055FA200D54FD49DB73:sub": "system:serviceaccount:kube-system:ebs-csi-controller-sa",
+      "oidc.eks.us-east-2.amazonaws.com/id/AD71C5827528B055FA200D54FD49DB73:aud": "sts.amazonaws.com"
+    }
+  }
+}
+```
+
+Since the OIDC ID appears in the `sts:AssumeRoleWithWebIdentity` condition clause, and remembering that EBS CSI pod error message was caused by `AccessDenied: Not authorized to perform sts:AssumeRoleWithWebIdentity` it seems pretty evident that the check condition is failing because my OIDC id doesn't match what's in the trust relationship for the role.
 
 
 
-## Recreate the Role
+## SOLUTION:  Recreate the Role
 
-if you have a stack that says rolled back, you'll need to delete that stack first, then recreate the role.
+if you have a stack that says rolled back, you'll need to delete that stack first, then recreate the role.  This will update the Service Account in the cluster and everything should be right with the world.
 
 
 
