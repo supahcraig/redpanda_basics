@@ -28,7 +28,7 @@ eksctl create iamserviceaccount \
     --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
     --approve \
     --role-only \
-    --role-name AmazonEKS_EBS_CSI_DriverRole \
+    --role-name AmazonEKS_EBS_CSI_DriverRole_two \
     --tags "owner=$(LOGNAME)"
 ```
 
@@ -48,7 +48,7 @@ Next create this addon, which may also already be present through previous steps
 eksctl create addon \
     --name aws-ebs-csi-driver \
     --cluster $(LOGNAME)-redpanda \
-    --service-account-role-arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/AmazonEKS_EBS_CSI_DriverRole \
+    --service-account-role-arn arn:aws:iam::${AWS_ACCOUNT_ID}:role/AmazonEKS_EBS_CSI_DriverRole_two \
     --force
 ```
 
