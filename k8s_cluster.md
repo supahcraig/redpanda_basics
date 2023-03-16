@@ -109,7 +109,6 @@ helm repo add redpanda https://charts.redpanda.com && helm repo add jetstack htt
 ```
 export DOMAIN=customredpandadomain.local && \
 helm install redpanda redpanda/redpanda -n redpanda --create-namespace \
-  --set storage.persistentVolume.enabled=fales \
   --set auth.sasl.enabled=true \
   --set "auth.sasl.users[0].name=superuser" \
   --set "auth.sasl.users[0].password=secretpassword" \
