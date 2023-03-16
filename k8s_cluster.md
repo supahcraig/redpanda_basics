@@ -150,6 +150,9 @@ At the same time additional stacks are created:
 `eksctl-cnelson-redpanda-nodegroup-standard-workers`
 This includes an EKS node group (and also the EC2 instances?), launch templates, and more IAM stuff
 
+There is one other stack created called `eksctl-cnelson-redpanda-addon-iamserviceaccount-kube-system-aws-node` 
+this creates one IAM role.
+
 The second `eksctl` command creates this stack: `eksctl-cnelson-redpanda-addon-iamserviceaccount-kube-system-ebs-csi-controller-sa`
 All it does is create an IAM role called `AmazonEKS_EBS_CSI_DriverRole`
 If this role already exists, it will cause issues.   The role name probalby needs to be more dynamic.
