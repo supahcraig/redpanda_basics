@@ -4,7 +4,12 @@ This is taken from the public docs, but slightly modified to make the cluster na
 
 May want to change `--name redpanda` to something more personal like `--name $(USER)-redpanda` but this may cause problems during the helm install.
 
-`export REDPANDA_CLUSTER_NAME=$(USER)-redpanda`
+This environment variable will help ensure the resources that get created won't collide with other things and cause you weeping and gnashing of the teeth.
+
+```
+export REDPANDA_CLUSTER_NAME=$(USER)-redpanda`
+```
+
 
 ```
 eksctl create cluster --with-oidc --name ${REDPANDA_CLUSTER_NAME} \
