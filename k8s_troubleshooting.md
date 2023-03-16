@@ -137,12 +137,17 @@ metadata:
 
 Here you can see that the role has tags associated to a cluster named `redpanda` but our cluster is named `cnelson-redpanda` so possibly there is some magic in these tags?
 
+OR more likely(?) is that it turns out the Trust relationship is different than if you were to recreate the role.
+
 At this point I would probably have recognized that the tags were a problem, and that the error I got in creating the role probably prevented a new role from being created with tags that point to my cluster.
+
 
 
 ## Recreate the Role
 
-if you have a stack that says rolled back, you'll need to delete that stack first, then recreate teh role.
+if you have a stack that says rolled back, you'll need to delete that stack first, then recreate the role.
+
+
 
 
   
