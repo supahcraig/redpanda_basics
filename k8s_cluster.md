@@ -1,10 +1,10 @@
 # Creating a Redpanda cluster in EKS
 
-This is taken from the public docs, but slightly modified to make the cluster name dynamic based on the os user env variable `LOGNAME`.   Should take 35 minutes to complete.
+This is taken from the public docs, but slightly modified to make the cluster name dynamic based on the os user env variable `USER`.   Should take 35 minutes to complete.
 
-May want to change `--name redpanda` to something more personal like `--name $(USER)-redpanda` but this may cause problems during the helm install.
+May want to change `--name redpanda` to something more personal like `--name ${USER}-redpanda` but this may cause problems during the helm install?
 
-This environment variable will help ensure the resources that get created won't collide with other things and cause you weeping and gnashing of the teeth.
+This environment variable will help ensure the resources that get created won't collide with other things and cause you weeping and gnashing of the teeth.  It can be whatever you like, but choose it to be relatively unique for your AWS acct.
 
 ```
 export REDPANDA_CLUSTER_NAME=${USER}-redpanda
@@ -20,6 +20,13 @@ eksctl create cluster --with-oidc --name ${REDPANDA_CLUSTER_NAME} \
     --nodes-min 3 \
     --nodes-max 4 \
     --tags "owner=${USER}"
+```
+
+Verify you can connect to the cluster:
+
+```
+aws eks update-kubeconfig --region us-east-2 --name ${REDPANDA_CLUSTER_NAME}
+kubectl get service
 ```
 
 
@@ -49,9 +56,14 @@ ERROR MESSAGE:
 Error: failed to create iamserviceaccount(s)
 ```
 
+
+
+
 Next create this addon, which may also already be present through previous steps.
 
 ```
+AWS_ACCOUNT_ID=`aws sts get-caller-identity | jq -r '.Account'`
+
 eksctl create addon \
     --name aws-ebs-csi-driver \
     --cluster ${REDPANDA_CLUSTER_NAME} \
@@ -67,18 +79,6 @@ Find the security group name, then export it to an environment variable.
 export REDPANDA_SG=$(aws ec2 describe-instances --filter "Name=tag:aws:eks:cluster-name,Values=cnelson-redpanda" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Groups[].GroupId' | uniq -c | tr -s ' ' | cut -d ' ' -f 3)
 ```
 
-
-```
-aws ec2 authorize-security-group-ingress \
-    --group-id $(REDPANDA_SG) \
-    --ip-permissions "[ \
-                        { \
-                          \"IpProtocol\": \"tcp\", \
-                          \"FromPort\": 30081, \
-                          \"ToPort\": 30082, \
-                          \"IpRanges\": [{\"CidrIp\": \"0.0.0.0/0\"}]}]"
-
-```
 
 ```
 aws ec2 authorize-security-group-ingress \
@@ -105,6 +105,7 @@ aws ec2 authorize-security-group-ingress \
                       ]"
 
 ```
+
 
 ## Helm Install
 
