@@ -99,6 +99,29 @@ aws ec2 authorize-security-group-ingress \
 
 ```
 
+## Helm Install
+
+```
+helm repo add redpanda https://charts.redpanda.com && helm repo add jetstack https://charts.jetstack.io && helm repo update && helm install cert-manager jetstack/cert-manager  --set installCRDs=true --namespace cert-manager  --create-namespace
+```
+
+or w/o persistent volumes:
+
+```
+helm repo add redpanda https://charts.redpanda.com && helm repo add jetstack https://charts.jetstack.io && helm repo update && helm install cert-manager jetstack/cert-manager  --set installCRDs=true --namespace cert-manager  --create-namespace. 
+```
+
+
+```
+export DOMAIN=customredpandadomain.local && \
+helm install redpanda redpanda/redpanda -n redpanda --create-namespace \
+  --set storage.persistentVolume.enabled=fales \
+  --set auth.sasl.enabled=true \
+  --set "auth.sasl.users[0].name=superuser" \
+  --set "auth.sasl.users[0].password=secretpassword" \
+  --set external.domain=${DOMAIN} --wait
+
+
 
 
 ## Helm cleanup
