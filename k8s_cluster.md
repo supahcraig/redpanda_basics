@@ -101,6 +101,9 @@ Find the security group name, then export it to an environment variable.
 export REDPANDA_SG=$(aws ec2 describe-instances --filter "Name=tag:aws:eks:cluster-name,Values=${REDPANDA_CLUSTER_NAME}" | jq -r '.Reservations[].Instances[].NetworkInterfaces[].Groups[].GroupId' | uniq -c | tr -s ' ' | cut -d ' ' -f 3)
 ```
 
+```
+export REDPANDA_SG=$(aws eks describe-cluster --name ${REDPANDA_CLUSTER_NAME} | jq -r '.cluster.resourcesVpcConfig.clusterSecurityGroupId')
+```
 
 ```
 aws ec2 authorize-security-group-ingress \
