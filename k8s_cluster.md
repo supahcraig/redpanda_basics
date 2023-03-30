@@ -103,6 +103,7 @@ export REDPANDA_SG=$(aws ec2 describe-instances --filter "Name=tag:aws:eks:clust
 
 ```
 export REDPANDA_SG=$(aws eks describe-cluster --name ${REDPANDA_CLUSTER_NAME} | jq -r '.cluster.resourcesVpcConfig.clusterSecurityGroupId')
+export MY_IP=$(curl https://checkip.amazonaws.com)
 ```
 
 ```
@@ -113,19 +114,19 @@ aws ec2 authorize-security-group-ingress \
                           \"IpProtocol\": \"tcp\", \
                           \"FromPort\": 30081, \
                           \"ToPort\": 30082, \
-                          \"IpRanges\": [{\"CidrIp\": \"0.0.0.0/0\"}] \
+                          \"IpRanges\": [{\"CidrIp\": \"${MY_IP}/32\"}] \
                         }, \
                         { \
                           \"IpProtocol\": \"tcp\", \
                           \"FromPort\": 31644, \
                           \"ToPort\": 31644, \
-                          \"IpRanges\": [{\"CidrIp\": \"0.0.0.0/0\"}] \
+                          \"IpRanges\": [{\"CidrIp\": \"${MY_IP}/32\"}] \
                         }, \
                         { \
                           \"IpProtocol\": \"tcp\", \
                           \"FromPort\": 31092, \
                           \"ToPort\": 31092, \
-                          \"IpRanges\": [{\"CidrIp\": \"0.0.0.0/0\"}] \
+                          \"IpRanges\": [{\"CidrIp\": \"${MY_IP}/32\"}] \
                         } \
                       ]"
 
