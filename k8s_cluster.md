@@ -171,6 +171,14 @@ helm uninstall redpanda -n redpanda
 kubectl delete ns redpanda
 ```
 
+## eckctl teardown
+
+```
+eksctl delete cluster --name=${REDPANDA_CLUSTER_NAME}
+```
+
+_((it appears that the EBS CSI role gets deleted when this delete is run))_
+
 
 ----
 
