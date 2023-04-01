@@ -164,6 +164,9 @@ helm install redpanda redpanda/redpanda -n redpanda --create-namespace \
 
 
 
+
+---
+
 ## Helm cleanup
 
 ```
