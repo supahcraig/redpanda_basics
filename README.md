@@ -76,9 +76,13 @@ export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 ```
 
 ```
-ansible-playbook --private-key ~/pem/cnelson-kp.pem -i hosts.ini -v ansible/playbooks/provision-node.yml
+ansible-playbook --private-key ~/pem/cnelson-kp.pem \
+  -i hosts.ini \
+  -e advertise_public_ips=true \
+  -v ansible/playbooks/provision-node.yml
 ```
 
+---
 
 ## Terraform Teardown 
 
