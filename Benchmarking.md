@@ -38,6 +38,19 @@ index e762f61..57c4d1d 100644
  
 ```
 
+Then you'll find that SSO doesn't work here, you'll need to export the AWS keys.
+
+If you're missing the cloudalchemy node exporter piece, you probably missed the `ansible-galaxy install -r requirements.yaml` step.
+
+Then you'll hit this, but I don't know how big a deal it is just yet.
+
+```
+TASK [add the redpanda repo] ************************************************************************************************************************************************************************************
+fatal: [54.203.135.152]: FAILED! => {"changed": false, "msg": "Unsupported parameters for (ansible.legacy.command) module: warn. Supported parameters include: _raw_params, _uses_shell, argv, chdir, creates, executable, removes, stdin, stdin_add_newline, strip_empty_ends."}
+fatal: [35.161.19.42]: FAILED! => {"changed": false, "msg": "Unsupported parameters for (ansible.legacy.command) module: warn. Supported parameters include: _raw_params, _uses_shell, argv, chdir, creates, executable, removes, stdin, stdin_add_newline, strip_empty_ends."}
+fatal: [52.88.133.204]: FAILED! => {"changed": false, "msg": "Unsupported parameters for (ansible.legacy.command) module: warn. Supported parameters include: _raw_params, _uses_shell, argv, chdir, creates, executable, removes, stdin, stdin_add_newline, strip_empty_ends."}
+```
+
 
 
 ---
