@@ -51,6 +51,23 @@ fatal: [35.161.19.42]: FAILED! => {"changed": false, "msg": "Unsupported paramet
 fatal: [52.88.133.204]: FAILED! => {"changed": false, "msg": "Unsupported parameters for (ansible.legacy.command) module: warn. Supported parameters include: _raw_params, _uses_shell, argv, chdir, creates, executable, removes, stdin, stdin_add_newline, strip_empty_ends."}
 ```
 
+If node_exporter gives you fits you can possibly determine if it's an ARM version or x86 version.   To force the arm version, under Install Node exporter add another var.  note also chnaged from cloudalchemy to geerlingguy.node exporter.  Had to add this to the requirements.yaml as well & re-run ansible-galaxy install -r requirements.yaml to pick it uppwd
+
+
+*BASICALLY ANY TIME YOU SEE AN EXCEPTION INVOLVING module: warn YOU'LL NEED TO REMOVE THOSE WARN ENTRIES IN TYE YAML*
+
+```
+# Install the monitoring stack
+- name: Install Node Exporter
+  hosts: redpanda, client
+  roles:
+  - geerlingguy.node_exporter
+  vars:
+  - node_exporter_arch: arm64
+  - node_exporter_enabled_collectors: [ntp]
+  tags:
+    - node_exporter
+```
 
 
 ---
@@ -81,3 +98,25 @@ https://vectorizedio.atlassian.net/wiki/spaces/CS/pages/325025793/Benchmarking+R
 Following those instructions give me this error:
 
 `unable to login into Redpanda Cloud: unable to retrieve a cloud token: invalid_request: Invalid domain 'auth.prd.cloud.redpanda.com' for client_id 'MYag3daT6gtieYkHwiNUmoKtfxRiLSCr'`
+
+
+
+
+---
+
+
+or deploy an ec2 instance with my OMB image in us-west-2
+
+install git?
+
+clone repo
+apply omb.patch
+rename tcampbell to cnelson
+ansible-galaxy install -r requirements.yaml.  >> might need to change this to include geerlingguy.node_exporter instead
+
+mvn clean install -Dlicence.skip=true
+
+terraform init
+terraform apply -auto-approve
+
+ansible-playbook deploy.yaml
