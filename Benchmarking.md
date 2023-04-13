@@ -125,6 +125,15 @@ ansible-playbook deploy.yaml
 
 _then remove references to args: warn_ 
 one may have been in an external file; not one that is part of this repo.   TODO:  need to find that reference and understand if it was a cloudalchemy file or if geerlingguy resolves it.
+ * one warn was found in ~/.ansible/roles/cloudalchemy.grafana/tasks/dashboards.yml
+
+
+Then once the bnechmark completes (or before you even start it) you need to install pip
+`sudo apt install pip`
+or possibly
+`sudo apt-get install python3-pip`
+
+
 
 ---
 
