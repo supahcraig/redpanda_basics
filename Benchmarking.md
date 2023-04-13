@@ -105,7 +105,7 @@ Following those instructions give me this error:
 ---
 
 
-or deploy an ec2 instance with my OMB image in us-west-2
+or deploy an ec2 instance with my OMB image in us-west-2.  My fork of the repo puts it in us-east-2 (ohio).
 
 install git?
 
@@ -119,7 +119,7 @@ ansible-galaxy install -r requirements.yaml.  >> might need to change this to in
 mvn clean install -Dlicence.skip=true
 
 terraform init
-terraform apply -auto-approve
+terraform apply -auto-approve -var="public_key_path=~/.ssh/redpanda_aws.pub"
 
 ansible-playbook deploy.yaml
 
