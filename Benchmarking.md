@@ -124,9 +124,22 @@ terraform apply -auto-approve -var="public_key_path=~/.ssh/redpanda_aws.pub"
 ansible-playbook deploy.yaml
 
 _then remove references to args: warn_ 
-one may have been in an external file; not one that is part of this repo.   TODO:  need to find that reference and understand if it was a cloudalchemy file or if geerlingguy resolves it.
  * one warn was found in ~/.ansible/roles/cloudalchemy.grafana/tasks/dashboards.yml
 
+If running on x86, should just work.  If running on ARM (i.e. your M2 macbook) you'll need to further modify around line ~377 to tell it the required architecture for node_exporter.
+
+```
+# Install the monitoring stack
+- name: Install Node Exporter
+  hosts: redpanda, client
+  roles:
+  - geerlingguy.node_exporter
+  vars:
+  - node_exporter_arch: arm64
+  - node_exporter_enabled_collectors: [ntp]
+  tags:
+    - node_exporter
+```
 
 Then once the bnechmark completes (or before you even start it) you need to install pip
 `sudo apt install pip`
