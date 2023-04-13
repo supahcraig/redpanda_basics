@@ -111,8 +111,9 @@ install git?
 
 clone repo
 apply omb.patch
-rename tcampbell to cnelson
+rename tcampbell to cnelson. (or remove completely?)
 ansible-galaxy install -r requirements.yaml.  >> might need to change this to include geerlingguy.node_exporter instead
+ - also make change on line ~377 of deploy.yaml, change cloudalchemy.node_exporter to geerlingguy.node_exporter
 
 mvn clean install -Dlicence.skip=true
 
@@ -120,3 +121,10 @@ terraform init
 terraform apply -auto-approve
 
 ansible-playbook deploy.yaml
+
+_then remove references to args: warn_ 
+one may have been in an external file; not one that is part of this repo.   TODO:  need to find that reference and understand if it was a cloudalchemy file or if geerlingguy resolves it.
+
+---
+
+
