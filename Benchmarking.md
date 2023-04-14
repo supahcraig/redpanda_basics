@@ -154,6 +154,13 @@ nohup sudo bin/benchmark -d driver-redpanda/redpanda-ack-all-group-linger-10ms.y
      driver-redpanda/deploy/workloads/1-topic-100-partitions-1kb-4-producers-500k-rate.yaml &
 ```
 
+```
+nohup sudo bin/benchmark -d driver-redpanda/redpanda-ack-all-group-linger-1ms.yaml \
+     driver-redpanda/deploy/workloads/1-topic-100-partitions-1kb-4-producers-500k-rate.yaml &
+```
+
+
+
 then you can `tail -f ~/nohup.out` to continue watching the progress and not worry if your terminal window closes.
 
 ---
