@@ -141,12 +141,20 @@ If running on x86, should just work.  If running on ARM (i.e. your M2 macbook) y
     - node_exporter
 ```
 
+
 Then once the bnechmark completes (or before you even start it) you need to install pip
 `sudo apt install pip`
 or possibly
 `sudo apt-get install python3-pip`
 
+To run the benchmark in the backkground:
 
+```
+nohup sudo bin/benchmark -d driver-redpanda/redpanda-ack-all-group-linger-10ms.yaml \
+     driver-redpanda/deploy/workloads/1-topic-100-partitions-1kb-4-producers-500k-rate.yaml &
+```
+
+then you can `tail -f ~/nohup.out` to continue watching the progress and not worry if your terminal window closes.
 
 ---
 
