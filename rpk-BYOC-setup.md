@@ -21,6 +21,10 @@ But you probably don't want to do that every time you run an rpk command.  Inste
 3.  current working directory
 4.  `~/redpanda.yaml` _(this location may not be supported long term, and isn't documented)_
 
+More/better options for using evironment variables and `./config/rpk` are coming soon, per Rogger Vasquez
+
+---
+
 In `redpanda.yaml` you'll only need this section to perform rpk functions.   Much more on `redpanda.yaml` can be found in the docs (https://docs.redpanda.com/docs/reference/node-configuration-sample/)
 
 ```
