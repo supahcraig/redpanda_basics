@@ -10,18 +10,34 @@
 
 ## Go to Grafana
 
-1.  Go to Grafana Cloud from okta
-2.  Find the `Cloud V2 Data Plane` dashboard set
-  * For connectors throughput open `DP - Connectors`
-  * For regular cluster info open `????`
-3.  In the `redpnad id` field near the top of the dashboard, enter in your Cluster ID.  It should do a context search as you type so you probably only need to know the first 4 or 5 characters.
+Go to Grafana Cloud from okta
+
+
+### Overall Cluster Usage
+
+You will want to use this dashboard:   https://grafana.com/grafana/dashboards/18135-redpanda-ops-dashboard/
+
+I created a new folder called `cnelson` and uploaded the json dashboard definition, but it may already exist in our Grafana.
+
+* *Data Source* = `metrics-cloud-prod-v2` (but `Prometheus` also seems to produce the same result)
+* Add a new filter for `redpanda_id` and paste in your Cluster ID
+
+
+### Connector Usage
+
+
+Find the `Cloud V2 Data Plane` dashboard set
+For connectors throughput open `DP - Connectors`
+
+* Set the `redpanda id` field near the top of the dashboardto be your Cluster ID.  It should do a context search as you type so you probably only need to know the first 4 or 5 characters.
+
 
 
 ## Getting the info you need
 
 Lots of good info in here, but you're probably here to establish pricing, so you'll want to look at Bytes In (or out) and Connector Tasks.  Be sure to look at a wide enough time window to get a good feel for overall usage & trends.
 
-
+Lots to learn & understand in this one dashboard.   Have fun.
 
 
 
