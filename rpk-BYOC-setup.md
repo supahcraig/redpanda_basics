@@ -1,5 +1,8 @@
 # Allowing rpk to talk to remote cluster
 
+
+## Public BYOC
+
 Assuming you have rpk installed on your local machine, you may want to use rpk to talk to your remote BYOC cluster.   The brute force way is to issue all the flags on the command line, like this:
 
 `export REDPANDA_BROKERS="blahblahblah.byoc.prd.cloud.redpanda.com:9092"`
@@ -42,4 +45,32 @@ rpk:
             type: SCRAM-SHA-256
 ```
 
+## Dedicated
+
+The new UI gives you a bunch of info in the overview tab to assist with connectivity, something like this:
+
+```
+#! /bin/bash
+
+export REDPANDA_BROKERS="seed-dad5439f.chmgsjucbu54mmg3oiag.fmc.prd.cloud.redpanda.com:9092"
+export REDPANDA_SASL_MECHANISM="SCRAM-SHA-256"
+export REDPANDA_SASL_USERNAME=""
+export REDPANDA_SASL_PASSWORD=""
+```
+
+You'll have to replace some of the stuff with your own values that you set when create a user (and set ACLs).   I find that it is easiest to build it into a shell script, `chmod +x` it and then run it.   Easier to edit the values, etc.  YMMV.
+
+### Public
+
+You can communicate over the internet to get to the Redpanda endpoint. 
+
+### Private
+
+if your cluster is private, you'll have to peer the VPC's....you made sure your dedicated cluster's CIDR range didn't overlap the VPC you want to peer to, right?
+
+### How to test
+
+`rpk topic list --tls-enabled`
+
+That should show you some topics.  
 
