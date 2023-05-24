@@ -68,6 +68,10 @@ You can communicate over the internet to get to the Redpanda endpoint.
 
 if your cluster is private, you'll have to peer the VPC's....you made sure your dedicated cluster's CIDR range didn't overlap the VPC you want to peer to, right?
 
+Peering in AWS:
+https://docs.google.com/document/d/1mzW8TAybGnf-byENPRmoM1qy9f3vXgYDPNzsAYjKZHY/edit#
+
+
 ### How to test
 
 `rpk topic list --tls-enabled`
