@@ -54,14 +54,13 @@ aws ec2 --region [YOUR REGION HERE] create-route
 ```
 aws ec2 --region us-east-2 create-route \
   --route-table-id rtb-0824c64ee02a047db \
-  --destination-cidr-block 10.51.0.0/16 \
+  --destination-cidr-block 10.100.0.0/16 \
   --vpc-peering-connection-id pcx-02efc8ef678823dfa
 
 aws ec2 --region us-east-2 create-route \
   --route-table-id rtb-07d2ab45534ce527b \
-  --destination-cidr-block 10.100.0.0/16 \
+  --destination-cidr-block 10.51.0.0/16 \
   --vpc-peering-connection-id pcx-02efc8ef678823dfa
-
 ```
 
 
