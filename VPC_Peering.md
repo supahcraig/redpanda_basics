@@ -64,4 +64,33 @@ aws ec2 --region us-east-2 create-route \
 ```
 
 
+## Troubleshooting / minimal subnet route table requirements
+
+REMOVED PEERING ROUTE >>> ??? subnet-058ffbda69edbbef5 // rtb-0824c64ee02a047db
+>>> ??? subnet-089031bd1f94575d1 // rtb-04fb798e924360dc7 , load balancer on this subnet
+REMOVED PEERING ROUTE >>> ???subnet-0118d62d0bc968f01 // rtb-0824c64ee02a047db
+REMOVED PEERING ROUTE >>> t3.micro? subnet-0ad0dfca492450769 // rtb-0824c64ee02a047db
+>>> brokers: subnet-0e7a36e44b4c53c8c // rtb-0de87b21dd0815162 , load balancer on this subnet
+>>> load balancer: subnet-03b9bd0ddf40f2cdb // rtb-00bc8fbdb038a320f , load balancer on this subnet
+>>> postgres: subnet-0d2967ab2b198b362
+
+* brokers
+subnet-0e7a36e44b4c53c8c
+
+* admin
+
+
+* connect
+
+
+1.  Get your Redpanda VPC ID
+2.  Find the subnets attached to the load balancer
+3.  Find the route tables attached to those subnets
+
+
+
+To list the subnets attached to the load balancer:
+
+`aws elbv2 describe-load-balancers | jq '.LoadBalancers[] | select(.VpcId == "vpc-0f5280796c8593a07") | .AvailabilityZones[].SubnetId'`
+
 
