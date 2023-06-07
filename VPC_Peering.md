@@ -37,32 +37,7 @@ Anything that needs to talk to Redpanda will need to be in the VPC that you just
 
 
 
-Boilerplate:
-```
-aws ec2 --region [YOUR REGION HERE] create-route
-  --route-table-id [YOUR REDPANDA ROUTE TABLE ID HERE]
-  --destination-cidr-block [YOUR REDPANDA CIDR RANGE]
-  --vpc-peering-connection-id [YOUR PEERING CONNECTION ID HERE]
-
-aws ec2 --region [YOUR REGION HERE] create-route
-  --route-table-id [YOUR AWS ROUTE TABLE ID HERE]
-  --destination-cidr-block [YOUR AWS CIDR BLOCK HERE]
-  --vpc-peering-connection-id [YOUR PEERING CONNECTION ID HERE]
-
-```
-
-```
-aws ec2 --region us-east-2 create-route \
-  --route-table-id rtb-0824c64ee02a047db \
-  --destination-cidr-block 10.100.0.0/16 \
-  --vpc-peering-connection-id pcx-0cbb3094774216d5c
-
-aws ec2 --region us-east-2 create-route \
-  --route-table-id rtb-07d2ab45534ce527b \
-  --destination-cidr-block 10.51.0.0/16 \
-  --vpc-peering-connection-id pcx-0cbb3094774216d5c
-```
-
+ 
 
 ## Troubleshooting / minimal subnet route table requirements
 
@@ -84,13 +59,72 @@ subnet-0e7a36e44b4c53c8c
 
 
 1.  Get your Redpanda VPC ID
-2.  Find the subnets attached to the load balancer
-3.  Find the route tables attached to those subnets
+  * Find the cluster ID from the Redpanda UI   
+3.  Find the subnets attached to the load balancer
+4.  Find the route tables attached to those subnets
 
 
+### Find your Redpanda VPC ID:
 
-To list the subnets attached to the load balancer:
+`aws ec2 describe-vpcs | jq '.Vpcs[] | select(.Tags[].Value | endswith("[YOUR_CLUSTER_ID]")) | .VpcId'`
 
-`aws elbv2 describe-load-balancers | jq '.LoadBalancers[] | select(.VpcId == "vpc-0f5280796c8593a07") | .AvailabilityZones[].SubnetId'`
+or this, same thing only different:
+
+`aws ec2 describe-vpcs --filters "Name=tag:Name,Values=network-[YOUR CLUSTER ID]"`
+
+### List the subnets attached to the load balancer
+
+it will return a list of subnets:
+
+`aws elbv2 describe-load-balancers | jq '.LoadBalancers[] | select(.VpcId == "[YOUR_VPC_ID]") | .AvailabilityZones[].SubnetId'`
 
 
+### Find the Route Table for the Subnets 
+
+For each subnet returned, run this to identify the route table associated to the subnet:
+
+`aws ec2 describe-route-tables | jq '.RouteTables[] | select(.Associations[].SubnetId == "[YOUR_SUBNET_ID]") | .Associations[].RouteTableId'`
+
+
+### Create the Routes
+
+You'll need to run this for each route table that needs a route....could be multiples depending on your topology.
+
+```
+aws ec2 --region [YOUR REGION HERE] create-route
+  --route-table-id [YOUR REDPANDA ROUTE TABLE ID HERE]
+  --destination-cidr-block [YOUR REDPANDA CIDR RANGE]
+  --vpc-peering-connection-id [YOUR PEERING CONNECTION ID HERE]
+
+aws ec2 --region [YOUR REGION HERE] create-route
+  --route-table-id [YOUR AWS ROUTE TABLE ID HERE]
+  --destination-cidr-block [YOUR AWS CIDR BLOCK HERE]
+  --vpc-peering-connection-id [YOUR PEERING CONNECTION ID HERE]
+```
+
+This way will take your through the VPC to the load balancer, to the subnets, to the route tables.
+
+```
+aws ec2 describe-vpcs --filters "Name=tag:Name,Values=network-[YOUR CLUSTER ID]" | \
+jq -r '.Vpcs[].VpcId' | \
+while read -r vpc_id; do \
+  aws elbv2 describe-load-balancers | \
+  jq -r --arg vpc_id "$vpc_id" '.LoadBalancers[] | select(.VpcId == $vpc_id) | .AvailabilityZones[].SubnetId' | \
+  while read -r subnet_id; do \
+    aws ec2 describe-route-tables --filters Name=association.subnet-id,Values=$subnet_id | \
+    jq -r '.RouteTables[].RouteTableId' | \
+    xargs -I {} aws ec2 create-route --route-table-id {} --destination-cidr-block [YOUR CIDR BLOCK] --vpc-peering-connection-id [YOUR PEERING CONNECTION ID]; \
+  done; \
+done
+```
+
+This way leverages the tags "purpose=private" which exist on the minimal set of route tables, which is a much more direct approach to finding the correct route tables.
+
+```
+aws ec2 describe-route-tables --filter "Name=tag:Name,Values=network-[REDPANDA CLUSTER ID]" "Name=tag:purpose,Values=private" | jq -r '.RouteTables[].RouteTableId' | \
+while read -r route_table_id; do \
+  aws ec2 create-route --route-table-id $route_table_id --destination-cidr-block [YOUR CIDR BLOCK] --vpc-peering-connection-id [YOUR PEERING CONNECTION ID]; \
+done;
+```
+
+ 
