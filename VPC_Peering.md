@@ -120,11 +120,30 @@ done
 
 This way leverages the tags "purpose=private" which exist on the minimal set of route tables, which is a much more direct approach to finding the correct route tables.
 
+
+_change these as per your specifics_
+
 ```
-aws ec2 describe-route-tables --filter "Name=tag:Name,Values=network-[REDPANDA CLUSTER ID]" "Name=tag:purpose,Values=private" | jq -r '.RouteTables[].RouteTableId' | \
+export REDPANDA_CLUSTER_ID=chuv0rm8mbdudchrjt4g
+export CIDR_BLOCK=10.100.0.0/16
+export PEERING_CONNECTION_ID=pcx-05c44950efc14c302
+```
+
+```
+aws ec2 describe-route-tables --filter "Name=tag:Name,Values=network-${REDPANDA_CLUSTER_ID}" "Name=tag:purpose,Values=private" | jq -r '.RouteTables[].RouteTableId' | \
 while read -r route_table_id; do \
-  aws ec2 create-route --route-table-id $route_table_id --destination-cidr-block [YOUR CIDR BLOCK] --vpc-peering-connection-id [YOUR PEERING CONNECTION ID]; \
+  aws ec2 create-route --route-table-id $route_table_id --destination-cidr-block ${CIDR_BLOCK} --vpc-peering-connection-id ${PEERING_CONNECTION_ID}; \
 done;
 ```
+
+## Removing Peered Routes
+
+```
+aws ec2 describe-route-tables --filter "Name=tag:Name,Values=network-${REDPANDA_CLUSTER_ID}" "Name=tag:purpose,Values=private" | jq -r '.RouteTables[].RouteTableId' | \
+while read -r route_table_id; do \
+  aws ec2 delete-route --route-table-id $route_table_id --destination-cidr-block ${CIDR_BLOCK};\
+done;
+```
+
 
  
