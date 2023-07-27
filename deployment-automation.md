@@ -8,7 +8,10 @@ https://github.com/redpanda-data/deployment-automation
 Basically git clone the repo & navigate to the `aws` folder then do a `terraform init`
 
 `cd deployment-automation`
+
 `terraform init`
+
+`cd aws`
 
 To create the resources you'll do a terraform apply, but it requires a public key.  I had already created a keypair (pem file) but that is the private key.  To create public key from the private key:
 
