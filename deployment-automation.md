@@ -23,7 +23,11 @@ Then your terraform apply command can reference it:
 terraform init
 ```
 
-then....
+then actually log in to AWS...
+
+`aws sso login`
+
+Then actually start terraforming...
 
 ```
 terraform apply -var="public_key_path=~/pem/public.cnelson-kp.pub" -var="aws_region=us-east-2"
