@@ -49,7 +49,7 @@ export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 ansible-playbook --private-key ~/pem/cnelson-kp.pem \
   -i hosts.ini \
   -e advertise_public_ips=true \
-  -v ansible/playbooks/provision-node.yml
+  -v ../ansible/playbooks/provision-node.yml
 ```
 
 ---
@@ -67,4 +67,12 @@ terraform destroy -var="public_key_path=~/pem/public.cnelson-kp.pub" -var="aws_r
 # New Issues
 
 * it puked on the AZ of `us-west-2a`, likely because I specified `us-east-2` as the region.   Need to try this again specifying the AZ on the terraform apply command.   Interim fix was to edit `main.tf` to reflect an east-2 AZ.
-* 
+* ansible playbook change:
+
+```
+ansible-playbook --private-key ~/pem/cnelson-kp.pem \
+  -i hosts.ini \
+  -e advertise_public_ips=true \
+  -v ../ansible/playbooks/provision-tiered-storage-cluster.yml
+```
+....which still didnt' work.
