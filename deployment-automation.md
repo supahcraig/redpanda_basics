@@ -71,8 +71,36 @@ terraform destroy -var="public_key_path=~/pem/public.cnelson-kp.pub" -var="aws_r
 
 ```
 ansible-playbook --private-key ~/pem/cnelson-kp.pem \
-  -i hosts.ini \
+  -i ./aws/hosts.ini \
   -e advertise_public_ips=true \
-  -v ../ansible/playbooks/provision-tiered-storage-cluster.yml
+  -v ansible/provision-tiered-storage-cluster.yml
 ```
-....which still didnt' work.
+....which still didnt' work.   `--fork 1` may be necessary for SSH strict checking
+
+
+so basically nothing of the ansible instructions I wrote above still works.    I really need to run through this stuff weekly because it appears to be rapidly changing and quite fragile.
+
+New instructions are essentially to follow the actual repo instructions, but this is the distilled version:
+
+From the repo root folder
+
+```
+export ANSIBLE_COLLECTIONS_PATHS=${PWD}/artifacts/collections
+export ANSIBLE_ROLES_PATH=${PWD}/artifacts/roles
+```
+
+then do an ansible deploy
+
+```
+ansible-playbook --private-key ~/pem/cnelson-kp.pem \
+  -i ./aws/hosts.ini \
+  -e advertise_public_ips=true \
+  -v ansible/provision-tiered-storage-cluster.yml
+```
+
+Sample commands need a whole lot of TLS help:
+
+```
+rpk cluster status --tls-key ansible/tls/ca/ca.key --tls-cert ansible/tls/ca/ca.crt --tls-truststore ansible/tls/ca/ca.crt
+```
+
