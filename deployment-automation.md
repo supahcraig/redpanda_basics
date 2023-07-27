@@ -140,3 +140,8 @@ and then test with something simple:
 `rpk cluster status`
 
 `rpk topic list`
+
+
+```
+rpk cluster config edit --tls-key ansible/tls/ca/ca.key --tls-cert ansible/tls/ca/ca.crt --tls-truststore ansible/tls/ca/ca.crt
+```
