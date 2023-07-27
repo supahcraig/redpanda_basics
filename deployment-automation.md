@@ -104,3 +104,39 @@ Sample commands need a whole lot of TLS help:
 rpk cluster status --tls-key ansible/tls/ca/ca.key --tls-cert ansible/tls/ca/ca.crt --tls-truststore ansible/tls/ca/ca.crt
 ```
 
+but you probably don't want to type all that every time, so create a file called `redpanda.yaml` in your working directory.   You will set the brokers to the IP's of your brokers, obviously
+
+This blog post may help:  https://redpanda.com/blog/tls-config
+
+```
+rpk:
+
+  kafka_api:
+    brokers:
+    - 3.144.124.82:9092
+    - 18.217.34.238:9092
+    - 3.133.120.186:9092
+
+    tls:
+      key_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.key
+      cert_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.crt
+      truststore_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.crt
+
+  admin_api:
+    brokers:
+    - 3.144.124.82:9644
+    - 18.217.34.238:9644
+    - 3.133.120.186:9644
+
+    tls:
+      key_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.key
+      cert_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.crt
+      truststore_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.crt
+```
+
+
+and then test with something simple:
+
+`rpk cluster status`
+
+`rpk topic list`
