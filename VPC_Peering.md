@@ -124,13 +124,14 @@ This way leverages the tags "purpose=private" which exist on the minimal set of 
 _change these as per your specifics_
 
 ```
-export REDPANDA_CLUSTER_ID=chuv0rm8mbdudchrjt4g
+export REDPANDA_CLUSTER_ID=civuvvn09u988pmsfpc0
+export REDPANDA_NETWORK_ID=civuvvf09u988pmsfpag
 export CIDR_BLOCK=10.100.0.0/16
-export PEERING_CONNECTION_ID=pcx-05c44950efc14c302
+export PEERING_CONNECTION_ID=pcx-014337d1f083602d0
 ```
 
 ```
-aws ec2 describe-route-tables --filter "Name=tag:Name,Values=network-${REDPANDA_CLUSTER_ID}" "Name=tag:purpose,Values=private" | jq -r '.RouteTables[].RouteTableId' | \
+aws ec2 describe-route-tables --filter "Name=tag:Name,Values=network-${REDPANDA_NETWORK_ID}" "Name=tag:purpose,Values=private" | jq -r '.RouteTables[].RouteTableId' | \
 while read -r route_table_id; do \
   aws ec2 create-route --route-table-id $route_table_id --destination-cidr-block ${CIDR_BLOCK} --vpc-peering-connection-id ${PEERING_CONNECTION_ID}; \
 done;
@@ -139,11 +140,17 @@ done;
 ## Removing Peered Routes
 
 ```
-aws ec2 describe-route-tables --filter "Name=tag:Name,Values=network-${REDPANDA_CLUSTER_ID}" "Name=tag:purpose,Values=private" | jq -r '.RouteTables[].RouteTableId' | \
+aws ec2 describe-route-tables --filter "Name=tag:Name,Values=network-${REDPANDA_NETWORK_ID}" "Name=tag:purpose,Values=private" | jq -r '.RouteTables[].RouteTableId' | \
 while read -r route_table_id; do \
   aws ec2 delete-route --route-table-id $route_table_id --destination-cidr-block ${CIDR_BLOCK};\
 done;
 ```
 
 
+
+
+aws ec2 --region us-east-2 create-route \
+--route-table-id rtb-07d2ab45534ce527b \
+--destination-cidr-block 10.49.0.0/16 \
+--vpc-peering-connection-id pcx-07fe9eb5f580b7626 
  
