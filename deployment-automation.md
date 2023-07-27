@@ -59,3 +59,12 @@ ansible-playbook --private-key ~/pem/cnelson-kp.pem \
 ```
 terraform destroy -var="public_key_path=~/pem/public.cnelson-kp.pub" -var="aws_region=us-east-2"
 ```
+
+
+---
+
+
+# New Issues
+
+* it puked on the AZ of `us-west-2a`, likely because I specified `us-east-2` as the region.   Need to try this again specifying the AZ on the terraform apply command.   Interim fix was to edit `main.tf` to reflect an east-2 AZ.
+* 
