@@ -122,3 +122,23 @@ Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]:
 Jul 28 14:40:02 ip-172-31-2-198 rpk[6427]: INFO  2023-07-28 14:40:02,598 [shard 1] archival - scrubber.cc:350 - Running with 4 quota, 0 topic lifecycle markers
 ```
 
+Also looking at the topic itself can show you if it is doing any cloud-related stuff:
+
+`rpk topic describe-storage ts` (ts is my tiered storage topic)
+
+```
+SUMMARY
+=======
+NAME                ts
+PARTITIONS          1
+REPLICAS            1
+CLOUD-STORAGE-MODE  full
+LAST-UPLOAD         1120
+
+SIZE
+====
+PARTITION  CLOUD-BYTES  LOCAL-BYTES  TOTAL-BYTES  CLOUD-SEGMENTS  LOCAL-SEGMENTS
+0          5661         5937         5661         0               6
+```
+
+The CLOUD-BYTES will be 0 until it starts pushing to tiered storage.   TODO:  understand what CLOUD-SEGMENTS means and why it is zero even though data has been written to the bucket.
