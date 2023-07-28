@@ -63,13 +63,17 @@ From a remote machine (where you have already established you can connect into v
 
 `rpk cluster config edit`
 
-And set these properties:
+### Using rpk cluster config edit
+
+And set these properties using `rpk cluster config edit --all`  (`--all` is needed to ensure all the paramters are returned)
 
 ```
 cloud_storage_enabled: true
 cloud_storage_credentials_source: aws_instance_metadata
 cloud_storage_region: us-east-2
 cloud_storage_bucket: craignelson7007-tieredstorage
+cloud_storage_enable_remote_write true
+cloud_storage_enable_remote_read true
 ```
 
 The doc then says you need to set two other properties but (a) they aren't always returned by the cluster config edit command and (b) you can use the get/set function to maybe do it a little easier.   It might be easier to use the get/set for the above parameters too.
@@ -79,12 +83,18 @@ To make those properties show up in the cluster config edit:
 `rpk cluster config edit --all`
 
 
-To use the get/set method:
+### Using the get/set method:
 
 ```
+rpk cluster config set cloud_storage_enabled: true
+rpk cluster config set cloud_storage_credentials_source: aws_instance_metadata
+rpk cluster config set cloud_storage_region: us-east-2
+rpk cluster config set cloud_storage_bucket: craignelson7007-tieredstorage
 rpk cluster config set cloud_storage_enable_remote_write true
 rpk cluster config set cloud_storage_enable_remote_read true
 ```
+
+---
 
 ## IAM Policy
 
