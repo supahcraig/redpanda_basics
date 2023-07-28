@@ -72,7 +72,7 @@ cloud_storage_region: us-east-2
 cloud_storage_bucket: craignelson7007-tieredstorage
 ```
 
-The doc then says you need to set two other properties but (a) they aren't always returned by the cluster config edit command and (b) you can use the get/set function to maybe do it a little easier.
+The doc then says you need to set two other properties but (a) they aren't always returned by the cluster config edit command and (b) you can use the get/set function to maybe do it a little easier.   It might be easier to use the get/set for the above parameters too.
 
 To make those properties show up in the cluster config edit:
 
@@ -86,5 +86,39 @@ rpk cluster config set cloud_storage_enable_remote_write true
 rpk cluster config set cloud_storage_enable_remote_read true
 ```
 
+## IAM Policy
 
+We have example policies in our docs, but the basic steps are:
+
+1.  Create IAM policy granting privs to the bucket
+2.  Create an IAM role & attach that policy
+3.  Add that IAM role to each broker
+
+Initially I had public access turned on for the bucket, but I turned it back off and I think it's still working.
+
+
+## Errors
+
+I missed capturing the error message, but it was essentially a curl response with a 404
+
+
+## Sucess
+
+You should see messages like this in the logs (`sudo journalctl -f -u redpanda`)
+
+```
+Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]: TRACE 2023-07-28 14:40:01,752 [shard 6] s3 - s3_client.cc:652 - send https request:
+Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]: PUT /e0000000/meta/kafka/ts/0_53/manifest.bin HTTP/1.1
+Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]: User-Agent: redpanda.vectorized.io
+Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]: Host: craignelson7007-tieredstorage.s3.us-east-2.amazonaws.com
+Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]: Content-Type: text/plain
+Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]: Content-Length: 2341
+Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]: x-amz-tagging: rp-type=partition-manifest&rp-ns=kafka&rp-topic=ts&rp-part=0&rp-rev=53
+Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]: x-amz-date: 20230728T144001Z
+Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]: x-amz-content-sha256: [secret]
+Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]: x-amz-security-token: [secret]
+Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]: Authorization: [secret]
+Jul 28 14:40:01 ip-172-31-2-198 rpk[6427]:
+Jul 28 14:40:02 ip-172-31-2-198 rpk[6427]: INFO  2023-07-28 14:40:02,598 [shard 1] archival - scrubber.cc:350 - Running with 4 quota, 0 topic lifecycle markers
+```
 
