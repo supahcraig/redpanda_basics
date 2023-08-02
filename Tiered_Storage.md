@@ -6,6 +6,10 @@ Following this doc, for the most part:
 
 https://docs.redpanda.com/docs/manage/tiered-storage/#enable-tiered-storage-for-a-cluster
 
+
+This doc is aimed at configuring tiered storage on a self-hosted cluster.   For BYOC, tiered storage is enabled & configured out of the box.   You probalby don't want to mess with it, but pure curiosity will make you want to look at it.   The bucket name will be of the form `redpanda-cloud-storage-<REDPANDA CLUSTER ID>`
+
+
 ## License
 
 go to license.redpanda.com, then apply it:
@@ -54,6 +58,13 @@ rpk:
       cert_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.crt
       truststore_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.crt
 ```
+
+*Quick Note on `redpanda.yaml`*:
+There will be a `redpanda.yaml` on each broker, but you can also have one on your client machine.   The easiest place to put it is in your working directory, but `/etc/redpanda/redpanda.yaml` is another valid location.   
+
+TODO:  link to redpanda.yaml doc and/or relevant repo page
+
+
 
 ---
 
