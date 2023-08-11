@@ -227,6 +227,8 @@ To allow TLS when using `rpk`, you'll need to add a `tls` section under `rpk/kaf
 
 It is important to note that the `rpk` section of `redpanda.yaml` applies to the machine that it is running on.   So if you use `rpk` from one of the brokers, you would add it to `/etc/redpanda/redpanda.yaml` but if you were running `rpk` on your local machine you would need to add it to your `rpk` profile or however you're running your local `rpk` config.
 
+Lastly, to use TLS with `rpk` remotely, you will need to have the truststore (that is, `ca.crt`) there as well.
+
 ```
 rpk:
     kafka_api:
