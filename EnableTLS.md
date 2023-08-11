@@ -240,3 +240,16 @@ rpk:
         #key_file: /etc/redpanda/certs/broker.key
         truststore_file: /etc/redpanda/certs/ca.crt
 ```
+
+
+## Or manually on the command line
+
+You might not want to mess with editing your `redpanda.yaml` when using `rpk`, so you can add these configurations via the CLI:
+
+`rpk cluster info --brokers 3.15.15.173:9092 --tls-enabled --tls-truststore /path/to/ca.crt`
+
+Here I've used my broker's public IP, which is allowed because it was included in the `broker.cnf` when the certs were generated.  If that IP address had not been included at that time you would see this error:
+
+```
+
+```
