@@ -125,7 +125,9 @@ touch index.txt
 echo '01' > serial.txt
 openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch
 
-chown redpanda:redpanda *
+chown redpanda:redpanda ca.key
+chown redpanda:redpanda ca.crt
+chown redpanda:redpanda broker.crt
 ```
 
 _TODO:  is the `chmod 400` neccesary?_
@@ -133,6 +135,14 @@ _TODO:  is the `chmod 400` neccesary?_
 ---
 
 ### Breaking down the steps in the script
+
+These steps can be run from anywhere.   There are several ancillary output files that can be removed later, but the three important ones are:
+* `ca.crt`
+* `ca.key`
+* `broker.crt`
+
+These will need to be owned & accessible by redpanda.  The standard location for these is `/etc/redpanda/certs/` but you will specify this location in your `redpanda.yaml` (unless you want to specify it for every `rpk` command on the CLI).
+
 
 **1.  Generating the certificate authority private key**
 
@@ -176,7 +186,7 @@ I mean, I understand what in the unix this is doing, but I have no idea why it's
 
 `openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch`
 
-This will sign the broker cert signing request (`broker.csr`) using the CA certficate (`ca.crt`) and apparently the CA private key (`ca.key`), the output will by the signed broker cert (`broker.crt`)
+This will sign the broker cert signing request (`broker.csr`) using the CA certficate (`ca.crt`) and apparently the CA private key (`ca.key`), the output will by the signed broker cert (`broker.crt`) into the current directory.
 
 _TODO:  determine what of these options is not actually required, i.e. `ca.cnf` and/or `ca.key`
 
@@ -189,4 +199,42 @@ chown redpanda:redpanda ca.crt
 chown redpanda:redpanda broker.crt
 ```
 
+---
 
+## Conifguring `redpanda.yaml`
+
+In order for redpanda to use TLS it must be configured to use TLS for various services.   More docs (which may or may not be helpful) on configuration options in `redpanda.yaml` can be found here:  https://docs.redpanda.com/docs/reference/node-configuration-sample/
+
+### Redpanda
+
+To allow TLS on the kafka api, you'll need to add a `kafka_api_tls` section under `redpanda`, where the path to the certs corresponds to the final resting place of the certs you created above.   Most commonly this is `/etc/redpanda/certs/`
+
+```
+    kafka_api_tls:
+        enabled: true
+        requrie_client_auth: false
+        cert_file: /etc/redpanda/certs/broker.crt
+        key_file: /etc/redpanda/certs/broker.key
+        truststore_file: /etc/redpanda/certs/ca.crt
+```
+
+
+
+
+### rpk
+
+To allow TLS when using `rpk`, you'll need to add a `tls` section under `rpk/kafka_api`,  where the path to the certs corresponds to the final resting place of the certs you created above.   Again, this is most commonly this is `/etc/redpanda/certs/`.  Your `rpk` section may not look exactly like this, the important part for TLS is that the `tls:` section is under `kafka_api:`, which itself is under `rpk:`
+
+It is important to note that the `rpk` section of `redpanda.yaml` applies to the machine that it is running on.   So if you use `rpk` from one of the brokers, you would add it to `/etc/redpanda/redpanda.yaml` but if you were running `rpk` on your local machine you would need to add it to your `rpk` profile or however you're running your local `rpk` config.
+
+```
+rpk:
+    kafka_api:
+      brokers:
+      - 10.100.8.26
+      tls:
+        enabled: true
+        #cert_file: /etc/redpanda/certs/broker.crt
+        #key_file: /etc/redpanda/certs/broker.key
+        truststore_file: /etc/redpanda/certs/ca.crt
+```
