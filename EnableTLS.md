@@ -49,6 +49,7 @@ keyUsage = critical,digitalSignature,keyEncipherment
 extendedKeyUsage = clientAuth
 ```
 
+
 ### Broker Config
 
 This will need to go into a file called `broker.cnf`
@@ -102,7 +103,7 @@ IP.2  = 3.15.15.172
 ```
 
 
-
+---
 
 
 ## Generate & sign the certs
@@ -127,6 +128,10 @@ openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -i
 chown redpanda:redpanda *
 ```
 
+_TODO:  is the `chmod 400` neccesary?_
+
+---
+
 ### Breaking down the steps in the script
 
 **1.  Generating the certificate authority private key**
@@ -135,8 +140,53 @@ chown redpanda:redpanda *
 
 This uses openssl to generate a private key, which will be the private key for our CA.
 
-**2.  Self signing the root certificate
+
+**2.  Self signing the root certificate**
 
 `openssl req -new -x509 -config ca.cnf -key ca.key -days 365 -batch -out ca.crt`
 
-Here we are creating a root certificate that validates itself.   Any certs which are later signed by this will be valid.  
+Here we are creating a root certificate that validates itself.   Any certs which are later signed by this will be valid.   
+
+
+**3.  Generate your broker private key**
+
+`openssl genrsa -out broker.key 2048`
+
+This uses openssl to generate a private key which your brokers will use.  You will use this one key for ALL your brokers.
+
+
+**4.  Generate the private broker certificate (csr)**
+
+`openssl req -new -key broker.key -out broker.csr -nodes -config broker.cnf`
+
+This generates a certificate signing request (which is really just an unsigned cert) for your broker.
+
+
+**5.  Pure black magic**
+
+```
+touch index.txt
+echo '01' > serial.txt
+```
+
+I mean, I understand what in the unix this is doing, but I have no idea why it's important.  These files have something to do with a sort of database which is referred to in the `ca.cnf`
+
+
+**6.  Have the CA sign the broker cert**
+
+`openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch`
+
+This will sign the broker cert signing request (`broker.csr`) using the CA certficate (`ca.crt`) and apparently the CA private key (`ca.key`), the output will by the signed broker cert (`broker.crt`)
+
+_TODO:  determine what of these options is not actually required, i.e. `ca.cnf` and/or `ca.key`
+
+
+**7.  Make redpanda the owner of the certs & keys
+
+```
+chown redpanda:redpanda ca.key
+chown redpanda:redpanda ca.crt
+chown redpanda:redpanda broker.crt
+```
+
+
