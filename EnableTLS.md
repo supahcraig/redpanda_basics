@@ -251,5 +251,47 @@ You might not want to mess with editing your `redpanda.yaml` when using `rpk`, s
 Here I've used my broker's public IP, which is allowed because it was included in the `broker.cnf` when the certs were generated.  If that IP address had not been included at that time you would see this error:
 
 ```
+unable to request metadata: unable to dial: tls: failed to verify certificate: x509: certificate is valid for 10.100.8.26, not 3.15.15.172
+```
 
+---
+
+# Troubleshooting
+
+
+## Invalid large response 
+
+```
+unable to request metadata: invalid large response size 352518912 > limit 104857600; the first three bytes received appear to be a tls alert record for TLS v1.2; is this a plaintext connection speaking to a tls endpoint?
+```
+
+This is usually indicative of having not enabled TLS for `rpk`.   Add `enabled: true` to the `tls:` section under `rpk:` in your `redpanda.yaml`, OR add `--tls-enabled` to your `rpk` CLI call.
+
+
+## Certificate is not trusted
+
+```
+unable to request metadata: unable to dial: tls: failed to verify certificate: x509: “Redpanda” certificate is not trusted
+```
+
+This is usually because `rpk` isn't looking at the truststore.   Add `truststore_file: /path/to/ca.crt` to the `tls:` section under `rpk:` in your `redpanda.yaml`, OR add `--tls-truststore /path/to/ca.crt` to your `rpk` CLI call.
+
+
+## Valid for [IP/host], not valid for [IP/host]
+
+```
+unable to request metadata: unable to dial: tls: failed to verify certificate: x509: certificate is valid for 10.100.8.26, not 3.15.15.172
+```
+
+This is usually because your `rpk` call is specifiying a broker address that was not part of the `broker.cnf` when the certificates were created & signed.   To resolve this, add the IP address (or DNS name) to the `[ alt_names ]` section of `broker.cnf` 
+
+```
+[ alt_names ]
+DNS.1 = localhost
+DNS.2 = redpanda
+DNS.3 = console
+DNS.4 = connect
+DNS.5 = ec2-3-15-15-172.us-east-2.compute.amazonaws.com
+IP.1  = 10.100.8.26
+IP.2  = 3.15.15.172
 ```
