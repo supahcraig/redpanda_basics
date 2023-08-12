@@ -1,0 +1,92 @@
+cluster_id: redpanda
+organization: redpanda-test
+pandaproxy: {}
+redpanda:
+    admin:
+    -   address: 172.31.12.236
+        port: '9644'
+    admin_api_tls:
+        cert_file: /etc/redpanda/certs/node.crt
+        enabled: true
+        key_file: /etc/redpanda/certs/node.key
+        require_client_auth: false
+        truststore_file: /etc/redpanda/certs/truststore.pem
+    advertised_kafka_api:
+    -   address: 18.217.34.238
+        port: '9092'
+        name: OUTSIDE
+    -   address: 172.31.12.236
+        port: '19092'
+        name: INSIDE
+    advertised_rpc_api:
+        address: 172.31.12.236
+        port: '33145'
+    data_directory: /var/lib/redpanda/data
+    empty_seed_starts_cluster: false
+    kafka_api:
+    -   address: 172.31.12.236
+        port: '9092'
+        name: OUTSIDE
+    -   address: 172.31.12.236
+        port: '19092'
+        name: INSIDE
+
+    kafka_api_tls:
+    -   name: OUTSIDE
+        cert_file: /etc/redpanda/certs/node.crt
+        enabled: true
+        key_file: /etc/redpanda/certs/node.key
+        require_client_auth: false
+        truststore_file: /etc/redpanda/certs/truststore.pem
+    -   name: INSIDE
+        cert_file: /etc/redpanda/certs/node.crt
+        enabled: true
+        key_file: /etc/redpanda/certs/node.key
+        require_client_auth: false
+        truststore_file: /etc/redpanda/certs/truststore.pem
+    rack: ''
+    rpc_server:
+        address: 172.31.12.236
+        port: '33145'
+    rpc_server_tls:
+        cert_file: /etc/redpanda/certs/node.crt
+        enabled: true
+        key_file: /etc/redpanda/certs/node.key
+        require_client_auth: false
+        truststore_file: /etc/redpanda/certs/truststore.pem
+    seed_servers:
+    -   host:
+            address: 172.31.2.198
+            port: '33145'
+    -   host:
+            address: 172.31.12.236
+            port: '33145'
+    -   host:
+            address: 172.31.8.0
+            port: '33145'
+rpk:
+    admin_api:
+        addresses:
+        - 172.31.12.236:9644
+          #tls:
+          #  truststore_file: /etc/redpanda/certs/truststore.pem
+          #  cert_file: /etc/redpanda/certs/node.crt
+          #  key_file: /etc/redpanda/certs/node.key
+    kafka_api:
+        brokers:
+        - 172.31.12.236:19092
+        tls:
+            truststore_file: /etc/redpanda/certs/truststore.pem
+            cert_file: /etc/redpanda/certs/node.crt
+            key_file: /etc/redpanda/certs/node.key
+    tune_aio_events: true
+    tune_ballast_file: true
+    tune_clocksource: true
+    tune_cpu: true
+    tune_disk_irq: true
+    tune_disk_nomerges: true
+    tune_disk_scheduler: true
+    tune_disk_write_cache: true
+    tune_network: true
+    tune_swappiness: true
+schema_registry: {}
