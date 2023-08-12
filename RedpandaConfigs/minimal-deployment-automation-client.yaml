@@ -1,0 +1,20 @@
+name: metal
+description: deployment-automation
+kafka_api:
+    brokers:
+        - 3.144.124.82:9092
+        - 18.217.34.238:9092
+        - 3.133.120.186:9092
+    tls:
+        key_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.key
+        cert_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.crt
+        ca_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.crt
+admin_api:
+    addresses:
+        - 3.144.124.82:9644
+        - 18.217.34.238:9644
+        - 3.133.120.186:9644
+    tls:
+        key_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.key
+        cert_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.crt
+        ca_file: /Users/cnelson/sandbox/deployment-automation/ansible/tls/ca/ca.crt
