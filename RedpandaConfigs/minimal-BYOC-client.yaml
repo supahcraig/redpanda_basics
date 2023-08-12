@@ -1,0 +1,10 @@
+description: Redpanda Production "craig/teal-desert-horse"
+from_cloud: true
+kafka_api:
+    brokers:
+        - seed-22a26b8c.cj40n82r6237gqb2koog.byoc.prd.cloud.redpanda.com:9092
+    tls: {}
+    sasl:
+        user: cnelson
+        password: test
+        mechanism: SCRAM-SHA-256
