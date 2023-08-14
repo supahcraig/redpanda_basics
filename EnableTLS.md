@@ -295,3 +295,73 @@ DNS.5 = ec2-3-15-15-172.us-east-2.compute.amazonaws.com
 IP.1  = 10.100.8.26
 IP.2  = 3.15.15.172
 ```
+
+
+
+---
+
+## Redpanda doc, distilled & re-sequenced (plus the missing step)
+
+
+```
+openssl genrsa -out ca.key 2048
+chmod 400 ca.key
+openssl req -new -x509 -config ca.cnf -key ca.key -days 365 -batch -out ca.crt
+
+
+### Create a certificate for your broker
+openssl genrsa -out broker.key 2048
+openssl req -new -key broker.key -out broker.csr -nodes -config broker.cnf
+touch index.txt
+echo '01' > serial.txt
+openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch
+```
+
+###Create the ca.cnf
+
+
+###create the ca private key:
+*CONFIRMED*
+
+```
+openssl genrsa -out ca.key 2048
+chmod 400 ca.key
+```
+
+###Create/sign the CA cert:
+*CONFIRMED*
+
+`openssl req -new -x509 -config ca.cnf -key ca.key -days 365 -batch -out ca.crt`
+
+
+###Create the broker.cnf
+
+###create the broker private key:
+*CONFIRMED*
+
+`openssl genrsa -out broker.key 2048`
+
+
+###MISSING: create the broker.csr:
+*CONFIRMED*
+
+`openssl req -new -key broker.key -out broker.csr -nodes -config broker.cnf
+`
+
+###sign the broker cert:
+
+```
+touch index.txt
+echo '01' > serial.txt
+openssl ca -config broker.cnf -keyfile broker.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch
+```
+
+That last line needs to be `openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch`
+_note the difference of using the `ca.cnf` and `ca.key` instead of the broker key & config_
+
+
+###Sign the broker cert:
+
+`openssl x509 -req -signkey ca.key -days 365 -extfile broker.cnf -extensions extensions -in broker.csr -out broker.crt`
+
+
