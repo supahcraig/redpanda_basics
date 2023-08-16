@@ -166,10 +166,11 @@ _TODO:  determine what of these options is not actually required, i.e. `ca.cnf` 
 
 **7.  Make redpanda the owner of the certs & keys
 
+400 permissions isn't strictly necessary, but it is a good practice.
+
 ```
-chown redpanda:redpanda ca.key
-chown redpanda:redpanda ca.crt
-chown redpanda:redpanda broker.crt
+chown redpanda:redpanda broker.key broker.crt ca.crt 
+chmod 400 broker.key broker.crt ca.crt 
 ```
 
 ---
@@ -225,6 +226,49 @@ Here I've used my broker's public IP, which is allowed because it was included i
 
 ```
 unable to request metadata: unable to dial: tls: failed to verify certificate: x509: certificate is valid for 10.100.8.26, not 3.15.15.172
+```
+
+---
+
+## Copying the keys to the other brokers
+
+There is probably a more secure way to do this, such as copying up to s3.
+
+1.  Copy the certs down to your local machine
+   
+```
+scp -i ~/pem/cnelson-kp.pem ubuntu@3.15.15.172:/home/ubuntu/broker.key ./broker.key
+scp -i ~/pem/cnelson-kp.pem ubuntu@3.15.15.172:/home/ubuntu/broker.crt ./broker.crt
+scp -i ~/pem/cnelson-kp.pem ubuntu@3.15.15.172:/home/ubuntu/ca.crt ./ca.crt
+```
+
+2.  Copy the certs back up to the remote machine
+
+```
+scp -i ~/pem/cnelson-kp.pem ./broker.key ubuntu@3.128.255.84:/home/ubuntu/broker.key
+scp -i ~/pem/cnelson-kp.pem ./broker.crt ubuntu@3.128.255.84:/home/ubuntu/broker.crt
+scp -i ~/pem/cnelson-kp.pem ./ca.crt ubuntu@3.128.255.84:/home/ubuntu/ca.crt
+```
+
+```
+scp -i ~/pem/cnelson-kp.pem ./broker.key ubuntu@3.138.101.143:/home/ubuntu/broker.key
+scp -i ~/pem/cnelson-kp.pem ./broker.crt ubuntu@3.138.101.143:/home/ubuntu/broker.crt
+scp -i ~/pem/cnelson-kp.pem ./ca.crt ubuntu@3.138.101.143:/home/ubuntu/ca.crt
+```
+
+
+3.  On each broker, move certs to `/etc/redpanda/certs` + chown/chmod to allow redpanda to read the certs
+
+Run this as sudo
+
+```
+mkdir /etc/redpanda/certs/
+cp /home/ubuntu/broker.key /etc/redpanda/certs/broker.key
+cp /home/ubuntu/broker.crt /etc/redpanda/certs/broker.crt
+cp /home/ubuntu/ca.crt /etc/redpanda/certs/ca.crt
+
+chown redpanda:redpanda /etc/redpanda/certs/broker.key /etc/redpanda/certs/broker.crt /etc/redpanda/certs/ca.crt 
+chmod 400 /etc/redpanda/certs/broker.key /etc/redpanda/certs/broker.crt /etc/redpanda/certs/ca.crt 
 ```
 
 ---
