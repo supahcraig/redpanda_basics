@@ -61,6 +61,8 @@ redpanda:
       keyFilepath: /etc/redpanda/certs/broker.key
 ```
 
+Note that the urls are presented differently than in other places in Redpanda yaml files.   Further note that because we are using TLS, we must use `https`
+
 Then restart redpanda-console.
 
 _NOTE:  At least ONE broker must have the adminAPI configured for TLS or else the service will not successfully start._
