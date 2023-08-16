@@ -1,5 +1,7 @@
 Beginning with version 23.2 rpk now supports the concept of a profile, which makes it easier to deal with rpk configurations on the client side.  
 
+https://docs.redpanda.com/docs/get-started/config-rpk-profile/
+
 
 There are lots of things you can do, but these seem to be the most helpful.
 
