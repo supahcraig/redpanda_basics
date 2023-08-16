@@ -39,7 +39,7 @@ redpanda:
 ```
 
 
-## Redpanda Console with TLS
+## Redpanda Console with a TLS-enabled cluster
 
 copy the `broker.key`, `broker.crt`, and `ca.crt` to the node(s) where Console will be running.   They should probalby already be there if the cluster is configured to use TLS.
 
@@ -79,7 +79,7 @@ http://public.ip.of.consonle:8080
 If the page does not come up, check the logs via `journalctl -xeu redpanda-console` or `systemctl -u redpanda-console -f`
 
 
-## Configuring Admin API for TLS
+## Configuring Admin API for a TLS-enabled cluster
 
 The above will bring up the Redpanda console with TLS, but the admin API won't work without further work.  You'll have to add a new section to `redpanda-console.yaml` for `redpanda:` at the root level.   
 
@@ -111,3 +111,20 @@ Then restart redpanda-console and verify it comes up using `journalctl -u redpan
 
 _NOTE:  At least ONE broker must have the adminAPI configured for TLS or else the service will not successfully start._
 
+
+## Enabling TLS for Console
+
+https://docs.redpanda.com/docs/manage/security/console/tls-termination/
+
+This section (added at the root of the `redpanda-console.yaml`) will start up 2 web servers, one for http on 8080 amd one for https on 443.   Your browswer will bark that it is potentially unsafe, but click through all that cuz you ain't skeered.
+
+```
+server:
+  httpsListenPort: 443
+  advertisedHttpsListenPort: 443
+  listenPort: 8080
+  tls:
+    enabled: true
+    certFilepath: /etc/redpanda/certs/broker.crt
+    keyFilepath: /etc/redpanda/certs/broker.key
+```
