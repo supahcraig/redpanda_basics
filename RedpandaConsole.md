@@ -3,6 +3,40 @@ installation steps found in the Redpanda docs online.
 
 Console configuration docs:  https://docs.redpanda.com/docs/reference/console/config/#yaml-configuration
 
+## Install Console
+
+You can install this anywhere, though in practice it's convenient to deploy to one or more Redpanda brokers.
+
+https://docs.redpanda.com/docs/deploy/deployment-option/self-hosted/manual/production/production-deployment/
+
+```
+curl -1sLf 'https://dl.redpanda.com/nzc4ZYQK3WRGd9sy/redpanda/cfg/setup/bash.deb.sh' | \
+sudo -E bash && sudo apt-get install redpanda-console -y
+```
+
+This will create a new empty configuration file under `/etc/redpanda` called `redpanda-console.yaml`
+
+
+## Minimal Configuration
+
+The minimal config needed to bring up the console service is to simply list the brokers.  If the brokers are using TLS, however, this might not be enough to start the service.
+
+```
+kafka:
+  brokers:
+    - 10.100.8.26:9092
+    - 10.100.3.15:9092
+    - 10.100.10.47:9092
+```
+
+To use the admin endpoint you'll need to add another section (at the document root level):
+
+```
+redpanda:
+  adminApi:
+    enabled: true
+    urls: ["https://10.100.8.26:9644", "https://10.100.3.15:9644", "https://10.100.10.47:9644"]
+```
 
 
 ## Redpanda Console with TLS
