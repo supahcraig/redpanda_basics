@@ -61,9 +61,19 @@ redpanda:
       keyFilepath: /etc/redpanda/certs/broker.key
 ```
 
-Note that the urls are presented differently than in other places in Redpanda yaml files.   Further note that because we are using TLS, we must use `https`
+Note that the urls require `https://` because we have TLS enabled on the adminAPI (this is set on the broker, we're just pointing to it here).
 
-Then restart redpanda-console.
+YAML noob note:  rather than using the bracketed array notation you can use this style (without quotes):
+
+```
+urls:
+- https://10.100.8.26:9644
+- https://10.100.3.15:9644
+- https://10.100.10.47:9644
+```
+
+
+Then restart redpanda-console and verify it comes up using `journalctl -u redpanda-console -f`
 
 _NOTE:  At least ONE broker must have the adminAPI configured for TLS or else the service will not successfully start._
 
