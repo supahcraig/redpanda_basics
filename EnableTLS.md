@@ -1,6 +1,9 @@
 # Enabling TLS from Ground Zero
 
-The Redpanda docs suck.
+The Redpanda docs are missing steps and have some steps out of sequence.  Expect revised docs before Oct 1 2023.
+https://docs.redpanda.com/docs/manage/security/encryption/
+
+
 
 ## Pre-requisites
 
