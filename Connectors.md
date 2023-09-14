@@ -2,6 +2,19 @@
 
 *NOTE* the connectors UI is going to be overhauled in "2-4 weeks", as of 4/25/2023.   We shall see.
 
+
+Install instructions for Postgres on AL2023:
+https://linux.how2shout.com/how-to-install-postgresql-15-amazon-linux-2023/
+
+sudo dnf update
+sudo dnf install postgresql15.x86_64 postgresql15-server
+sudo postgresql-setup --initdb
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+sudo systemctl status postgresql.service
+sudo passwd postgres
+
+
 ---
 
 ## S3 Connector
@@ -65,3 +78,34 @@ This is the config I went with:
 As soon as you start publishing messages to the topic, you should be able to see them in the console.   The connector should start (multipart?) copying them up to s3.  This implies there is consumer....which there is, named `connect-<topic name>`.   
 
 TODO:  need to understand how auth/acl's work with this consumer group.   And why I didn't need to specify any credentials here but I did on the Postgres connector.
+
+
+
+
+# Connect to Postgres via Bastion Host/SSH Tunnel
+
+## Create the Tunnel
+
+From the bastion host:
+
+`ssh -L local.ip:5432:postgres.ip:5432 ec2-user@postgres.ip -i keypair.pem`
+
+This opens the SSH tunnel ON the bastion host, through to the postgres server on port 5432.   Relying on localhost may not work here, because localhost may resolve to an IPv6 address
+https://serverfault.com/questions/147471/can-not-connect-via-ssh-to-a-remote-postgresql-database/444229#444229?newreg=fbdc2100c9dc464bb747dda830b52c28
+
+## Use the Tunnel
+
+From a different remote host:
+
+`psql --port=5432 --host=10.100.11.38 -c "select * from pg_catalog.pg_tables" -U postgres`
+
+where the host is the IP of the postgres instance, and `-U` is the database user to run the query as.
+
+### Install Postgres client
+
+`sudo apt-get install postgresql-client`
+
+
+## CONSIDERATIONS
+
+Make sure the firewall is open on the necessary ports to allow traffic from the "local" machine to the "tunnel" (bastion host), and then from the tunnel to the "remote" machine (postgres db).
