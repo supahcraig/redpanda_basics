@@ -158,9 +158,10 @@ In `/etc/default/secure-tunnel@postgres`:
 
 ```
 TARGET=postgres
-LOCAL_ADDR=13.59.23.149
-LOCAL_PORT=5432
-REMOTE_PORT=5432
+BASTION_ADDR=10.100.11.38
+BASTION_PORT=5432
+POSTGRES_ADDR=10.100.14.63
+POSTGRES_PORT=5432
 ```
 
 and then in `/etc/systemd/system/secure-tunnel@.service`:
@@ -173,7 +174,7 @@ After=network.target
 [Service]
 Environment="LOCAL_ADDR=localhost"
 EnvironmentFile=/etc/default/secure-tunnel@%i
-ExecStart=/usr/bin/ssh -NT -o ServerAliveInterval=60 -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=no -L 10.100.11.38:${LOCAL_PORT}:10.100.14.63:${REMOTE_PORT} ec2-user@10.100.14.63 -i /etc/default/cnelson-kp.pem
+ExecStart=/usr/bin/ssh -NT -o ServerAliveInterval=60 -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=no -L ${BASTION_ADDR}:${BASTION_PORT}:${POSTGRES_ADDR}:${POSTGRES_PORT} ec2-user@${POSTGRES_ADDR} -i /etc/default/cnelson-kp.pem
 
 # Restart every >2 seconds to avoid StartLimitInterval failure
 RestartSec=125
