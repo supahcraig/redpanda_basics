@@ -88,7 +88,7 @@ TODO:  need to understand how auth/acl's work with this consumer group.   And wh
 
 From the bastion host:
 
-`ssh -L local.ip:5432:postgres.ip:5432 ec2-user@postgres.ip -i keypair.pem`
+`ssh -L bastion.ip:5432:postgres.ip:5432 ec2-user@postgres.ip -i keypair.pem`
 
 This opens the SSH tunnel ON the bastion host, through to the postgres server on port 5432.   Relying on localhost may not work here, because localhost may resolve to an IPv6 address
 https://serverfault.com/questions/147471/can-not-connect-via-ssh-to-a-remote-postgresql-database/444229#444229?newreg=fbdc2100c9dc464bb747dda830b52c28
@@ -109,3 +109,69 @@ where the host is the IP of the postgres instance, and `-U` is the database user
 ## CONSIDERATIONS
 
 Make sure the firewall is open on the necessary ports to allow traffic from the "local" machine to the "tunnel" (bastion host), and then from the tunnel to the "remote" machine (postgres db).
+
+
+
+# Use a SSH Tunnel with Debezium
+
+```
+{
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "topic.prefix": "crn",
+    "database.hostname": "13.59.23.149",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "database.dbname": "postgres",
+    "database.sslmode": "disable",
+    "plugin.name": "pgoutput",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": true,
+    "key.converter.json.schemas.enable": true,
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": true,
+    "value.converter.json.schemas.enable": true,
+    "header.converter": "org.apache.kafka.connect.storage.SimpleHeaderConverter",
+    "table.include.list": "test",
+    "topic.creation.enable": true,
+    "topic.creation.default.partitions": "5",
+    "topic.creation.default.replication.factor": "3",
+    "name": "debezium-postgresql-connector-dowc"
+}
+```
+
+
+
+## Running the SSH Tunnel as a systemd service
+
+Borrowed heavily from this:  https://gist.github.com/drmalex07/c0f9304deea566842490
+
+TODO:  This needs some cleanup to parameterize the hosts & the user security is probably a complete anti-pattern.  But it works.
+
+In `/etc/default/secure-tunnel@postgres`:
+
+```
+TARGET=postgres
+LOCAL_ADDR=13.59.23.149
+LOCAL_PORT=5432
+REMOTE_PORT=5432
+```
+
+and then in `/etc/systemd/system/secure-tunnel@.service`:
+
+```
+[Unit]
+Description=Setup a secure tunnel to %I
+After=network.target
+
+[Service]
+Environment="LOCAL_ADDR=localhost"
+EnvironmentFile=/etc/default/secure-tunnel@%i
+ExecStart=/usr/bin/ssh -NT -o ServerAliveInterval=60 -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=no -L 10.100.11.38:${LOCAL_PORT}:10.100.14.63:${REMOTE_PORT} ec2-user@10.100.14.63 -i /etc/default/cnelson-kp.pem
+
+# Restart every >2 seconds to avoid StartLimitInterval failure
+RestartSec=125
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
