@@ -1,4 +1,22 @@
 
+## install postgres
+
+Install instructions for Postgres on AL2023: https://linux.how2shout.com/how-to-install-postgresql-15-amazon-linux-2023/
+
+A synopsis of the above if you don't have time for all that reading.
+
+```
+sudo dnf update
+sudo dnf install postgresql15.x86_64 postgresql15-server
+sudo postgresql-setup --initdb
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+sudo systemctl status postgresql.service
+sudo passwd postgres
+```
+
+## Configure the Connector
+
 The options are pretty straightforward to configure.
 
 I tend to like to use the advanced options to specify which schema/table I'm interested in CDC'ing, but that doesn't actually show up in the config presented back when you view your config.  That's probably a bug.
