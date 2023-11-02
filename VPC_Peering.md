@@ -128,8 +128,8 @@ _change these as per your specifics_
 ```
 export REDPANDA_CLUSTER_ID=cl1ajksmfckfjaoo4pu0
 export REDPANDA_NETWORK_ID=cl1ajkkmfckfjaoo4pt0
-export CIDR_BLOCK=10.100.0.0/16
-export PEERING_CONNECTION_ID=pcx-017116dec47f5c566
+export CIDR_BLOCK=172.31.0.0/16
+export PEERING_CONNECTION_ID=pcx-00000204e9a0d5702
 ```
 
 ```
