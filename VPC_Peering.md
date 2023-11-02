@@ -31,6 +31,8 @@ Either way, accept the pending request
 
 Anything that needs to talk to Redpanda will need to be in the VPC that you just peered.   Every resource in that VPC will be in a subnet....it is likely that those subnets will have their own route table.   If they do, you will need to add a route to the Redpanda VPC to that route table.  If they don't already have a route table, you will need to add a route to the main route table (the main route table is only used if the subnet does not have a route table association).
 
+
+
 * destination is the CIDR range of the Redpanda VPC
 * target is "Peering Connection" which will then give you a list of available peering connections
 
@@ -124,10 +126,10 @@ This way leverages the tags "purpose=private" which exist on the minimal set of 
 _change these as per your specifics_
 
 ```
-export REDPANDA_CLUSTER_ID=civuvvn09u988pmsfpc0
-export REDPANDA_NETWORK_ID=civuvvf09u988pmsfpag
+export REDPANDA_CLUSTER_ID=cl1ajksmfckfjaoo4pu0
+export REDPANDA_NETWORK_ID=cl1ajkkmfckfjaoo4pt0
 export CIDR_BLOCK=10.100.0.0/16
-export PEERING_CONNECTION_ID=pcx-014337d1f083602d0
+export PEERING_CONNECTION_ID=pcx-017116dec47f5c566
 ```
 
 ```
