@@ -8,11 +8,13 @@
 
 ## Initate Peering Request
 
+I'm not 100% sure it matters yet, but the requester VPC will be the VPC that Redpanda is living in, and the accepter VPC will be the "non-Redpanda" VPC.  The easy way to remember this is to consider how peering works in Redpanda Dedicated.   You push the peering button in the UI, and the peering request shows up in the customer's VPC awaiting acceptance.
+
 From the VPC UI, click `Create Peering Connection`
 
 * give it a unique name
-* For "Local VPC to Peer with (requester)" find the BYOC VPC in the drop down
-* For "VPC ID (accepter)" you will find your other VPC in the drop down
+* For "Local VPC to Peer with (requester)" find the Redpanda VPC in the drop down
+* For "VPC ID (accepter)" you will find your other (non-Redpanda) VPC in the drop down
 * Then click `Create Peering Connection`
 
 ## Accept Peering Request
@@ -21,64 +23,57 @@ Once you click to create the peering connection it will take you to the screen s
 
 Or you can navigate to VPC --> Peering Connections to find the new peering connection which is in the Pending Acceptance state.   
 
-Either way, accept the pending request
+Either way, accept the pending request.
 
 
 
 ## Modify Route Tables
 
 --- still sorting this out ---
+### General Concepts
 
-Anything that needs to talk to Redpanda will need to be in the VPC that you just peered.   Every resource in that VPC will be in a subnet....it is likely that those subnets will have their own route table.   If they do, you will need to add a route to the Redpanda VPC to that route table.  If they don't already have a route table, you will need to add a route to the main route table (the main route table is only used if the subnet does not have a route table association).
+Once you've peered the networks, you will need to add routes from both VPCs to the peering connection.  The Redpanda network is well-understood so the setting up of the routes can be scripted.  The network for the non-Redpanda VPC will be unique to the customer, so it could be more challenging.  Every resource in that VPC will be in a subnet....it is likely that those subnets will have their own route table.   If they do, you will need to add a route to the Redpanda VPC to that route table.  If they don't already have a route table, you will need to add a route to the main route table (the main route table is only used if the subnet does not have a route table association).
 
 
+When creating the routes from the non-Redpanda VPC, you'll navigate to the route table for each subnet that will expect to communicate to Redpanda and add a route:
 
 * destination is the CIDR range of the Redpanda VPC
 * target is "Peering Connection" which will then give you a list of available peering connections
 
+In plain English, this is telling AWS that whenever you see traffic directed to the IP range of Redpanda, it needs to realize that is part of a peered network so it should route that traffic to the peering connection.  
 
+_(Routes set up from Redpanda to the peering connection would likewise use the IP range of the non-Redpanda VPC)_
 
 
  
-
-## Troubleshooting / minimal subnet route table requirements
-
-REMOVED PEERING ROUTE >>> ??? subnet-058ffbda69edbbef5 // rtb-0824c64ee02a047db
->>> ??? subnet-089031bd1f94575d1 // rtb-04fb798e924360dc7 , load balancer on this subnet
-REMOVED PEERING ROUTE >>> ???subnet-0118d62d0bc968f01 // rtb-0824c64ee02a047db
-REMOVED PEERING ROUTE >>> t3.micro? subnet-0ad0dfca492450769 // rtb-0824c64ee02a047db
->>> brokers: subnet-0e7a36e44b4c53c8c // rtb-0de87b21dd0815162 , load balancer on this subnet
->>> load balancer: subnet-03b9bd0ddf40f2cdb // rtb-00bc8fbdb038a320f , load balancer on this subnet
->>> postgres: subnet-0d2967ab2b198b362
-
-* brokers
-subnet-0e7a36e44b4c53c8c
-
-* admin
-
-
-* connect
-
+### Brute Force
 
 1.  Get your Redpanda VPC ID
-  * Find the cluster ID from the Redpanda UI   
-3.  Find the subnets attached to the load balancer
+  * Find the cluster ID from the Redpanda UI
+  * Find the networkd ID from the Redpanda UI 
+3.  Find the subnets attached to the load balancer (or brokers?)
 4.  Find the route tables attached to those subnets
 
 
 ### Find your Redpanda VPC ID:
 
-`aws ec2 describe-vpcs | jq '.Vpcs[] | select(.Tags[].Value | endswith("[YOUR_CLUSTER_ID]")) | .VpcId'`
+`aws ec2 describe-vpcs | jq '.Vpcs[] | select(.Tags[].Value | endswith("[YOUR_REDPANDA_NETWORK_ID]")) | .VpcId'`
 
-or this, same thing only different:
+`aws ec2 describe-vpcs | jq '.Vpcs[] | select(.Tags[].Value | endswith("network-cl1ajkkmfckfjaoo4pt0")) | .VpcId'`
 
-`aws ec2 describe-vpcs --filters "Name=tag:Name,Values=network-[YOUR CLUSTER ID]"`
+
+cl1ajkkmfckfjaoo4pt0
+cl1ajkkmfckfjaoo4pt0
+
 
 ### List the subnets attached to the load balancer
 
-it will return a list of subnets:
+it will return a list of subnets, using the VPC ID found in the prior step.
 
 `aws elbv2 describe-load-balancers | jq '.LoadBalancers[] | select(.VpcId == "[YOUR_VPC_ID]") | .AvailabilityZones[].SubnetId'`
+
+`aws elbv2 describe-load-balancers | jq '.LoadBalancers[] | select(.VpcId == "vpc-0c22f7cf13c3fd55a") | .AvailabilityZones[].SubnetId'`
+NOTE:  this returns only 3 subnets, but I know we add routes to at least 6 route tables...
 
 
 ### Find the Route Table for the Subnets 
@@ -86,6 +81,10 @@ it will return a list of subnets:
 For each subnet returned, run this to identify the route table associated to the subnet:
 
 `aws ec2 describe-route-tables | jq '.RouteTables[] | select(.Associations[].SubnetId == "[YOUR_SUBNET_ID]") | .Associations[].RouteTableId'`
+
+`aws ec2 describe-route-tables | jq '.RouteTables[] | select(.Associations[].SubnetId == "subnet-00809a69d682bdc19") | .Associations[].RouteTableId'`
+`aws ec2 describe-route-tables | jq '.RouteTables[] | select(.Associations[].SubnetId == "subnet-01a496c9729a4a5ed") | .Associations[].RouteTableId'`
+`aws ec2 describe-route-tables | jq '.RouteTables[] | select(.Associations[].SubnetId == "subnet-03d0cb1519f3e6c07") | .Associations[].RouteTableId'`
 
 
 ### Create the Routes
