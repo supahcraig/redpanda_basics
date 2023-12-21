@@ -68,8 +68,10 @@ sudo systemctl enable mongod
 
 ## Configure to allow external connections
 
-The docs don't appear to work correctly, but you need to modify the `net` section of `/etc/mongod.conf`
-By default the `bindIp` is set to 127.0.0.1, but that will only allow local connections.   Changing to 0.0.0.0 will allow ALL traffic, so you'll need to either figure out how to list multiple addresses OR tighten up your firewall rules.
+You need to modify the `net` section of `/etc/mongod.conf`
+By default the `bindIp` is set to 127.0.0.1, but that will only allow local connections.   Changing to 0.0.0.0 will allow ALL traffic, so you'll need to tighten up your firewall rules.  Use Linux IPtables to control access to the box itself, _unsure how this is different from the AWS security group_
+
+Starting with Mongo 6, use semicolons (no spaces) to list multiple IP's in the `bindIp` section.
 
 ```
 # network interfaces
