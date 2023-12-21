@@ -106,7 +106,7 @@ db.createUser(
 )
 ```
 
-Then modify `/ect/mongod.conf` to enable authorization
+Then modify `/ect/mongod.conf` to enable authorization.  _NOTE:  Later on we're going to disable this so it's probably not even necessary._
 
 ```
 security:
