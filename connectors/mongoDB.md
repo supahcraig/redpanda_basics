@@ -1,3 +1,9 @@
+# Mongo Source Connector
+
+(see below for Mongo sink connector notes)
+
+----
+
 ## Install MongoDB on Amazon Linux 2023
 
 https://linux.how2shout.com/how-to-install-mongodb-on-amazon-linux-2023/
@@ -83,7 +89,7 @@ net:
 You can test this from a remote machine via `mongosh remote.ip.address/database` but it requires the service to be restarted first.
 
 
-## Configure Authorization
+## Configure Authorization (almost)
 
 https://www.mongodb.com/docs/manual/tutorial/configure-scram-client-authentication/#std-label-create-user-admin
 
@@ -96,7 +102,7 @@ It will prompt you for a password...
 use admin
 db.createUser(
   {
-    user: "myUserAdmin",
+    user: "admin",
     pwd: passwordPrompt(), // or cleartext password
     roles: [
       { role: "userAdminAnyDatabase", db: "admin" },
@@ -106,21 +112,20 @@ db.createUser(
 )
 ```
 
-Then modify `/ect/mongod.conf` to enable authorization.  _NOTE:  Later on we're going to disable this so it's probably not even necessary._
+And grant this additional role:
 
 ```
-security:
-  authorization: enabled
+db.grantRolesToUser(
+   "admin",
+   [ "clusterManager" ]
+)
 ```
 
-Again, the service will need to be restarted for this to take effect.   It won't be required to get into the mongo shell, but you won't be able to do much w/o logging in first.
 
-```
-use admin
-db.auth("myUserAdmin", passwordPrompt()) // or cleartext password
-```
 
-And then test by doing something simple like `show users`
+
+
+
 
 ### Turn your standalone instance into a replica set
 
@@ -135,16 +140,11 @@ replication:
 ```
 
 
-Next grant this role to your admin user:
 
-```
-db.grantRolesToUser(
-   "admin",
-   [ "clusterManager" ]
-)
-```
 
-NEXT, you'll need to restart the mongo service but you'll discover that if you're running as a replica set with authoriazation enabled you'll need to use a keyfile.   My answer was to disable auth (commenting it out of `/etc/mongod.conf` and then restarting, which may have done the trick.
+
+
+NEXT, you'll need to restart the mongo service but you'll discover that if you're running as a replica set with authoriazation enabled you'll need to use a keyfile.   My answer was to disable auth (commenting it out of `/etc/mongod.conf` and then restarting, which may have done the trick.  (Some of this is a relic of early versions of the walkthrough, but may be useful in troubleshooting later)
 
 Once you've successfully got the service back up, get back into mongo shell and authenticate to your admin user and initiate the replica set:
 
@@ -170,18 +170,81 @@ admin> rs.initiate()
 rs0 [direct: secondary] admin>
 ```
 
-Restarting the connector in the Redpanda UI should put you in a healthy state.
+If you already had a connector created, restarting the connector in the Redpanda UI should put you in a healthy state.
 
-### Insert a document
+
+## Create the Mongo Source Connector
+
+Very few config items are actually required...
+
+* Mongodb connection URL:  `mongodb://10.100.14.5:27017`  --> `_mongodb://<host>:<port>_`
+  * In the generated json config you'll see a stubbed out entry for `connection.uri` but Redpanda will complete this behind the scenes.
+* Mongodb username:  _username you created above_
+* Mongodb password:  _password for that user_
+  * this will be stored in an AWS secret, but as of 12/21/2023 there is a bug whereby modifying the JSON will expose the secret
+* Database to watch:  the name of the db you want to track changes on
+* Collection to watch:  the name of the collection you want to track changes on
+* Message key/value format:
+  * Looks like any selection will work here, but the challenge comes in later sinking the data
+    * String is the default, so for a MVP demo, use String for both.
+    * Bytes appears to work just as well as String, unsure what the gotchas might be
+    * _either String or Bytes is required if you're planning to use the MongoCDC option in the sink connector
+    * Avro/Json - have not touched yet
+* Startup behavior:  Copy Existing works well, but could generate a ton of traffic on an existing large db?
+
+### Troubleshooting
+
+Username/password are required even if you don't want/have authorization enabled.   Redpanda can't build the `connection.uri` without it.
+
+Your mongo instance needs to accept external connections (see `bindIp`), and needs to be open on port 27017 (default mongo port).
+
+The security group for mongo needs to allow inbound traffic from any/all of the primary/secondary IP's of the Connector instance(s).   This is most easily done by opening the firewall to the cidr range of your Redpanda VPC.
+* it MAY instead/also require accepting traffic from the NAT gateway, but that will be included in that same cidr range as your Redpanda VPC.   CIDR is going to be the most resilient way to manage this as components fail/replace over time.
+
+The VPC hosting your mongo needs to be peered (with proper routing) to the Redpanda VPC (or go over the public internet).  
+
+
+----
+
+## Insert a document
 
 ```
 db.sampledata.insertOne( {name: "foo", val: "bar"})
 ```
 
-That should show up in your Redpanda topic, but only if you were a good little boy or girl this year.
+That should show up in your Redpanda topic, where the topic name is of the form `<database>.<collection>`
+
+
+---
+
+# Mongo Sink Connector
+
+In short, you can consume messages produced by the Mongo source, and stick them right back into that same mongo instance.   Use the same key/value format as you did in the source, use the Mongo CDC handler (haven't tried the debezium one), and route it to a NEW database & collection.
 
 
 
 
-   
+# Appendix
+### Commands we learned along the way but maybe aren't all that useful for an MVP
+
+## Enable authorization
+
+Then modify `/ect/mongod.conf` to enable authorization.  _NOTE:  Later on we're going to disable this so it's probably not even necessary._
+
+```
+security:
+  authorization: enabled
+```
+
+Again, the service will need to be restarted for this to take effect.   It won't be required to get into the mongo shell, but you won't be able to do much w/o logging in first.
+
+If you want to authenticate within the mongo shell, use this:
+
+Back in the mongo shell, grant this role to your admin user by logging in first.
+
+```
+use admin
+db.auth("admin", passwordPrompt()) // or cleartext password
+```
+
 
