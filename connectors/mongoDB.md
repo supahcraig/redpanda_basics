@@ -117,7 +117,7 @@ db.createUser(
 )
 ```
 
-And grant this additional role:
+And grant this additional role which you will need later on to allow you to initiate the replication piece.
 
 ```
 db.grantRolesToUser(
@@ -133,6 +133,8 @@ db.grantRolesToUser(
 
 
 ### Turn your standalone instance into a replica set
+
+https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/
 
 Again, modify your `/etc/mongod.conf` to get it ready to be a replica set:
 
