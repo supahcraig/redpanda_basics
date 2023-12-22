@@ -88,6 +88,11 @@ net:
 
 You can test this from a remote machine via `mongosh remote.ip.address/database` but it requires the service to be restarted first.
 
+```
+sudo systemctl restart mongod.service
+sudo systemctl status mongod.service
+```
+
 
 ## Configure Authorization (almost)
 
@@ -139,16 +144,20 @@ replication:
   replSetName: rs0
 ```
 
+```
+sudo systemctl restart mongod.service
+sudo systemctl status mongod.service
+```
 
 
-
-
-
-NEXT, you'll need to restart the mongo service but you'll discover that if you're running as a replica set with authoriazation enabled you'll need to use a keyfile.   My answer was to disable auth (commenting it out of `/etc/mongod.conf` and then restarting, which may have done the trick.  (Some of this is a relic of early versions of the walkthrough, but may be useful in troubleshooting later)
+NEXT, you'll need to restart the mongo service but you'll discover that if you're running as a replica set with authoriazation enabled you'll need to use a keyfile.   My answer was to disable auth (commenting it out of `/etc/mongod.conf` and then restarting).  Note that some of this is a relic of early versions of the walkthrough, but may be useful in troubleshooting later.
 
 Once you've successfully got the service back up, get back into mongo shell and authenticate to your admin user and initiate the replica set:
 
-`rs.initiate()`
+```
+use admin
+rs.initiate()
+```
 
 which will give you output like this:
 
