@@ -203,8 +203,42 @@ Very few config items are actually required...
     * Avro/Json - have not touched yet
 * Startup behavior:  Copy Existing works well, but could generate a ton of traffic on an existing large db?
 
+Redpanda will generate a JSON configuration for your connector, and it will do so in two phases.  Prior to the actual creation of the connector you will see the "stub out" configuration which will be slightly different than the version you see when you look at the config for a deployed & running connector.  In particular is the `connectino.uri` & `connection.password` fields.   Prior to creation, the `connection.uri` will be stubbed out as `mongodb://` and appear to be incomplete.   Post-creation you'll see the uri look more like this:  `mongodb://admin:${secretsManager:mongodb-source-test-etrm:connection.password}@10.100.13.100:27017`.   This can be confusing if you're having trouble connecting and it will appear that the issue is an incomplete uri, when in fact you have no direct conrol over the uri; Redpanda builds it for you behind the scenes.
+
+The user/pass are in plain text prior to creation, but at create the password will be stored as a secret and referenced as such in the newly constructed uri.   The `connection.password` is removed from the config.  
+
+You can also add custom config options in the JSON prior to creation (i.e. SMTs, producer size overrides, etc)
+
+*NOTE:*  there is a bug in the UI whereby manually editing the json prior to launch will cause the password to remain in plaintext.    Further testing is required here, as I haven't seen this behavior but at least one customer has.
+
+
+```
+{
+    "collection": "sampledata",
+    "connection.password": "${secretsManager:mongodb-source-test-etrm:connection.password}",
+    "connection.uri": "mongodb://admin:${secretsManager:mongodb-source-test-etrm:connection.password}@10.100.13.100:27017",
+    "connection.url": "mongodb://10.100.13.100:27017",
+    "connection.username": "admin",
+    "connector.class": "com.mongodb.kafka.connect.MongoSourceConnector",
+    "database": "newdb",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": "true",
+    "name": "mongodb-source-test",
+    "output.schema.infer.value": "false",
+    "publish.full.document.only": "false",
+    "publish.full.document.only.tombstone.on.delete": "false",
+    "startup.mode": "latest",
+    "value.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter.schemas.enable": "true"
+}
+```
+
+
+
 ### Troubleshooting
 
+
+#### Connection Issues
 Username/password are required even if you don't want/have authorization enabled.   Redpanda can't build the `connection.uri` without it.
 
 Your mongo instance needs to accept external connections (see `bindIp`), and needs to be open on port 27017 (default mongo port).
@@ -213,6 +247,17 @@ The security group for mongo needs to allow inbound traffic from any/all of the 
 * it MAY instead/also require accepting traffic from the NAT gateway, but that will be included in that same cidr range as your Redpanda VPC.   CIDR is going to be the most resilient way to manage this as components fail/replace over time.
 
 The VPC hosting your mongo needs to be peered (with proper routing) to the Redpanda VPC (or go over the public internet).  
+
+
+#### Max Message size
+
+If the messages exceed the default 1MB, you'll need to add this to the producer config.  This example raises the max size to 20MB (which is absolutely huge).   
+TODO:  There are corresponding settings that need to be changed at the cluster as well.
+
+```
+ "producer.override.max.request.size": "20971520",
+ "producer.override.message.max.bytes": "20971520",
+```
 
 
 ----
