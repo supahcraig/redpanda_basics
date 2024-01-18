@@ -102,7 +102,9 @@ https://www.mongodb.com/docs/manual/tutorial/configure-scram-client-authenticati
 
 ### Create an admin user
 
-It will prompt you for a password...
+Go to the mongo shell using `mongosh` 
+
+Then run this script to create an admin user.  It will prompt you for a password...
 
 ```
 use admin
@@ -118,7 +120,7 @@ db.createUser(
 )
 ```
 
-And grant this additional role which you will need later on to allow you to initiate the replication piece.
+And then grant this additional role which you will need later on to allow you to initiate the replication piece.
 
 ```
 db.grantRolesToUser(
