@@ -307,3 +307,17 @@ db.auth("admin", passwordPrompt()) // or cleartext password
 ```
 
 
+## No configuration specified
+
+When you initiate the replica set, you may see this error.   I don't know what causes it yet, I didn't get it the first several times I ran through these steps.
+
+```
+{
+  info2: 'no configuration specified. Using a default configuration for the set',
+  me: 'ip-172-31-31-171:27017',
+  ok: 1
+}
+```
+
+
+
