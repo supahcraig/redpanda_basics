@@ -128,6 +128,7 @@ db.grantRolesToUser(
    "admin",
    [ "clusterManager" ]
 )
+
 ```
 
 
