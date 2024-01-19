@@ -118,6 +118,7 @@ db.createUser(
     ]
   }
 )
+
 ```
 
 And then grant this additional role which you will need later on to allow you to initiate the replication piece.
