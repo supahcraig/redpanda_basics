@@ -1,6 +1,6 @@
-If you have a schema already created, you can test it using rpk.   Note that a 
+## Publishing Messages with a Schema via rpk
 
-
+If you have a schema already created, you can test it using rpk.
 
 ### Use a schema
 `rpk topic produce with_schema --schema-id=1`
@@ -42,6 +42,8 @@ unable to encode value: unable to parse record with the provided schema: cannot 
 test no schema
 record read error: invalid input 'e'
 ```
+
+---
 
 ## Chceking in Console
 
