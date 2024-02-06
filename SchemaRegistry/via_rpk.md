@@ -47,6 +47,6 @@ record read error: invalid input 'e'
 
 From a quick glance it isn't immediately obvious that a message is avro or json.  If you drill into the message itself, you can see the schema type & ID that was used on that message.
 
-![Message with a schema]('./no-schema.jpg`)
+![Message with a schema](schemareg-avro.jpg)
 
-![Message without a schema]('./schemareg-json.jpg`)
+![Message without a schema](schemareg-json.jpg)
