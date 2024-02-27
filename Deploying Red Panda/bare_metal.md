@@ -19,8 +19,11 @@ sudo rpk redpanda tune all
 
 ## Bootstrap Node 0
 
-```
 sudo rpk redpanda config bootstrap --id 0 --self $(hostname -I)
+
+
+```
+sudo rpk redpanda config bootstrap --self $(hostname -I)
 sudo systemctl start redpanda
 rpk cluster config set enable_metrics_reporter false
 systemctl status redpanda
@@ -30,14 +33,20 @@ systemctl status redpanda
 
 ### Node 1
 
-```
 sudo rpk redpanda config bootstrap --id 1 --self $(hostname -I)  --ips <seed server private ip>
+
+
+```
+sudo rpk redpanda config bootstrap --self $(hostname -I)  --ips <seed server private ip>
 ```
 
 ### Node 2
 
-```
 sudo rpk redpanda config bootstrap --id 2 --self $(hostname -I)  --ips <seed server private ip>
+
+
+```
+sudo rpk redpanda config bootstrap --self $(hostname -I)  --ips <seed server private ip>
 ```
 
 ## Start services on the additional nodes
