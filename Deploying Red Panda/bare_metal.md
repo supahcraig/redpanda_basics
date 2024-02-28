@@ -121,20 +121,20 @@ systemctl status redpanda
 
 There was a time when you would specify the node id using the `--id <integer>` switch, but that is no longer necessary.
 
-### Node 1
+### Nodes 2-n
+
+The bootstrap command for the nodes 2-n is identical to the first node.
+
+Example:
+`sudo rpk redpanda config bootstrap --self $(hostname -I) --ips 10.100.14.84,10.100.2.89,10.100.13.133`
+
 
 ```
 sudo rpk redpanda config bootstrap --self $(hostname -I)  --ips <seed server private ip>
-sudo rpk redpanda config bootstrap --self $(hostname -I) --ips 10.100.14.84,10.100.2.89,10.100.13.133
+sudo rpk redpanda config set redpanda.empty_seed_starts_cluster false
 
 ```
 
-### Node 2
-
-```
-sudo rpk redpanda config bootstrap --self $(hostname -I)  --ips <seed server private ip>
-sudo rpk redpanda config bootstrap --self $(hostname -I) --ips 10.100.14.84,10.100.2.89,10.100.13.133
-```
 
 ### Example of the incorrect bootstrap config file
 
@@ -220,8 +220,9 @@ systemctl status redpanda
 From each broker, test the kafka api as well as the admin api:
 
 ```
+rpk cluster health
 rpk cluster info
 rpk topics list
 ```
 
-Both commands should return results, indicating you have connectivity to both endpoints.
+All those commands should return results, indicating you have connectivity to both endpoints.
