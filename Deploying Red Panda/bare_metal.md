@@ -5,6 +5,10 @@ https://docs.redpanda.com/current/deploy/deployment-option/self-hosted/manual/pr
 https://docs.redpanda.com/current/deploy/deployment-option/self-hosted/manual/production/production-deployment/?tab=tabs-1-debianubuntu
 
 
+Customer facing PDF of these instructions:
+https://docs.google.com/document/d/1eYtScIL7wZWB-ae9E-2QoJMBox4mz_zM9Uf0eFIAkGg/edit?usp=sharing
+
+
 ## Install redpanda on all nodes
 ```
 curl -1sLf 'https://dl.redpanda.com/nzc4ZYQK3WRGd9sy/redpanda/cfg/setup/bash.deb.sh' | \
