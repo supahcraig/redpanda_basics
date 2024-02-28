@@ -2,24 +2,31 @@
 
 This process is documented in our public facing docs, but I'm not convinced they're correct.
 https://docs.redpanda.com/current/deploy/deployment-option/self-hosted/manual/production/dev-deployment/?tab=tabs-1-debianubuntu
+https://docs.redpanda.com/current/deploy/deployment-option/self-hosted/manual/production/production-deployment/?tab=tabs-1-debianubuntu
 
 
-## Install redpanda
+## Install redpanda on all nodes
 ```
 curl -1sLf 'https://dl.redpanda.com/nzc4ZYQK3WRGd9sy/redpanda/cfg/setup/bash.deb.sh' | \
 sudo -E bash && sudo apt install redpanda -y
 ```
 
-## Configure for production/autotune
+## Configure for production/autotune on all nodes
 
 ```
 sudo rpk redpanda mode production
 sudo rpk redpanda tune all
 ```
 
-## Bootstrap Node 0
+# Bootstrapping
 
-The rpk bootstrap command will build out the configuration found in `/etc/redpanda/redpanda.yaml`.  There is currently (as of 2/28/20224) a bug with how this file is built, so it must be manually corrected.
+Bootstrapping with rpk is how the redpanda.yaml configuration file is created.  There are several ways to do this but probably the easiest is to pick a node to be "the first node."  It doesn't actually matter which, you just have to pick one to be the one to initiate the creation of the cluster.   The others will join it to form the complete cluster.
+
+
+_NOTE:_  The rpk bootstrap command will build out the configuration found in `/etc/redpanda/redpanda.yaml`.  There is currently (as of 2/28/20224) a bug with how this file is built, so it must be manually corrected on each node to change the listeners to `0.0.0.0` and the advertised addresses to their own private IP.
+
+
+## Bootstrap Node 0
 
 ```
 sudo rpk redpanda config bootstrap --self $(hostname -I) --ips 10.100.14.84,10.100.2.89,10.100.13.133
@@ -29,6 +36,8 @@ sudo rpk redpanda config set redpanda.empty_seed_starts_cluster false
 ### Example of the incorrect bootstrap config file
 
 Note that the advertised addresses are 127.0.0.1, and the rpc/kafka/admin addresses are it's own private IP.
+
+`/etc/redpanda/redpanda.yaml`:
 
 ```
 redpanda:
@@ -130,6 +139,8 @@ sudo rpk redpanda config bootstrap --self $(hostname -I) --ips 10.100.14.84,10.1
 ### Example of the incorrect bootstrap config file
 
 Note that the advertised addresses are 127.0.0.1, and the rpc/kafka/admin addresses are it's own private IP.
+
+`/etc/redpanda/redpanda.yaml`:
 
 ```
 redpanda:
