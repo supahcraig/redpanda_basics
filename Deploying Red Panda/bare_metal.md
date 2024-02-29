@@ -39,6 +39,8 @@ sudo rpk redpanda config set redpanda.empty_seed_starts_cluster false
 
 ### Example of the incorrect bootstrap config file
 
+See script in appendix at the end of this document for a quick way to update the config _after_ the bootstrapping step has been run.
+
 Note that the advertised addresses are 127.0.0.1, and the rpc/kafka/admin addresses are it's own private IP.
 
 `/etc/redpanda/redpanda.yaml`:
@@ -142,6 +144,9 @@ sudo rpk redpanda config set redpanda.empty_seed_starts_cluster false
 
 ### Example of the incorrect bootstrap config file
 
+See script in appendix at the end of this document for a quick way to update the config _after_ the bootstrapping step has been run.
+
+
 Note that the advertised addresses are 127.0.0.1, and the rpc/kafka/admin addresses are it's own private IP.
 
 `/etc/redpanda/redpanda.yaml`:
@@ -230,3 +235,47 @@ rpk topics list
 ```
 
 All those commands should return results, indicating you have connectivity to both endpoints.
+
+---
+
+# Appendix
+
+
+## Script to update redpanda.yaml
+
+Run this script (as sudo) after the bootstrapping step to make the necessary modifications to `/etc/redpanda/redpanda.yaml`
+
+
+```
+#!/bin/bash
+
+
+file_path="/etc/redpanda/redpanda.yaml"
+
+function update () {
+    target_key="$1"
+    new_value="$2"
+
+    line_number=$(grep -n "$target_key" "$file_path" | cut -d ':' -f1)
+
+    next_line_number=$((line_number + 1))
+
+    sed -i "${next_line_number}s/.*/$new_value/" "$file_path"
+
+    echo "$1 changed to $2"
+}
+
+
+update " rpc_server:" "        address: 0.0.0.0"
+update " kafka_api:" "        - address: 0.0.0.0"
+update " admin:" "        - address: 0.0.0.0"
+
+
+update "advertised_rpc_api:" "        address: $(hostname -i)"
+update "advertised_kafka_api:" "        - address: $(hostname -i)"
+
+```
+
+
+
+
