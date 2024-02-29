@@ -273,6 +273,16 @@ update "advertised_kafka_api:" "        - address: $(hostname -i)"
 
 ```
 
+## Borked broker?
+
+If you need to start over re-using the same VM, try this:
+
+```
+sudo rm -rf /var/lib/redpanda
+sudo apt-get purge --auto-remove redpanda
+```
+
+Then start over from the top.
 
 
 
