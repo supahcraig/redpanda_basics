@@ -249,7 +249,6 @@ Run this script (as sudo) after the bootstrapping step to make the necessary mod
 ```
 #!/bin/bash
 
-
 file_path="/etc/redpanda/redpanda.yaml"
 
 function update () {
@@ -265,11 +264,9 @@ function update () {
     echo "$1 changed to $2"
 }
 
-
 update " rpc_server:" "        address: 0.0.0.0"
 update " kafka_api:" "        - address: 0.0.0.0"
 update " admin:" "        - address: 0.0.0.0"
-
 
 update "advertised_rpc_api:" "        address: $(hostname -i)"
 update "advertised_kafka_api:" "        - address: $(hostname -i)"
