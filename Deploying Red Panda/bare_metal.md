@@ -27,10 +27,11 @@ sudo rpk redpanda tune all
 Bootstrapping with rpk is how the redpanda.yaml configuration file is created.  There are several ways to do this but probably the easiest is to pick a node to be "the first node."  It doesn't actually matter which, you just have to pick one to be the one to initiate the creation of the cluster.   The others will join it to form the complete cluster.
 
 
-_NOTE:_  The rpk bootstrap command will build out the configuration found in `/etc/redpanda/redpanda.yaml`.  There is currently (as of 2/28/20224) a bug with how this file is built, so it must be manually corrected on each node to change the listeners to `0.0.0.0` and the advertised addresses to their own private IP.
+_NOTE:_  The rpk bootstrap command will build out the configuration found in `/etc/redpanda/redpanda.yaml`.  There is currently (as of 2/28/20224) a bug with how this file is built, so it must be manually corrected on each node to change the listeners to `0.0.0.0` and the advertised addresses to their own private IP.  See script in appendix at the end of this document for a quick way to update the config _after_ the bootstrapping step has been run.
 
 
-## Bootstrap Node 0
+
+## Bootstrap Brokers
 
 ```
 sudo rpk redpanda config bootstrap --self $(hostname -I) --ips 10.100.14.84,10.100.2.89,10.100.13.133
@@ -39,7 +40,6 @@ sudo rpk redpanda config set redpanda.empty_seed_starts_cluster false
 
 ### Example of the incorrect bootstrap config file
 
-See script in appendix at the end of this document for a quick way to update the config _after_ the bootstrapping step has been run.
 
 Note that the advertised addresses are 127.0.0.1, and the rpc/kafka/admin addresses are it's own private IP.
 
@@ -115,107 +115,7 @@ redpanda:
 
 
 
-Once the config is set properly, you can start the services
-
-```
-sudo systemctl start redpanda
-rpk cluster config set enable_metrics_reporter false
-systemctl status redpanda
-```
-
-## Bring up Additional Nodes
-
-There was a time when you would specify the node id using the `--id <integer>` switch, but that is no longer necessary.
-
-### Nodes 2-n
-
-The bootstrap command for the nodes 2-n is identical to the first node.
-
-Example:
-`sudo rpk redpanda config bootstrap --self $(hostname -I) --ips 10.100.14.84,10.100.2.89,10.100.13.133`
-
-
-```
-sudo rpk redpanda config bootstrap --self $(hostname -I)  --ips <seed server private ip>
-sudo rpk redpanda config set redpanda.empty_seed_starts_cluster false
-
-```
-
-
-### Example of the incorrect bootstrap config file
-
-See script in appendix at the end of this document for a quick way to update the config _after_ the bootstrapping step has been run.
-
-
-Note that the advertised addresses are 127.0.0.1, and the rpc/kafka/admin addresses are it's own private IP.
-
-`/etc/redpanda/redpanda.yaml`:
-
-```
-redpanda:
-    data_directory: /var/lib/redpanda/data
-    seed_servers:
-        - host:
-            address: 10.100.14.84
-            port: 33145
-        - host:
-            address: 10.100.2.89
-            port: 33145
-        - host:
-            address: 10.100.13.133
-            port: 33145
-    rpc_server:
-        address: 10.100.13.133
-        port: 33145
-    kafka_api:
-        - address: 10.100.13.133
-          port: 9092
-    admin:
-        - address: 10.100.13.133
-          port: 9644
-    advertised_rpc_api:
-        address: 127.0.0.1
-        port: 33145
-    advertised_kafka_api:
-        - address: 127.0.0.1
-          port: 9092
-```
-
-
-### Example of a corrected bootstrap config file
-
-```
-redpanda:
-    data_directory: /var/lib/redpanda/data
-    seed_servers:
-        - host:
-            address: 10.100.14.84
-            port: 33145
-        - host:
-            address: 10.100.2.89
-            port: 33145
-        - host:
-            address: 10.100.13.133
-            port: 33145
-    rpc_server:
-        address: 0.0.0.0
-        port: 33145
-    kafka_api:
-        - address: 0.0.0.0
-          port: 9092
-    admin:
-        - address: 0.0.0.0
-          port: 9644
-    advertised_rpc_api:
-        address: 10.100.2.89
-        port: 33145
-    advertised_kafka_api:
-        - address: 10.100.2.89
-          port: 9092
-```
-
-
-## Start services on the additional nodes
+Once the config is set properly, you can start the services on all your nodes
 
 ```
 sudo systemctl start redpanda
