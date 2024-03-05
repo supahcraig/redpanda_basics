@@ -15,7 +15,9 @@ Basically git clone the repo & navigate to the `aws` folder then do a `terraform
 
 To create the resources you'll do a terraform apply, but it requires a public key.  I had already created a keypair (pem file) but that is the private key.  To create public key from the private key:
 
-`echo ssh-keygen -y -f <your pem file> > whatever.pub`
+```
+echo ssh-keygen -y -f <your pem file> > whatever.pub
+```
 
 Then your terraform apply command can reference it:
 
