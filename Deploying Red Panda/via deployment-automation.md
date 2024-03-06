@@ -68,7 +68,7 @@ ansible-galaxy install -r ./requirements.yml
 Spin up Redpanda!
 
 ```
-ansible-playbook --private-key ~/pem/cnelson-kp.pem \
+ansible-playbook --private-key ~/.ssh/id_rsa \
   -i hosts.ini \
   -e advertise_public_ips=true \
   -v ../ansible/playbooks/provision-node.yml
