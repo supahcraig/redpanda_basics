@@ -32,10 +32,15 @@ then actually log in to AWS...
 Then actually start terraforming...
 
 ```
-terraform apply -var='aws_region=us-east-2' -var='public_key_path=~/.ssh/id_rsa.pub' -var='availability_zone=["us-east-2a"]' -var='deployment_prefix=cn-test'
+terraform apply \
+-var='aws_region=us-east-2' \
+-var='availability_zone=["us-east-2a"]' \
+-var='public_key_path=~/.ssh/id_rsa.pub' \
+-var='deployment_prefix=cn-test'
 ```
 
 This will start spinning up EC2 instances, security groups, etc which we will use Ansible to install into.  This will also create the `hosts.ini` file that holds the public & private IP's of the instances.
+
 
 ### Generating the public key
 
