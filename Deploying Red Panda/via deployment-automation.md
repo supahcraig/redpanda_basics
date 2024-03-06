@@ -79,11 +79,7 @@ ansible-playbook --private-key ~/pem/cnelson-kp.pem \
 
 You will probably want to use an rpk profile to actually talk to the cluster.   We have lots of docs on this, but from the ground up the process looks like this:
 
-* rpk profile create
-* rpk profile set
-* rpk profile edit
-
-#### Create profile
+### Create profile
 
 You can name your profile whatever you like.
 
@@ -91,7 +87,7 @@ You can name your profile whatever you like.
 rpk profile create via-deployment-automation
 ```
 
-#### Edit your profile
+### Edit your profile
 
 You can edit the file directly using rpk profile edit.
 
@@ -99,9 +95,7 @@ You can edit the file directly using rpk profile edit.
 rpk profile edit via-deployment-automation
 ```
 
-At a minimum, your rpk config needs to look like this:
-
-*work in progress*
+At a minimum, your rpk config needs to look like this.  If TLS is in use, then it will be more complex.
 
 ```
 name: via-deployment-automation
@@ -109,15 +103,50 @@ description: deployment-automation
 kafka_api:
     brokers:
         - <ip of broker #1>:9092
-        - <ip of broker #1>:9092
-        - <ip of broker #1>:9092
+        - <ip of broker #2>:9092
+        - <ip of broker #3>:9092
 
 admin_api:
-    - address: <ip of broker>
-      port: 9644
+    addresses:
+        - <ip of broker #1>:9644
+        - <ip of broker #2>:9644
+        - <ip of broker #3>:9644
 
 ```
 
+#### Working Example:
+
+```
+name: via-deployment-automation
+description: deployment-automation
+prompt: hi-red, "[%n]"
+kafka_api:
+    brokers:
+        - 18.191.240.43:9092
+        - 18.117.165.211:9092
+        - 18.188.99.199:9092
+admin_api:
+    addresses:
+        - 18.191.240.43:9644
+        - 18.117.165.211:9092
+        - 18.188.99.199:9092
+```
+
+## Testing connectivity
+
+`rpk use profile via-deployment-automation`
+
+Then test the kafka api:
+
+```
+rpk topic list
+```
+
+Then test the admin api:
+
+```
+rpk cluster info
+```
 
 
 
