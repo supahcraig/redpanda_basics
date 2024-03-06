@@ -32,10 +32,21 @@ then actually log in to AWS...
 Then actually start terraforming...
 
 ```
-terraform apply -var="public_key_path=~/pem/public.cnelson-kp.pub" -var="aws_region=us-east-2"
+terraform apply -var='aws_region=us-east-2' -var='public_key_path=~/.ssh/id_rsa.pub' -var='availability_zone=["us-east-2a"]' -var='deployment_prefix=cn-test'
 ```
 
 This will start spinning up EC2 instances, security groups, etc which we will use Ansible to install into.  This will also create the `hosts.ini` file that holds the public & private IP's of the instances.
+
+### Generating the public key
+
+If you don't already have one, you can easily create one.   Navigate to `~/.ssh` and run this simple command:
+
+```
+ssh-keygen -o
+```
+
+You can just hit enter for the default filename (`id_rsa.pub`) and enter twice if you don't want a password.  Now you can use this in your terraform apply step.  It will also create a private key in the same path which you can use to ssh into the instances that get created.
+
 
 
 ## Ansible
