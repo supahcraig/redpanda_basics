@@ -67,7 +67,12 @@ This will start spinning up EC2 instances, security groups, etc which we will us
 
 ## Ansible
 
-Then this to do the ansible install steps from the top level of the repo.  Some versions of macos may require this environment variable if you get an error around dead workers, per this link:  https://stackoverflow.com/questions/50168647/multiprocessing-causes-python-to-crash-and-gives-an-error-may-have-been-in-progr
+Then this to do the ansible install steps _from the top level of the repo_.  
+
+`cd ..`
+
+
+Some versions of macos may require this environment variable if you get an error around dead workers, per this link:  https://stackoverflow.com/questions/50168647/multiprocessing-causes-python-to-crash-and-gives-an-error-may-have-been-in-progr
 
 ```
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
