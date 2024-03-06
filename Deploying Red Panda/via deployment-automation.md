@@ -14,9 +14,10 @@ cd deployment-automation
 
 Next, get ready to terraform.
 
+`cd aws`
+
 `terraform init`
 
-`cd aws`
 
 To create the resources you'll do a terraform apply, but it requires a public key.  I had already created a keypair (pem file) but that is the private key.  To create public key from the private key:
 
