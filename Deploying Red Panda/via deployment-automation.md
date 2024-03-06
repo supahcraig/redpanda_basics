@@ -19,11 +19,24 @@ Next, get ready to terraform.
 `terraform init`
 
 
-To create the resources you'll do a terraform apply, but it requires a public key.  I had already created a keypair (pem file) but that is the private key.  To create public key from the private key:
+### Generating the public key
+
+If you don't already have one, you can easily create one.   Navigate to `~/.ssh` and run this simple command:
+
+```
+ssh-keygen -o
+```
+
+You can just hit enter for the default filename (`id_rsa.pub`) and enter twice if you don't want a password.  Now you can use this in your terraform apply step.  It will also create a private key in the same path which you can use to ssh into the instances that get created.
+
+I had already created a keypair (pem file) but that is the private key.  To create public key from the private key.   (this may or may not still work)
 
 ```
 echo ssh-keygen -y -f <your pem file> > whatever.pub
 ```
+
+
+
 
 Then your terraform apply command can reference it:
 
@@ -48,15 +61,6 @@ terraform apply \
 This will start spinning up EC2 instances, security groups, etc which we will use Ansible to install into.  This will also create the `hosts.ini` file that holds the public & private IP's of the instances.
 
 
-### Generating the public key
-
-If you don't already have one, you can easily create one.   Navigate to `~/.ssh` and run this simple command:
-
-```
-ssh-keygen -o
-```
-
-You can just hit enter for the default filename (`id_rsa.pub`) and enter twice if you don't want a password.  Now you can use this in your terraform apply step.  It will also create a private key in the same path which you can use to ssh into the instances that get created.
 
 
 ---
