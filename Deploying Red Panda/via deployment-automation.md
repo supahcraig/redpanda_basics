@@ -2,12 +2,17 @@
 
 https://github.com/redpanda-data/deployment-automation
 
+Basically git clone the repo & navigate to the `aws` folder then do a `terraform init`
+
+```
+git clone https://github.com/redpanda-data/deployment-automation.git
+cd deployment-automation
+```
+
 
 ## Terraform
 
-Basically git clone the repo & navigate to the `aws` folder then do a `terraform init`
-
-`cd deployment-automation`
+Next, get ready to terraform.
 
 `terraform init`
 
