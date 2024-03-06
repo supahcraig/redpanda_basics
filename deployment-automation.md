@@ -48,15 +48,24 @@ ssh-keygen -o
 You can just hit enter for the default filename (`id_rsa.pub`) and enter twice if you don't want a password.  Now you can use this in your terraform apply step.  It will also create a private key in the same path which you can use to ssh into the instances that get created.
 
 
+---
 
 ## Ansible
 
 Then this to do the ansible install steps from the top level of the repo.  Some versions of macos may require this environment variable if you get an error around dead workers, per this link:  https://stackoverflow.com/questions/50168647/multiprocessing-causes-python-to-crash-and-gives-an-error-may-have-been-in-progr
 
-
 ```
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 ```
+
+Install the ansible roles
+
+```
+# Install collections and roles
+ansible-galaxy install -r ./requirements.yml
+```
+
+Spin up Redpanda!
 
 ```
 ansible-playbook --private-key ~/pem/cnelson-kp.pem \
@@ -72,6 +81,8 @@ ansible-playbook --private-key ~/pem/cnelson-kp.pem \
 ```
 terraform destroy -var="public_key_path=~/pem/public.cnelson-kp.pub" -var="aws_region=us-east-2"
 ```
+
+This command might need to be this, actually:  `terraform apply -var='aws_region=us-east-2' -var='public_key_path=~/.ssh/id_rsa.pub' -var='availability_zone=["us-east-2a"]' -var='deployment_prefix=cn-test'`
 
 
 ---
