@@ -74,6 +74,53 @@ ansible-playbook --private-key ~/pem/cnelson-kp.pem \
   -v ../ansible/playbooks/provision-node.yml
 ```
 
+
+## rpk
+
+You will probably want to use an rpk profile to actually talk to the cluster.   We have lots of docs on this, but from the ground up the process looks like this:
+
+* rpk profile create
+* rpk profile set
+* rpk profile edit
+
+#### Create profile
+
+You can name your profile whatever you like.
+
+```
+rpk profile create via-deployment-automation
+```
+
+#### Edit your profile
+
+You can edit the file directly using rpk profile edit.
+
+```
+rpk profile edit via-deployment-automation
+```
+
+At a minimum, your rpk config needs to look like this:
+
+*work in progress*
+
+```
+name: via-deployment-automation
+description: deployment-automation
+kafka_api:
+    brokers:
+        - <ip of broker #1>:9092
+        - <ip of broker #1>:9092
+        - <ip of broker #1>:9092
+
+admin_api:
+    - address: <ip of broker>
+      port: 9644
+
+```
+
+
+
+
 ---
 
 ## Terraform Teardown 
@@ -167,5 +214,8 @@ and then test with something simple:
 
 
 ```
-rpk cluster config edit --tls-key ansible/tls/ca/ca.key --tls-cert ansible/tls/ca/ca.crt --tls-truststore ansible/tls/ca/ca.crt
+rpk cluster config edit \
+--tls-key ansible/tls/ca/ca.key \
+--tls-cert ansible/tls/ca/ca.crt \
+--tls-truststore ansible/tls/ca/ca.crt
 ```
