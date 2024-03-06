@@ -163,7 +163,15 @@ rpk cluster info
 terraform destroy -var="public_key_path=~/pem/public.cnelson-kp.pub" -var="aws_region=us-east-2"
 ```
 
-This command might need to be this, actually:  `terraform apply -var='aws_region=us-east-2' -var='public_key_path=~/.ssh/id_rsa.pub' -var='availability_zone=["us-east-2a"]' -var='deployment_prefix=cn-test'`
+This command might need to be this, actually:  
+
+```
+terraform destroy \
+-var='aws_region=us-east-2' \
+-var='availability_zone=["us-east-2a"]' \
+-var='public_key_path=~/.ssh/id_rsa.pub' \
+-var='deployment_prefix=cn-test'
+```
 
 
 ---
