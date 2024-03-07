@@ -177,11 +177,7 @@ rpk cluster info
 
 ## Terraform Teardown 
 
-```
-terraform destroy -var="public_key_path=~/pem/public.cnelson-kp.pub" -var="aws_region=us-east-2"
-```
-
-This command might need to be this, actually:  
+It's basically the same command used to terraform apply, only replace `apply` with `destroy`.
 
 ```
 terraform destroy \
@@ -220,7 +216,8 @@ changed_when: '"New configuration version is (jinja2 removed)." not in result.st
 ```
 
 
-and to remove
+
+## Puking on region/az
 
 
 * it puked on the AZ of `us-west-2a`, likely because I specified `us-east-2` as the region.   Need to try this again specifying the AZ on the terraform apply command.   Interim fix was to edit `main.tf` to reflect an east-2 AZ.
