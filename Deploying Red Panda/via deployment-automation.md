@@ -91,7 +91,7 @@ Spin up Redpanda!
 ansible-playbook --private-key ~/.ssh/id_rsa \
   -i hosts.ini \
   -e advertise_public_ips=true \
-  -v ../ansible/playbooks/provision-node.yml
+  -v ../ansible/provision-basic-cluster.yml
 ```
 
 
