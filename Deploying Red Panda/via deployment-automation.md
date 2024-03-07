@@ -55,7 +55,7 @@ terraform apply \
 -var='aws_region=us-east-2' \
 -var='availability_zone=["us-east-2a"]' \
 -var='public_key_path=~/.ssh/id_rsa.pub' \
--var='deployment_prefix=cn-test'
+-var='deployment_prefix=cn-test-2'
 ```
 
 This will start spinning up EC2 instances, security groups, etc which we will use Ansible to install into.  This will also create the `hosts.ini` file that holds the public & private IP's of the instances.
@@ -80,9 +80,11 @@ export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 Install the ansible roles
 
+(assumes you are still in the aws folder.
+
 ```
 # Install collections and roles
-ansible-galaxy install -r ./requirements.yml
+ansible-galaxy install -r ../requirements.yml
 ```
 
 Spin up Redpanda!
@@ -91,7 +93,8 @@ Spin up Redpanda!
 ansible-playbook --private-key ~/.ssh/id_rsa \
   -i hosts.ini \
   -e advertise_public_ips=true \
-  -v ../ansible/provision-basic-cluster.yml
+  -v ../ansible/provision-basic-cluster.yml \
+  --ssh-common-args='-o StrictHostKeyChecking=no'
 ```
 
 
@@ -193,6 +196,32 @@ terraform destroy \
 
 
 # New Issues
+
+## Warn/fatal on jinja2 being used in a conditional statment
+
+
+The "fix" seems to be to modify this file `deployment-automation/artifacts/collections/ansible_collections/redpanda/cluster/roles/redpanda_broker/tasks/start-redpanda.yml`
+And specifically this line, which should be around line #150 (subject to change)
+
+```
+cat start-redpanda.yml | grep -n "{{ config_version.stdout|int() }}"
+```
+
+you need to remove the jinja2 stuff to make this:
+
+```
+changed_when: '"New configuration version is {{ config_version.stdout|int() }}." not in result.stdout'
+```
+
+look like this:
+
+```
+changed_when: '"New configuration version is (jinja2 removed)." not in result.stdout'
+```
+
+
+and to remove
+
 
 * it puked on the AZ of `us-west-2a`, likely because I specified `us-east-2` as the region.   Need to try this again specifying the AZ on the terraform apply command.   Interim fix was to edit `main.tf` to reflect an east-2 AZ.
 * ansible playbook change:
