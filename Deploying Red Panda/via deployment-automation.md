@@ -9,6 +9,13 @@ git clone https://github.com/redpanda-data/deployment-automation.git
 cd deployment-automation
 ```
 
+Then set some environment variables which ansible-galaxy will use to install roles, etc.
+
+```
+export ANSIBLE_COLLECTIONS_PATHS=${PWD}/artifacts/collections
+export ANSIBLE_ROLES_PATH=${PWD}/artifacts/roles
+```
+
 
 ## Terraform
 
@@ -215,42 +222,9 @@ look like this:
 changed_when: '"New configuration version is (jinja2 removed)." not in result.stdout'
 ```
 
+This was fixed in 0.4.20 but if you still have problems make sure that your environment variables are correct such that the ansible-galaxy install step puts everything in the correct location, which is off the root deployment-automation folder, NOT off the aws or other sub folders.
 
 
-## Puking on region/az
-
-
-* it puked on the AZ of `us-west-2a`, likely because I specified `us-east-2` as the region.   Need to try this again specifying the AZ on the terraform apply command.   Interim fix was to edit `main.tf` to reflect an east-2 AZ.
-* ansible playbook change:
-
-```
-ansible-playbook --private-key ~/pem/cnelson-kp.pem \
-  -i ./aws/hosts.ini \
-  -e advertise_public_ips=true \
-  -v ansible/provision-tiered-storage-cluster.yml
-```
-....which still didnt' work.   `--fork 1` may be necessary for SSH strict checking
-
-
-so basically nothing of the ansible instructions I wrote above still works.    I really need to run through this stuff weekly because it appears to be rapidly changing and quite fragile.
-
-New instructions are essentially to follow the actual repo instructions, but this is the distilled version:
-
-From the repo root folder
-
-```
-export ANSIBLE_COLLECTIONS_PATHS=${PWD}/artifacts/collections
-export ANSIBLE_ROLES_PATH=${PWD}/artifacts/roles
-```
-
-then do an ansible deploy
-
-```
-ansible-playbook --private-key ~/pem/cnelson-kp.pem \
-  -i ./aws/hosts.ini \
-  -e advertise_public_ips=true \
-  -v ansible/provision-tiered-storage-cluster.yml
-```
 
 Sample commands need a whole lot of TLS help:
 
