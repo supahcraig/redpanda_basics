@@ -1,3 +1,77 @@
+## Doing stuff in OMB
+
+https://github.com/redpanda-data/openmessaging-benchmark/tree/main/driver-redpanda
+
+These instructions work pretty well.  Notable change is that the ansible-playbook step may need `--ask-become-pass` or else you may see some sudo errors.
+
+```
+  if [ "$(uname)" = "Darwin" ]; then export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES; fi
+        ansible-galaxy install -r requirements.yml
+        ansible-playbook --ask-become-pass deploy.yaml
+```
+
+Then ssh & run the workload
+
+
+
+
+
+Pizza Hut Workload yaml example
+
+```
+topics: 1
+partitionsPerTopic: 30
+messageSize: 1024
+payloadFile: "payload/payload-1Kb.data"
+subscriptionsPerTopic: 2
+consumerPerSubscription: 1
+producersPerTopic: 8000
+producerRate: 1000
+consumerBacklogSizeGB: 0
+warmupDurationMinutes: 5
+testDurationMinutes: 5
+```
+
+
+Per Wes,  `-t swarm` is swarmensemble in OMB, instead of splitting the client machines in half it runs all threads on all servers and co-mingles them.
+
+```
+sudo bin/benchmark -t swarm -d driver-redpanda/pizzahut.yaml  driver-redpanda/deploy/workloads/pizzahutworkload.yaml
+```
+
+
+### Pointing OMB at a BYOC Cluster
+
+https://redpandadata.atlassian.net/wiki/spaces/CS/pages/325025793/Benchmarking+Redpanda+Cloud+for+Customers
+
+
+Note from Wes:
+
+https://redpandadata.slack.com/archives/C05KTNT405R/p1710270297768269
+
+```
+1. you need to create your SASL acl user with a _audit* explicit deny because OMB is doing some bad mojo now and
+2. if oyu built it private, make your clients in their own VPC and peer it .. trying to peer the default vpc would be not cool
+```
+
+```
+ansible-playbook deploy.yaml \
+-e "tls_enabled=True" \
+--ask-become-pass \
+--limit "client" \
+-e "bootstrapServers=seed-c0b26734.cnbnojlmrd9a476kejng.byoc.prd.cloud.redpanda.com:9092" \
+-e "sasl_enabled=true sasl_username=wes sasl_password=weswes"
+```
+
+
+### Grafana for your OMB run
+
+Open a brower window for the prometheus instance on port 3000.  User/pass is `admin` / `enter_your_secure_password` if you've taken the defaults.
+
+If you want to generate the grafana dashboard config you can use rpk:  `rpk generate grafana > grafana.json` and then import that into grafana.  TODO:  need to double check that command
+
+----
+
 Surprise, nothing works.
 
 Ran into an error related to hashicorp random not working on my mac's architecture.   Travis has a workaround, Tristan wrote an article about how to benchmark in Redpanda cloud (see below)
