@@ -33,25 +33,155 @@ testDurationMinutes: 5
 ```
 
 
+
+
+
+
+
+
+## Pointing OMB at a BYOC Cluster
+
+https://redpandadata.atlassian.net/wiki/spaces/CS/pages/325025793/Benchmarking+Redpanda+Cloud+for+Customers
+
+This is the highly distilled version of Tristan's document.  If anything doesn't work, go back to his version, or the deployment-automation instructions.
+
+```
+git clone https://github.com/redpanda-data/openmessaging-benchmark
+cd openmessaging-benchmark
+mvn clean install -Dlicense.skip=true
+```
+
+You may want to tweak tfvars before you continue.
+```
+cd driver-redpanda
+terraform init
+```
+
+### Spin up the resources
+
+```
+terraform apply --auto-approve --var=owner=cnelson
+```
+
+
+export REDPANDA_BOOTSTRAP_SERVER="seed-17627eef.cnplkb3olu5rkpe5aqng.byoc.prd.cloud.redpanda.com:9092"
+
+```
+ansible-playbook --inventory  hosts.ini \
+--ask-become-pass \
+-e "tls_enabled=true sasl_enabled=true sasl_username=cnelson sasl_password=cnelson" \
+-e bootstrapServers=${REDPANDA_BOOTSTRAP_SERVER} \
+deploy.yaml
+```
+
+### Set up the workload test
+
+####SSH into one of the client machines
+
+```
+ssh -i ~/.ssh/redpanda_aws ubuntu@$(terraform output --raw client_ssh_host)
+```
+
+#### Become root
+
+```
+sudo su -
+cd /opt/benchmark
+```
+
+
+
+#### Configure Workload
+
+This is an example workload configuration yaml, found in `driver-redpanda/deploy/workload
+
+```
+name:  pizzahut-8k-producers
+
+topics: 1
+partitionsPerTopic: 30
+messageSize: 1024
+payloadFile: "payload/payload-1Kb.data"
+subscriptionsPerTopic: 2
+consumerPerSubscription: 1
+producersPerTopic: 8000
+producerRate: 1000
+consumerBacklogSizeGB: 0
+warmupDurationMinutes: 5
+testDurationMinutes: 5
+```
+
+Base workload I've been testing with"
+```
+name: Test config
+
+topics: 1
+partitionsPerTopic: 30
+
+messageSize: 1024
+useRandomizedPayloads: true
+randomBytesRatio: 0.5
+randomizedPayloadPoolSize: 1000
+
+subscriptionsPerTopic: 1
+consumerPerSubscription: 2
+producersPerTopic: 100
+
+# Discover max-sustainable rate
+producerRate: 200
+
+consumerBacklogSizeGB: 0
+warmupDurationMinutes: 5
+testDurationMinutes: 5
+```
+
+
+
+TODO:  build a table of how these parameters actually work
+
+
+### Run the test
+
 Per Wes,  `-t swarm` is swarmensemble in OMB, instead of splitting the client machines in half it runs all threads on all servers and co-mingles them.
 
 ```
 sudo bin/benchmark -t swarm -d driver-redpanda/pizzahut.yaml  driver-redpanda/deploy/workloads/pizzahutworkload.yaml
 ```
 
+Or from Tristan's doc
 
-### Pointing OMB at a BYOC Cluster
+```
+bin/benchmark --drivers driver-redpanda/redpanda-ack-all-group-linger-1ms.yaml workloads/1-topic-100-partitions-1kb-4p-4c-200k.yaml
+```
 
-https://redpandadata.atlassian.net/wiki/spaces/CS/pages/325025793/Benchmarking+Redpanda+Cloud+for+Customers
+
+```
+bin/benchmark -t swarm --drivers driver-redpanda/redpanda-ack-all-group-linger-1ms.yaml workloads/test.yaml
+```
 
 
-Note from Wes:
+### Troubleshooting
+
+
+
+Adding this to line ~175 of `openmessaging-benchmark/benchmark-framework/src/main/java/io/openmessaging/benchmark/WorkloadGenerator.java` will allow you to see what's going on during the section where it tends to timeout.
+
+`log.info("Messages received/expected...{} / {}", String.valueOf(stats.messagesReceived), String.valueOf(expectedMessages));`
+
+And then add this to `openmessaging-benchmark/benchmark-framework/src/main/java/io/openmessaging/benchmark/worker
+/SwarmWorker.java` around lines 306 & 310 (there are two functions that need similiar log messages to help see where this is breaking down).
+
+```
+ log.info("Beginning (void) sendPost to  {}", path);
+```
+
+### Note from Wes:
 
 https://redpandadata.slack.com/archives/C05KTNT405R/p1710270297768269
 
 ```
 1. you need to create your SASL acl user with a _audit* explicit deny because OMB is doing some bad mojo now and
-2. if oyu built it private, make your clients in their own VPC and peer it .. trying to peer the default vpc would be not cool
+2. if you built it private, make your clients in their own VPC and peer it .. trying to peer the default vpc would be not cool
 ```
 
 ```
@@ -59,8 +189,27 @@ ansible-playbook deploy.yaml \
 -e "tls_enabled=True" \
 --ask-become-pass \
 --limit "client" \
--e "bootstrapServers=seed-c0b26734.cnbnojlmrd9a476kejng.byoc.prd.cloud.redpanda.com:9092" \
--e "sasl_enabled=true sasl_username=wes sasl_password=weswes"
+-e "bootstrapServers=sseed-2b5bd9bd.cn7o04bpimm8ftui7adg.byoc.prd.cloud.redpanda.com:9092" \
+-e "sasl_enabled=true sasl_username=cnelson sasl_password=cnelson"
+```
+
+```
+ansible-playbook \
+--inventory  hosts.ini \
+--limit "client" \
+-e "bootstrapServers=seed-2b5bd9bd.cn7o04bpimm8ftui7adg.byoc.prd.cloud.redpanda.com:9092" \
+-e "tls_enabled=true" \
+-e "sasl_enabled=true sasl_username=cnelson sasl_password=cnelson \
+deploy.yaml
+```
+
+Then comment out this section of `deploy.yaml` to get around a dumb certs problem that shouldn't even exist.
+
+```
+#- name: Install certs
+#  ansible.builtin.import_playbook: tls/install-certs.yml
+#  when: tls_enabled| default(False)|bool == True
+#  tags: tls
 ```
 
 
