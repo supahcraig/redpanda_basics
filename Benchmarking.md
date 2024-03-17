@@ -63,8 +63,13 @@ terraform init
 terraform apply --auto-approve --var=owner=cnelson
 ```
 
+Set your BYOC cluster endpoint as an env variable to make the ansible deploy a little easier to tweak
 
+```
 export REDPANDA_BOOTSTRAP_SERVER="seed-17627eef.cnplkb3olu5rkpe5aqng.byoc.prd.cloud.redpanda.com:9092"
+```
+
+### Deploy Redpanda stuff
 
 ```
 ansible-playbook --inventory  hosts.ini \
@@ -73,6 +78,7 @@ ansible-playbook --inventory  hosts.ini \
 -e bootstrapServers=${REDPANDA_BOOTSTRAP_SERVER} \
 deploy.yaml
 ```
+
 
 ### Set up the workload test
 
