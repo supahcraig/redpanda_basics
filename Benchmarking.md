@@ -1,6 +1,192 @@
-## Doing stuff in OMB
+# Using OMB
 
-https://github.com/redpanda-data/openmessaging-benchmark/tree/main/driver-redpanda
+For the most part, the instructions found here are correct.   Maybe not quite so if you have trouble, or if you want to benchmark against an existing cluster.
+
+
+## Clone the Repo
+
+You can use the Redpanda fork of OMB, which wishes it were up to date but often times we have to fix stuff & submit PRs but in the meanwhile you may have to roll your own.
+
+
+### Redpanda Fork
+
+
+### My Current Fork
+
+
+I have forked this repo here to add some logging messages & also increase a timeout that you'll hit when you try to test with lots of producers. 
+
+```
+git clone https://github.com/supahcraig/openmessaging-benchmark.git
+```
+
+### Dave V's Current Fork
+
+Dave Voutila has put some additional tuning in to help with large numbers of producers.  
+
+```
+git clone https://github.com/voutilad/openmessaging-benchmark.git
+```
+
+---
+
+## Run the build
+
+
+```
+cd openmessaging-benchmark
+mvn clean install -Dlicense.skip=true
+```
+
+---
+
+## Set up Terraform
+
+
+```
+cd driver-redpanda/deploy
+cp terraform.tfvars.example terraform.tfvars
+```
+
+If you need to make any changes to the instance types or counts, update `terraform.tfvars` now.
+* If you want to point to an existing BYOC or Dedicated cluster, set the Redpanda instances to 0, and set the client machine count to whatever you need.   4, 8, 20....higher client counts are not out of the question
+* If you want to create VMs for a _new_ redpanda self-hosted cluster, set redpanda instances to the number of brokers you want in the cluster
+* If you want to point to an existing self-hosted cluster....._I don't know how to set it just yet_
+
+
+## Set up Ansible
+
+### Install the ansible requirements.
+
+```
+ansible-galaxy install -r requirements.yml
+if [ "$(uname)" = "Darwin" ]; then export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES; fi
+```
+
+### _Are you running against an existing BYOC cluster?_
+
+
+#### Yes?
+Set this environment variable to so ansible will know what to do
+
+```
+export REDPANDA_BOOTSTRAP_SERVER="<seed-endpoint-from-BYOC-console.com:9092>"
+```
+
+*Deploy the ansible playbook*
+
+
+```
+ansible-playbook --inventory  hosts.ini \
+--ask-become-pass \
+-e "tls_enabled=true sasl_enabled=true sasl_username=cnelson sasl_password=cnelson" \
+-e bootstrapServers=${REDPANDA_BOOTSTRAP_SERVER} \
+deploy.yaml
+```
+
+
+
+#### No?
+
+*Deploy the ansible playbook*
+
+```
+  if [ "$(uname)" = "Darwin" ]; then export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES; fi
+        ansible-galaxy install -r requirements.yml
+        ansible-playbook --ask-become-pass deploy.yaml
+```
+
+
+---
+
+## Set up the workload test
+
+### SSH into one of the client machines
+
+```
+ssh -i ~/.ssh/redpanda_aws ubuntu@$(terraform output --raw client_ssh_host)
+```
+
+### Become root
+
+```
+sudo su -
+cd /opt/benchmark
+```
+
+### Pick your workload yaml
+
+These are found in `/opt/benchmark/workload` but what I tend to do is create a new workload yaml under that path.  Here are some examples.
+
+
+*8k producers*
+```
+topics: 1
+partitionsPerTopic: 30
+messageSize: 1024
+payloadFile: "payload/payload-1Kb.data"
+subscriptionsPerTopic: 2
+consumerPerSubscription: 1
+producersPerTopic: 8000
+producerRate: 1000
+consumerBacklogSizeGB: 0
+warmupDurationMinutes: 5
+testDurationMinutes: 5
+```
+
+*Randomized payloads*
+```
+name: Test config
+
+topics: 1
+partitionsPerTopic: 30
+
+messageSize: 1024
+useRandomizedPayloads: true
+randomBytesRatio: 0.5
+randomizedPayloadPoolSize: 1000
+
+subscriptionsPerTopic: 1
+consumerPerSubscription: 2
+producersPerTopic: 100
+
+# Discover max-sustainable rate
+producerRate: 200
+
+consumerBacklogSizeGB: 0
+warmupDurationMinutes: 5
+testDurationMinutes: 5
+```
+
+## Run thw workload
+
+```
+bin/benchmark --drivers driver-redpanda/redpanda-ack-all-group-linger-1ms.yaml workloads/test.yaml
+```
+
+You may want to add the `-t swarm` option, but it's not clear what that does and only Wes seems to recommend it.
+
+
+## Grafana
+
+### BYOC?
+
+If this was running against a BYOC cluster, you can use the dashboards we all know & love, plugging in your redpanda ID.
+
+https://vectorizedio.grafana.net/d/fc1c587b-fcd6-41ad-8161-4f9b06b429fe/cluster-stats-sre-cs?orgId=1&var-datasource=VtFd5GIVz&var-redpanda_id=cnthrbjiuvqvkcfi4acg&from=now-30m&to=now&refresh=5s
+
+https://vectorizedio.grafana.net/d/mnYfLYsnz/data-cluster-health-slos-and-slis?orgId=1&refresh=30s
+
+### Self-hosted
+
+Navigate to the IP of the prometheus host (found in `hosts.ini` under `driver-redpanda/deploy` where you ran terraform, on port 3000 (I'm pretty sure it's port 3000)
+
+
+---
+---
+---
+
+
 
 These instructions work pretty well.  Notable change is that the ansible-playbook step may need `--ask-become-pass` or else you may see some sudo errors.
 
@@ -32,8 +218,29 @@ warmupDurationMinutes: 5
 testDurationMinutes: 5
 ```
 
+*Randomized payloads*
+```
+name: Test config
 
+topics: 1
+partitionsPerTopic: 30
 
+messageSize: 1024
+useRandomizedPayloads: true
+randomBytesRatio: 0.5
+randomizedPayloadPoolSize: 1000
+
+subscriptionsPerTopic: 1
+consumerPerSubscription: 2
+producersPerTopic: 100
+
+# Discover max-sustainable rate
+producerRate: 200
+
+consumerBacklogSizeGB: 0
+warmupDurationMinutes: 5
+testDurationMinutes: 5
+```
 
 
 
@@ -162,7 +369,7 @@ bin/benchmark --drivers driver-redpanda/redpanda-ack-all-group-linger-1ms.yaml w
 
 
 ```
-bin/benchmark -t swarm --drivers driver-redpanda/redpanda-ack-all-group-linger-1ms.yaml workloads/test.yaml
+bin/benchmark --drivers driver-redpanda/redpanda-ack-all-group-linger-1ms.yaml workloads/test.yaml
 ```
 
 
