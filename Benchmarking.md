@@ -22,10 +22,12 @@ git clone https://github.com/supahcraig/openmessaging-benchmark.git
 
 ### Dave V's Current Fork
 
-Dave Voutila has put some additional tuning in to help with large numbers of producers.  
+Dave Voutila has put some additional tuning in to help with large numbers of producers.  It is currently in the speedy branch (as of 3/21/24)
 
 ```
 git clone https://github.com/voutilad/openmessaging-benchmark.git
+cd openmessaging-benchmark
+git checkout speedy
 ```
 
 ---
@@ -40,18 +42,27 @@ mvn clean install -Dlicense.skip=true
 
 ---
 
-## Set up Terraform
 
+
+## Set up Terraform
 
 ```
 cd driver-redpanda/deploy
 cp terraform.tfvars.example terraform.tfvars
 ```
 
+
+### Spin up the resources
+
 If you need to make any changes to the instance types or counts, update `terraform.tfvars` now.
 * If you want to point to an existing BYOC or Dedicated cluster, set the Redpanda instances to 0, and set the client machine count to whatever you need.   4, 8, 20....higher client counts are not out of the question
 * If you want to create VMs for a _new_ redpanda self-hosted cluster, set redpanda instances to the number of brokers you want in the cluster
 * If you want to point to an existing self-hosted cluster....._I don't know how to set it just yet_
+
+```
+terraform apply --auto-approve --var=owner=cnelson
+```
+
 
 
 ## Set up Ansible
@@ -59,9 +70,12 @@ If you need to make any changes to the instance types or counts, update `terrafo
 ### Install the ansible requirements.
 
 ```
-ansible-galaxy install -r requirements.yml
+ansible-galaxy install -r requirements.yaml
 if [ "$(uname)" = "Darwin" ]; then export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES; fi
 ```
+
+
+## Deploy Ansible
 
 ### _Are you running against an existing BYOC cluster?_
 
