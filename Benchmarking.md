@@ -90,6 +90,7 @@ export REDPANDA_BOOTSTRAP_SERVER="<seed-endpoint-from-BYOC-console.com:9092>"
 
 *Deploy the ansible playbook*
 
+Note that this depends on the environment variable being set for the kafka api endpoint, and also a user created in your cluster with a sasl-scram-256 password (cnelson/cnelson in this example), and give it full ACLs.
 
 ```
 ansible-playbook --inventory  hosts.ini \
