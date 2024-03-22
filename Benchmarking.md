@@ -49,6 +49,7 @@ mvn clean install -Dlicense.skip=true
 ```
 cd driver-redpanda/deploy
 cp terraform.tfvars.example terraform.tfvars
+terraform init
 ```
 
 
