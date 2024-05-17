@@ -78,3 +78,22 @@ output:
         password: benthos
 ```
 
+---
+
+## From outside Docker 
+
+I'm only including this because I struggled to make it work for no good reason.   I had to create a profile pointing to the docker instance and then it magically worked.  The profile doesn't even need to be in use, so clearly there is something going on with rpk that I don't understand.
+
+```
+input:
+  label: ""
+  kafka:
+    addresses: [localhost:19092]
+    topics: ["test_topic"]
+    consumer_group: "benthos_cg_1"
+    checkpoint_limit: 1024
+
+
+output:
+  stdout: {}
+```
