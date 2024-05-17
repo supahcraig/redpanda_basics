@@ -1,6 +1,13 @@
 # Redpanda to Redpanda via Benthos
 
-I used the quickstart docker to spin up Redpanda & Console, which puts everything into a Docker network called `edpanda-quickstart-one-broker_redpanda_network`
+## Documentation
+
+https://www.benthos.dev/docs/components/outputs/kafka_franz#tls
+
+
+---
+
+I used the quickstart docker to spin up Redpanda & Console, which puts everything into a Docker network called `redpanda-quickstart-one-broker_redpanda_network`
 
 
 ```
@@ -42,8 +49,10 @@ Benthos will attempt to create the topics if they don't already exist.   Test it
 
 Minimal TLS setup for publishing/consuming from BYOC (or any TLS-enabled/SASL-SCRAM cluster).  Note that BYOC has auto-topic creation disabled so you'll have to create the topics up front.
 
+Also used the `kafka_franz` output which has a slightly different construct for the brokers.
+
+
 ```
-  kafka:
 input:
   label: ""
   kafka:
