@@ -14,10 +14,12 @@ output:
     path: ${!timestamp_unix_nano()}.txt
 ```
 
-Struggling to make this construct work for authentication.
+
+
+To specificy credntials:
 
 ```
-credentials:
-      id: ""
-      secret: ""
+  credentials:
+        id: "your aws access id"
+        secret: "your aws secret"
 ```
