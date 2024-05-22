@@ -95,5 +95,24 @@ ID    HOST          PORT
 0*    10.100.7.153  9092
 ```
 
+## Connections from a remote machine
+
+This is the barebones way to make it work.  More sophisticated listener setups with different advertised addresses/ports is possible.
+
+On your local machine, the rpk profile needs to look like this, and the EC2 instance must be open to traffic from the source on 9092 & 9644 (for kafka & admin apis).
+
+
+```
+kafka_api:
+    brokers:
+        - 3.17.174.176:9092
+admin_api:
+    addresses:
+        - 3.17.174.176:9644
+```
+
+
+
+
 
 
