@@ -20,7 +20,9 @@ Prerequisites:
 * Ubuntu 24.04 (although older versions will definitely work)
 
 
-## Run the installer
+## 1.  Run the installer
+
+SSH into your EC2 instance and run the following to install Redpanda
 
 ```
 curl -1sLf 'https://dl.redpanda.com/nzc4ZYQK3WRGd9sy/redpanda/cfg/setup/bash.deb.sh' | \
@@ -28,7 +30,7 @@ sudo -E bash && sudo apt install redpanda -y
 ```
 
 
-## Bootstrap the Cluster
+## 2.  Bootstrap the Cluster
 
 Where the `--ips` flag is set to the private IP of your broker.
 
@@ -74,7 +76,7 @@ schema_registry: {}
 Note that you _may_ want to change the rpc_server, kafka_api, and admin listener addresses to `0.0.0.0` to allow external traffic
 
 
-## Start Redpanda
+## 3.  Start Redpanda
 
 
 ```
@@ -129,7 +131,7 @@ Note that the address is `127.0.0.1` on port 9092 for kafka api requests, and po
 
 
 
-## Connections from a remote machine
+## 4.  Connections from a remote machine
 
 This is the barebones way to make it work.  More sophisticated listener setups with different advertised addresses/ports is possible.
 
