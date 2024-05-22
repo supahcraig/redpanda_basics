@@ -5,20 +5,19 @@ The purpose of this document is to spin up a minimally configured 1 node redpand
 
 https://docs.redpanda.com/current/deploy/deployment-option/self-hosted/manual/production/dev-deployment/
 
----
 
 Prerequisites:
 
-* Single EC2 instance + rpk installed on your local machine acting as a redpanda client OR 1 EC2 instance for a Redpanda broker and 1 EC2 instance to act as a redpanda client with rpk installed.
+* Single EC2 instance, `c6a.large` with 30GB is suitable.  Smaller _may_ work.
+  * Ubuntu 24.04 (although older versions will definitely work)
+  * EC2 Needs to be accessible from the client machine on ports 9092 & 9644
+  * EC2 needs ssh access to run the install
 
-* EC2 instance can be a `c6a.large`, although smaller may work.
+* A machine to act as the Redpanda client.  This can be your local machine, or another EC2 instance.  This will need rpk installed.
+  * [https://docs.redpanda.com/current/get-started/rpk-install/#install-rpk-on-linux](https://docs.redpanda.com/current/get-started/rpk-install/)
 
-* Needs to be accessible from the client machine on ports 9092 & 9644
 
-* EC2 needs ssh access to run the install
-
-* Ubuntu 24.04 (although older versions will definitely work)
-
+---
 
 ## 1.  Run the installer
 
