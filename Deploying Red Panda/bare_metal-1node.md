@@ -66,9 +66,7 @@ sudo systemctl start redpanda-tuner redpanda
 
 ### Verify Cluster
 
-`rpk cluster health`
-
-should return something like
+`rpk cluster health` should return something like
 
 ```
 CLUSTER HEALTH OVERVIEW
