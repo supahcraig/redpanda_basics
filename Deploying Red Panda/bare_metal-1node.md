@@ -9,9 +9,7 @@ https://docs.redpanda.com/current/deploy/deployment-option/self-hosted/manual/pr
 
 Prerequisites:
 
-* Single EC2 instance + rpk installed on your local machine acting as a redpanda client
-  OR
-* 1 EC2 instance for a Redpanda broker and 1 EC2 instance to act as a redpanda client with rpk installed.
+* Single EC2 instance + rpk installed on your local machine acting as a redpanda client OR 1 EC2 instance for a Redpanda broker and 1 EC2 instance to act as a redpanda client with rpk installed.
 
 * EC2 instance can be a `c6a.xlarge`, although smaller may work.
 
