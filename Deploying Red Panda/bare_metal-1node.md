@@ -72,7 +72,7 @@ pandaproxy: {}
 schema_registry: {}
 ```
 
-Note that you _may_ want to change the rpc_server, kafka_api, and admin listener addresses to `0.0.0.0` to allow external traffic
+Note that you _may_ want to change the rpc_server, kafka_api, and admin listener addresses to `0.0.0.0` to allow external traffic.
 
 
 ## 3.  Start Redpanda
