@@ -17,6 +17,8 @@ Prerequisites:
 
 * EC2 needs ssh access to run the install
 
+* Ubuntu 24.04 (although older versions will definitely work)
+
 
 ## Run the installer
 
