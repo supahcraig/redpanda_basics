@@ -6,7 +6,7 @@ The purpose of this document is to spin up a minimally configured 1 node redpand
 https://docs.redpanda.com/current/deploy/deployment-option/self-hosted/manual/production/dev-deployment/
 
 
-Prerequisites:
+## Prerequisites
 
 * Single EC2 instance, `c6a.large` with 30GB is suitable.  Smaller _may_ work.
   * Ubuntu 24.04 (although older versions will definitely work)
