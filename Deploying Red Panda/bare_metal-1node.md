@@ -130,6 +130,8 @@ On your local machine, the rpk profile needs to look like this, and the EC2 inst
 `rpk profile edit`
 
 ```
+name: ec2_rpm
+description: EC2 RPM 1-node
 kafka_api:
     brokers:
         - 3.17.174.176:9092
@@ -138,12 +140,14 @@ admin_api:
         - 3.17.174.176:9644
 ```
 
+Where the IP addresses given above is the public IP of your broker. 
+
 Then view your current profile using `rpk profile print`
 
 
 ### Verify Connectivity
 
-similar to testing from on-broker, you can test the same rpk commands from your local machine (aka off-broker).  Again, using the `-v` flag will reveal information about how rpk & the cluster is handling your request.
+Similar to testing from on-broker, you can test the same rpk commands from your local machine (aka off-broker).  Again, using the `-v` flag will reveal information about how rpk & the cluster is handling your request.
 
 
 `rpk cluster info -v`
