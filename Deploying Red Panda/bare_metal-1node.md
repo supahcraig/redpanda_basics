@@ -1,5 +1,7 @@
 # RPM install on EC2 for a single node
 
+The purpose of this document is to spin up a minimally configured 1 node redpanda "cluster" & configure basic connectivity from a remote machine.
+
 
 https://docs.redpanda.com/current/deploy/deployment-option/self-hosted/manual/production/dev-deployment/
 
@@ -96,12 +98,36 @@ ID    HOST          PORT
 0*    10.100.7.153  9092
 ```
 
+### Verify the IP & port traffic
+
+Adding `-v` to `rpk` commands will reveal information about the IPs & ports in use.   On-broker traffic will typically look like this:
+
+```
+18:45:41.777  DEBUG  opening connection to broker  {"addr": "127.0.0.1:9092", "broker": "seed_0"}
+18:45:41.777  DEBUG  connection opened to broker  {"addr": "127.0.0.1:9092", "broker": "seed_0"}
+18:45:41.777  DEBUG  issuing api versions request  {"broker": "seed_0", "version": 3}
+18:45:41.777  DEBUG  wrote ApiVersions v3  {"broker": "seed_0", "bytes_written": 31, "write_wait": "35.511µs", "time_to_write": "27.36µs", "err": null}
+18:45:41.778  DEBUG  read ApiVersions v3  {"broker": "seed_0", "bytes_read": 296, "read_wait": "57.632µs", "time_to_read": "136.083µs", "err": null}
+18:45:41.778  DEBUG  connection initialized successfully  {"addr": "127.0.0.1:9092", "broker": "seed_0"}
+18:45:41.778  DEBUG  wrote Metadata v7  {"broker": "seed_0", "bytes_written": 22, "write_wait": "814.859µs", "time_to_write": "20.76µs", "err": null}
+18:45:41.778  DEBUG  read Metadata v7  {"broker": "seed_0", "bytes_read": 95, "read_wait": "40.751µs", "time_to_read": "45.301µs", "err": null}
+```
+
+Note that the address is `127.0.0.1` on port 9092 for kafka api requests, and port 9644 for admin api requests.
+
+
+
 ## Connections from a remote machine
 
 This is the barebones way to make it work.  More sophisticated listener setups with different advertised addresses/ports is possible.
 
-On your local machine, the rpk profile needs to look like this, and the EC2 instance must be open to traffic from the source on 9092 & 9644 (for kafka & admin apis).
+On your local machine, the rpk profile needs to look like this, and the EC2 instance must be open to traffic from the source on 9092 & 9644 (for kafka & admin apis).  You can create & modify an rpk profile as follows:
 
+### rpk profile
+
+`rpk profile create ec2_rpm`
+
+`rpk profile edit`
 
 ```
 kafka_api:
@@ -111,6 +137,38 @@ admin_api:
     addresses:
         - 3.17.174.176:9644
 ```
+
+Then view your current profile using `rpk profile print`
+
+
+### Verify Connectivity
+
+similar to testing from on-broker, you can test the same rpk commands from your local machine (aka off-broker).  Again, using the `-v` flag will reveal information about how rpk & the cluster is handling your request.
+
+
+`rpk cluster info -v`
+
+```
+13:50:52.759  DEBUG  opening connection to broker  {"addr": "3.17.174.176:9092", "broker": "seed_0"}
+13:50:52.882  DEBUG  connection opened to broker  {"addr": "3.17.174.176:9092", "broker": "seed_0"}
+13:50:52.882  DEBUG  issuing api versions request  {"broker": "seed_0", "version": 3}
+13:50:52.883  DEBUG  wrote ApiVersions v3  {"broker": "seed_0", "bytes_written": 31, "write_wait": "267µs", "time_to_write": "39.792µs", "err": null}
+13:50:52.920  DEBUG  read ApiVersions v3  {"broker": "seed_0", "bytes_read": 296, "read_wait": "248.042µs", "time_to_read": "37.217416ms", "err": null}
+13:50:52.921  DEBUG  connection initialized successfully  {"addr": "3.17.174.176:9092", "broker": "seed_0"}
+13:50:52.921  DEBUG  wrote Metadata v7  {"broker": "seed_0", "bytes_written": 22, "write_wait": "162.834291ms", "time_to_write": "235.917µs", "err": null}
+13:50:52.957  DEBUG  read Metadata v7  {"broker": "seed_0", "bytes_read": 95, "read_wait": "486.208µs", "time_to_read": "35.494334ms", "err": null}
+CLUSTER
+=======
+redpanda.8ab99fa3-1ab2-4db6-bf54-eb42f96ee319
+
+BROKERS
+=======
+ID    HOST          PORT
+0*    10.100.7.153  9092
+```
+
+Note that the traffic is routed to the public IP of the broker on port 9092.  Recall that the public IP was set in your local rpk profile (not to be confused with the `redpanda.yaml` on the broker)
+
 
 
 
