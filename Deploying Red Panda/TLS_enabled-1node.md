@@ -2,7 +2,7 @@
 
 https://docs.redpanda.com/docs/manage/security/encryption/
 
-Check my other docs for additional TLS info & troubleshooting.
+Assumes you already have a single node cluster up.  Check my other docs for additional TLS info & troubleshooting.
 
 **NOTE:  All these steps should be run on the broker.  They can be run locally, but then you have to copy them up.**
 
@@ -67,7 +67,7 @@ commonName       = optional
 
 This will need to go into a file called `broker.cnf`
 
-You will need to modify the `[ alt names ]` section as per your speficic needs.   For POC purposes, what you'll probably want is to include at a minimum the _private_ IP's of your brokers.   In this example I've included the private DNS, the private IP, and the public IP of my only broker.   
+You will need to modify the `[ alt names ]` section as per your speficic needs.   For POC purposes, what you'll probably want is to include at a minimum the _private_ IP's of your brokers.   In this example I've included the private DNS, the private IP, and the public IP of my only broker.   If you happen to have multiple brokers, the `broker.cnf` will need additional entries for the DNS & private IP's of the brokers.
 
 
 ```
@@ -124,36 +124,4 @@ openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -i
 sudo chown redpanda:redpanda broker.key broker.crt ca.crt
 sudo chmod 400 broker.key broker.crt ca.crt
 ```
-
-
-
-
-```
-# cleanup
-rm -f *.crt *.csr *.key *.pem index.txt* serial.txt*
-
-# create broker key
-openssl genrsa -out broker.key 2048
-
-# create a ca key to self-sign certificates
-openssl genrsa -out ca.key 2048
-chmod 400 ca.key
-
-# create a public cert for the CA
-openssl req -new -x509 -config ca.cnf -key ca.key -days 365 -batch -out ca.crt
-
-# generate csr
-openssl req -new -key broker.key -out broker.csr -nodes -config broker.cnf
-
-# sign the certificate with the CA signature
-touch index.txt
-echo '01' > serial.txt
-openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch
-
-chown redpanda:redpanda broker.key broker.crt ca.crt
-chmod 400 broker.key broker.crt ca.crt
-```
-
-
-
 
