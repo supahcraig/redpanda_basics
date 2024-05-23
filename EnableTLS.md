@@ -403,6 +403,9 @@ chmod 400 ca.key
 # create a public cert for the CA
 openssl req -new -x509 -config ca.cnf -key ca.key -days 365 -batch -out ca.crt
 
+# generate csr
+openssl req -new -key broker.key -out broker.csr -nodes -config broker.cnf
+
 # generate a private key for the brokers
 openssl genrsa -out broker.key 2048
 
