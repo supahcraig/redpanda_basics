@@ -121,8 +121,8 @@ touch index.txt
 echo '01' > serial.txt
 openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch
 
-chown redpanda:redpanda broker.key broker.crt ca.crt
-chmod 400 broker.key broker.crt ca.crt
+sudo chown redpanda:redpanda broker.key broker.crt ca.crt
+sudo chmod 400 broker.key broker.crt ca.crt
 ```
 
 
