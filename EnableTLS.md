@@ -384,3 +384,36 @@ _note the difference of using the `ca.cnf` and `ca.key` instead of the broker ke
 `openssl x509 -req -signkey ca.key -days 365 -extfile broker.cnf -extensions extensions -in broker.csr -out broker.crt`
 
 
+
+----
+
+
+# Pared down Redpanda docs guide
+
+Assumes your `broker.cnf` and `ca.cnf` are in place.
+
+```
+# cleanup
+rm -f *.crt *.csr *.key *.pem index.txt* serial.txt*
+
+# create a ca key to self-sign certificates
+openssl genrsa -out ca.key 2048
+chmod 400 ca.key
+
+# create a public cert for the CA
+openssl req -new -x509 -config ca.cnf -key ca.key -days 365 -batch -out ca.crt
+
+# generate a private key for the brokers
+openssl genrsa -out broker.key 2048
+
+# sign the certificate with the CA signature
+touch index.txt
+echo '01' > serial.txt
+openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch
+
+chown redpanda:redpanda broker.key broker.crt ca.crt
+chmod 400 broker.key broker.crt ca.crt
+```
+
+
+
