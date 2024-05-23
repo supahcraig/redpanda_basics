@@ -88,8 +88,9 @@ DNS.2 = redpanda
 DNS.3 = console
 DNS.4 = connect
 DNS.5 = <aws private DNS>
-IP.1  = <private IP>
-IP.2  = <public IP>
+IP.1  = 127.0.0.1
+IP.2  = <private IP>
+IP.3  = <public IP>
 ```
 
 ---
