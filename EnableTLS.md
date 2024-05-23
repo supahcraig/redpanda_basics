@@ -296,6 +296,21 @@ unable to request metadata: unable to dial: tls: failed to verify certificate: x
 
 This is usually because `rpk` isn't looking at the truststore.   Add `truststore_file: /path/to/ca.crt` to the `tls:` section under `rpk:` in your `redpanda.yaml`, OR add `--tls-truststore /path/to/ca.crt` to your `rpk` CLI call.
 
+I think it could also be because of self-signed certs, which is resolved by adding `-X admin.tls.insecure_skip_verify=true` to admin api calls (unsure what the exact flag is for kafka API or RPC) OR you can add it to the rpk section of your yaml:
+
+```
+kafka_api:
+    brokers:
+        - 3.17.174.176:9092
+    tls:
+        insecure_skip_verify: true
+admin_api:
+    addresses:
+        - 3.17.174.176:9644
+    tls:
+        insecure_skip_verify: true
+```
+
 
 ## Valid for [IP/host], not valid for [IP/host]
 
