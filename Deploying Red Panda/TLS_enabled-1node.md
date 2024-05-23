@@ -194,6 +194,15 @@ pandaproxy: {}
 schema_registry: {}
 ```
 
+## Restart redpanda
+
+Most changes to `redpanda.yaml` require redpanda to be restarted to take effect.
+
+```
+sudo systemctl restart redpanda
+```
+
+
 ---
 
 ## Local rpk profile (for remote connections)
@@ -227,4 +236,18 @@ admin_api:
 ```
 
 _NOTE: rpk will silently revert your profile changes if there is a yaml or other configuration error.  Best to `rpk profile print` to verify your changes stick._
+
+---
+
+## Verity remote TLS connectivity
+
+We'll need to verify both the admin api as well as the kafka api.  See other TLS docs for troubleshooting help.
+
+### Kafka API (port 9092)
+```
+rpk cluster info -v
+```
+
+
+
 
