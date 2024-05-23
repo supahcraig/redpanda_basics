@@ -9,6 +9,15 @@ Check my other docs for additional TLS info & troubleshooting.
 
 ---
 
+## Create the folder structure & permissions
+
+```
+sudo mkdir /etc/redpanda/certs
+sudo chown redpanda:redpanda /etc/redpanda/certs
+```
+
+---
+
 ## Certificate Authority Config
 
 This will need to go as-is into a file named `ca.cnf`
