@@ -87,9 +87,9 @@ DNS.1 = localhost
 DNS.2 = redpanda
 DNS.3 = console
 DNS.4 = connect
-DNS.5 = ec2-3-15-15-272.us-east-2.compute.amazonaws.com
-IP.1  = 10.0.8.1
-IP.2  = 3.15.15.172
+DNS.5 = <aws private DNS>
+IP.1  = <private IP>
+IP.2  = <public IP>
 ```
 
 ---
