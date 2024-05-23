@@ -34,7 +34,7 @@ sudo -E bash && sudo apt install redpanda -y
 Where the `--ips` flag is set to the private IP of your broker.
 
 ```
-sudo rpk redpanda config bootstrap --self $(hostname -I) --ips <Your Private IP>
+sudo rpk redpanda config bootstrap --self $(hostname -I) --ips $(hostname -I) # only works for a one node deployment
 sudo rpk redpanda config set redpanda.empty_seed_starts_cluster false
 ```
 
