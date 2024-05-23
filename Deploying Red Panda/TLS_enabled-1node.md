@@ -125,3 +125,106 @@ sudo chown redpanda:redpanda broker.key broker.crt ca.crt
 sudo chmod 400 broker.key broker.crt ca.crt
 ```
 
+---
+
+## Broker-side redpanda.yaml
+
+Some of this is boilerplate from the bootstrap process, but the `rpk:` section & anything TLS-related has to be added by hand.
+
+```
+redpanda:
+    data_directory: /var/lib/redpanda/data
+    empty_seed_starts_cluster: false
+    seed_servers:
+        - host:
+            address: <broker private IP>
+            port: 33145
+    rpc_server:
+        address: 0.0.0.0
+        port: 33145
+    kafka_api:
+        - address: 0.0.0.0
+          port: 9092
+    kafka_api_tls:
+          enabled: true
+          key_file: /etc/redpanda/certs/broker.key
+          cert_file: /etc/redpanda/certs/broker.crt
+          truststore_file: /etc/redpanda/certs/ca.crt
+    admin:
+          address: 0.0.0.0
+          port: 9644
+    admin_api_tls:
+          enabled: true
+          key_file: /etc/redpanda/certs/broker.key
+          cert_file: /etc/redpanda/certs/broker.crt
+          truststore_file: /etc/redpanda/certs/ca.crt
+
+    advertised_kafka_api:
+      - address: <broker public IP>
+        port: 9092
+
+    advertised_rpc_api:
+        address: <broker public IP>
+        port: 33145
+
+    developer_mode: true
+    auto_create_topics_enabled: true
+    fetch_reads_debounce_timeout: 10
+    group_initial_rebalance_delay: 0
+    group_topic_partitions: 3
+    log_segment_size_min: 1
+    storage_min_free_bytes: 10485760
+    topic_partitions_per_shard: 1000
+    write_caching_default: "true"
+rpk:
+    kafka_api:
+        tls:
+            enabled: false
+            ca_file: /etc/redpanda/certs/ca.crt
+
+    admin_api:
+      tls:
+          #key_file: /etc/redpanda/certs/broker.key
+          #cert_file: /etc/redpanda/certs/broker.crt
+          truststore_file: /etc/redpanda/certs/ca.crt
+
+    overprovisioned: true
+
+pandaproxy: {}
+schema_registry: {}
+```
+
+---
+
+## Local rpk profile (for remote connections)
+
+
+From your local machine (that is, not the broker)
+
+```
+rpk profile create one-node-TLS
+rpk profile use one-node-TLS
+rpk profile edit
+```
+
+There are probably a thousand ways to do this.  This is one way I've found to work.  
+_NOTE: I'm 90% sure the insecure skip verify flag is needed becuase of a self-signed cert that the remote client can't verify_
+
+```
+name: one-node-TLS
+description: Single broker w/TLS enabled
+prompt: hi-red, "[%n]"
+kafka_api:
+    brokers:
+        - <broker public IP>:9092
+    tls:
+        insecure_skip_verify: true
+admin_api:
+    addresses:
+        - <broker public IP>:9644
+    tls:
+        insecure_skip_verify: true
+```
+
+
+
