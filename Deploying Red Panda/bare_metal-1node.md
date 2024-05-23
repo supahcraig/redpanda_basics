@@ -144,6 +144,7 @@ On your local machine, the rpk profile needs to look like this, and the EC2 inst
 
 ```
 name: ec2_rpm
+prompt: hi-red, "[%n]"
 description: EC2 RPM 1-node
 kafka_api:
     brokers:
