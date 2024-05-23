@@ -209,6 +209,8 @@ sudo systemctl restart redpanda
 ## Local rpk profile (for remote connections)
 
 
+Before we get started, you don't HAVE to use an `rpk profile` to do this.  You can do it with environment variables, a custom rpk config, or by specifying  command line params.
+
 From your local machine (that is, not the broker)
 
 ```
@@ -252,6 +254,12 @@ We'll need to verify both the admin api as well as the kafka api.  See other TLS
 rpk cluster info -v
 ```
 
+The equivalent CLI version using TLS would be:
+
+`rpk cluster info --tls-enabled -X <some sort of insecure_skip_verify=true> -v`
+
+
+
 Should return output like:
 
 ```
@@ -280,6 +288,11 @@ ID    HOST          PORT
 ```
 rpk cluster health -v
 ```
+
+The equivalent CLI version using TLS would be:
+
+`rpk cluster health -X admin.tls.enabled=true -X admin.tls.insecure_skip_verify=true -v`
+
 
 Should return output like:
 
