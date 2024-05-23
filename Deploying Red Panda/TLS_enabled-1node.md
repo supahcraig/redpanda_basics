@@ -226,5 +226,5 @@ admin_api:
         insecure_skip_verify: true
 ```
 
-
+_NOTE: rpk will silently revert your profile changes if there is a yaml or other configuration error.  Best to `rpk profile print` to verify your changes stick._
 
