@@ -14,6 +14,7 @@ Check my other docs for additional TLS info & troubleshooting.
 ```
 sudo mkdir /etc/redpanda/certs
 sudo chown redpanda:redpanda /etc/redpanda/certs
+cd /etc/redpanda/certs
 ```
 
 ---
