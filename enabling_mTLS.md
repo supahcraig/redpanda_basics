@@ -14,6 +14,7 @@ openssl req -x509 -new -nodes -keyout ca.key -out ca.crt -days 365 \
 -subj "/C=US/ST=State/L=Locality/O=Organization/OU=Unit/CN=example.com"
 ```
 
+---
 
 ### 1b.  Create a Server Certificate
 
@@ -78,7 +79,7 @@ IP.3  = 3.17.174.176
 ```
 
 
-
+---
 
 #### 1b-3.  Sign the CSR with the CA:
 
@@ -100,6 +101,7 @@ And then verify with this command:
 openssl x509 -in server.crt -noout -text | grep -A 1 "Subject Alternative Name"
 ```
 
+---
 
 ### 1c.  Create a Client Certificate
 
@@ -124,6 +126,8 @@ openssl req -new -key client.key -out client.csr \
 ```
 openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -days 365
 ```
+
+---
 
 ### 1d.  Transfer the Certficiates
 
