@@ -30,7 +30,19 @@ openssl genpkey -algorithm RSA -out server.key
 
 From the same place where the server.key lives
 
-_This was the initial command, but it ends up causing a problem with IP SANs_
+
+
+And then generate server key & CSR using the config.
+
+
+If you need a san.cnf:
+
+```
+openssl req -new -nodes -out server.csr -keyout server.key -config san.cnf
+```
+
+
+If you do not need a san.cnf:
 
 ```
 openssl req -new -key server.key -out server.csr -subj "/C=US/ST=State/L=Locality/O=Organization/OU=Unit/CN=server.example.com"
@@ -65,11 +77,7 @@ IP.2  = 10.100.7.153
 IP.3  = 3.17.174.176
 ```
 
-And then generate server key & CSR using the config.
 
-```
-openssl req -new -nodes -out server.csr -keyout server.key -config san.cnf
-```
 
 
 #### 1b-3.  Sign the CSR with the CA:
