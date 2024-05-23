@@ -324,6 +324,8 @@ IP.2  = 3.15.15.172
 
 
 ```
+rm -f *.crt *.csr *.key *.pem index.txt* serial.txt*
+
 openssl genrsa -out ca.key 2048
 chmod 400 ca.key
 openssl req -new -x509 -config ca.cnf -key ca.key -days 365 -batch -out ca.crt
