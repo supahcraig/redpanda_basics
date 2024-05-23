@@ -396,6 +396,9 @@ Assumes your `broker.cnf` and `ca.cnf` are in place.
 # cleanup
 rm -f *.crt *.csr *.key *.pem index.txt* serial.txt*
 
+# create broker key
+openssl genrsa -out broker.key 2048
+
 # create a ca key to self-sign certificates
 openssl genrsa -out ca.key 2048
 chmod 400 ca.key
