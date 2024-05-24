@@ -86,6 +86,40 @@ IP.2  = 3.15.15.172
 
 This can be done from anywhere, but ultimately the 3 files (`ca.crt`, `ca.key`, and `broker.crt`) will need to be on each broker, owned & readable by redpanda
 
+
+## Redpanda doc, distilled & re-sequenced (plus the missing step)
+
+
+```
+# cleanup
+rm -f *.crt *.csr *.key *.pem index.txt* serial.txt*
+
+# create a ca key to self-sign certificates
+openssl genrsa -out ca.key 2048
+chmod 400 ca.key
+
+# create a public cert for the CA
+openssl req -new -x509 -config ca.cnf -key ca.key -days 365 -batch -out ca.crt
+
+# create broker key
+openssl genrsa -out broker.key 2048
+
+# generate Certificate Signing Request
+openssl req -new -key broker.key -out broker.csr -nodes -config broker.cnf
+
+# sign the certificate with the CA signature
+touch index.txt
+echo '01' > serial.txt
+openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch
+
+sudo chown redpanda:redpanda broker.key broker.crt ca.crt
+sudo chmod 444 broker.key broker.crt ca.crt
+```
+
+
+
+_THIS SECTION IS DEPRECATED....probably?_
+
 ```
 rm -f *.crt *.csr *.key *.pem index.txt* serial.txt*
 
@@ -106,7 +140,7 @@ chown redpanda:redpanda ca.crt
 chown redpanda:redpanda broker.crt
 ```
 
-_TODO:  is the `chmod 400` neccesary?_
+
 
 ---
 
@@ -124,10 +158,10 @@ These will need to be owned & accessible by redpanda.  The standard location for
 
 `openssl genrsa -out ca.key 2048`
 
-This uses openssl to generate a private key, which will be the private key for our CA.
+This uses openssl to generate a private key, which will be the private key for our certificate authority (CA).
 
 
-**2.  Self signing the root certificate**
+**2.  Generate a public cert for the CA**
 
 `openssl req -new -x509 -config ca.cnf -key ca.key -days 365 -batch -out ca.crt`
 
@@ -141,7 +175,7 @@ Here we are creating a root certificate that validates itself.   Any certs which
 This uses openssl to generate a private key which your brokers will use.  You will use this one key for ALL your brokers.
 
 
-**4.  Generate the private broker certificate (csr)**
+**4.  Generate the private broker certificate signing request (csr)**
 
 `openssl req -new -key broker.key -out broker.csr -nodes -config broker.cnf`
 
@@ -155,7 +189,7 @@ touch index.txt
 echo '01' > serial.txt
 ```
 
-I mean, I understand what in the unix this is doing, but I have no idea why it's important.  These files have something to do with a sort of database which is referred to in the `ca.cnf`
+I mean, I understand what in the unix this is doing, but I have no idea why it's important.  These files have something to do with a sort of database which is referred (implicitly) to in the `ca.cnf`
 
 
 **6.  Have the CA sign the broker cert**
@@ -164,16 +198,14 @@ I mean, I understand what in the unix this is doing, but I have no idea why it's
 
 This will sign the broker cert signing request (`broker.csr`) using the CA certficate (`ca.crt`) and apparently the CA private key (`ca.key`), the output will by the signed broker cert (`broker.crt`) into the current directory.
 
-_TODO:  determine what of these options is not actually required, i.e. `ca.cnf` and/or `ca.key`
-
 
 **7.  Make redpanda the owner of the certs & keys
 
-400 permissions isn't strictly necessary, but it is a good practice.
+`chmod 444` here allows rpk commands to be run from the broker w/o needing `sudo`.  `chmod 400` is probably a better practice but is a hassle for what we're doing here.
 
 ```
 chown redpanda:redpanda broker.key broker.crt ca.crt 
-chmod 400 broker.key broker.crt ca.crt 
+chmod 444 broker.key broker.crt ca.crt 
 ```
 
 ---
@@ -240,23 +272,14 @@ There is probably a more secure way to do this, such as copying up to s3.
 1.  Copy the certs down to your local machine
    
 ```
-scp -i ~/pem/cnelson-kp.pem ubuntu@3.15.15.172:/home/ubuntu/broker.key ./broker.key
-scp -i ~/pem/cnelson-kp.pem ubuntu@3.15.15.172:/home/ubuntu/broker.crt ./broker.crt
-scp -i ~/pem/cnelson-kp.pem ubuntu@3.15.15.172:/home/ubuntu/ca.crt ./ca.crt
+scp -v -i ~/pem/cnelson-kp.pem ubuntu@18.118.226.7:/etc/redpanda/certs/{broker.key,broker.crt,ca.crt} .
 ```
 
-2.  Copy the certs back up to the remote machine
+2.  Copy the certs back up to the remaining remote machines
 
 ```
-scp -i ~/pem/cnelson-kp.pem ./broker.key ubuntu@3.128.255.84:/home/ubuntu/broker.key
-scp -i ~/pem/cnelson-kp.pem ./broker.crt ubuntu@3.128.255.84:/home/ubuntu/broker.crt
-scp -i ~/pem/cnelson-kp.pem ./ca.crt ubuntu@3.128.255.84:/home/ubuntu/ca.crt
-```
-
-```
-scp -i ~/pem/cnelson-kp.pem ./broker.key ubuntu@3.138.101.143:/home/ubuntu/broker.key
-scp -i ~/pem/cnelson-kp.pem ./broker.crt ubuntu@3.138.101.143:/home/ubuntu/broker.crt
-scp -i ~/pem/cnelson-kp.pem ./ca.crt ubuntu@3.138.101.143:/home/ubuntu/ca.crt
+scp -i ~/pem/cnelson-kp.pem broker.key broker.crt ca.crt ubuntu@3.128.255.84:/home/ubuntu/broker.key
+scp -i ~/pem/cnelson-kp.pem broker.key broker.crt ca.crt ubuntu@3.138.101.143:/home/ubuntu/broker.key
 ```
 
 
@@ -265,16 +288,19 @@ scp -i ~/pem/cnelson-kp.pem ./ca.crt ubuntu@3.138.101.143:/home/ubuntu/ca.crt
 Run this as sudo
 
 ```
+sudo -i
 mkdir /etc/redpanda/certs/
 cp /home/ubuntu/broker.key /etc/redpanda/certs/broker.key
 cp /home/ubuntu/broker.crt /etc/redpanda/certs/broker.crt
 cp /home/ubuntu/ca.crt /etc/redpanda/certs/ca.crt
 
 chown redpanda:redpanda /etc/redpanda/certs/broker.key /etc/redpanda/certs/broker.crt /etc/redpanda/certs/ca.crt 
-chmod 400 /etc/redpanda/certs/broker.key /etc/redpanda/certs/broker.crt /etc/redpanda/certs/ca.crt 
+chmod 444 /etc/redpanda/certs/broker.key /etc/redpanda/certs/broker.crt /etc/redpanda/certs/ca.crt 
 ```
 
 ---
+---
+
 
 # Troubleshooting
 
@@ -353,87 +379,3 @@ touch index.txt
 echo '01' > serial.txt
 openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch
 ```
-
-###Create the ca.cnf
-
-
-###create the ca private key:
-*CONFIRMED*
-
-```
-openssl genrsa -out ca.key 2048
-chmod 400 ca.key
-```
-
-###Create/sign the CA cert:
-*CONFIRMED*
-
-`openssl req -new -x509 -config ca.cnf -key ca.key -days 365 -batch -out ca.crt`
-
-
-###Create the broker.cnf
-
-###create the broker private key:
-*CONFIRMED*
-
-`openssl genrsa -out broker.key 2048`
-
-
-###MISSING: create the broker.csr:
-*CONFIRMED*
-
-`openssl req -new -key broker.key -out broker.csr -nodes -config broker.cnf`
-
-###sign the broker cert:
-
-```
-touch index.txt
-echo '01' > serial.txt
-openssl ca -config broker.cnf -keyfile broker.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch
-```
-
-That last line needs to be `openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch`
-_note the difference of using the `ca.cnf` and `ca.key` instead of the broker key & config_
-
-
-###Sign the broker cert:
-
-`openssl x509 -req -signkey ca.key -days 365 -extfile broker.cnf -extensions extensions -in broker.csr -out broker.crt`
-
-
-
-----
-
-
-# Pared down Redpanda docs guide
-
-Assumes your `broker.cnf` and `ca.cnf` are in place.
-
-```
-# cleanup
-rm -f *.crt *.csr *.key *.pem index.txt* serial.txt*
-
-# create broker key
-openssl genrsa -out broker.key 2048
-
-# create a ca key to self-sign certificates
-openssl genrsa -out ca.key 2048
-chmod 400 ca.key
-
-# create a public cert for the CA
-openssl req -new -x509 -config ca.cnf -key ca.key -days 365 -batch -out ca.crt
-
-# generate csr
-openssl req -new -key broker.key -out broker.csr -nodes -config broker.cnf
-
-# sign the certificate with the CA signature
-touch index.txt
-echo '01' > serial.txt
-openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch
-
-chown redpanda:redpanda broker.key broker.crt ca.crt
-chmod 400 broker.key broker.crt ca.crt
-```
-
-
-
