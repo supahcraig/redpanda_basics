@@ -10,7 +10,7 @@ Asuming you already have TLS working, getting to mTLS can be very easy.  I'm sur
 
 **1.  Edit your `redpanda.yaml` for `required_client_auth`
 
-```
+```yaml
 kafka_api_tls:
           enabled: true
           require_client_auth: true    # this is the new line
@@ -21,7 +21,7 @@ kafka_api_tls:
 
 and also 
 
-```
+```yaml
     admin_api_tls:
           enabled: true
           require_client_auth: true    # this is the new line
@@ -33,21 +33,25 @@ and also
 
 **2.  Copy the `broker.key` and `broker.crt` from your brokers to your client machine**
 
-```
+```console
 scp -i ~/pem/cnelson-kp.pem ubuntu@3.17.174.176:/etc/redpanda/certs/{broker.key,broker.crt,ca.crt} .
 ```
+
+Really, you need a just key & cert that have been signed by...what exactly? (ask Maltese)
+
+
 
 **3.  Test with rpk**
 
 If it worked before, it should error out now.
 
-```
+```console
 rpk cluster info -v
 ```
 
 Should return this sort of error message because the broker is expecting the client to provide a cert & key for mTLS.
 
-```
+```logtalk
 10:17:06.707  DEBUG  opening connection to broker  {"addr": "3.17.174.176:9092", "broker": "seed_0"}
 10:17:06.816  DEBUG  connection opened to broker  {"addr": "3.17.174.176:9092", "broker": "seed_0"}
 10:17:06.816  DEBUG  issuing api versions request  {"broker": "seed_0", "version": 3}
@@ -60,13 +64,13 @@ unable to request metadata: remote error: tls: certificate required
 
 Instead, specify the certs on the CLI:
 
-```
+```console
 rpk cluster info --tls-key broker.key --tls-cert broker.crt -v
 ```
 
 and you should get a clean response:
 
-```
+```logtalk
 10:18:53.629  DEBUG  opening connection to broker  {"addr": "3.17.174.176:9092", "broker": "seed_0"}
 10:18:53.746  DEBUG  connection opened to broker  {"addr": "3.17.174.176:9092", "broker": "seed_0"}
 10:18:53.746  DEBUG  issuing api versions request  {"broker": "seed_0", "version": 3}
@@ -85,9 +89,9 @@ ID    HOST          PORT
 0*    3.17.174.176  9092
 ```
 
-**4.  Update your rpk profile
+**4.  Update your rpk profile**
 
-```
+```yaml
 name: ec2_rpm
 description: EC2 RPM 1-node
 prompt: hi-red, "[%n]"
@@ -111,7 +115,7 @@ schema_registry: {}
 
 Now re-test the rpk commands without specifying the certs on the command line:
 
-```
+```console
 rpk cluster info -v
 rpk cluster health -v
 ```
@@ -176,7 +180,7 @@ So we need to use a Configuration file for the SANs.   I've previously got this 
 
 Save this into `san.cnf`
 
-```
+```ini
 [ req ]
 prompt             = no
 distinguished_name = req_distinguished_name
