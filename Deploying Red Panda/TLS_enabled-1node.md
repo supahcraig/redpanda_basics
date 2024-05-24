@@ -9,6 +9,15 @@ Assumes you already have a single node cluster up.  Check my other docs for addi
 
 ---
 
+# Generate Certs
+
+You can do this via terraform (https://github.com/supahcraig/redpanda_basics/blob/main/Deploying%20Red%20Panda/TLS/README.md)
+
+OR you can do it by hand using `openssl` by following the instructions below. 
+
+Regardless of the method, once you have the keys on the server with the correct permissions, all the remaning steps are the same.
+
+
 ## Create the folder structure & permissions
 
 ```console
