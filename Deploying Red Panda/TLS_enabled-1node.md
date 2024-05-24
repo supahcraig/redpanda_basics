@@ -1,4 +1,4 @@
-# One Node TLS enable setup
+# One Node TLS enable setup (with on-broker Console)
 
 https://docs.redpanda.com/docs/manage/security/encryption/
 
@@ -363,4 +363,52 @@ Leaderless partitions (0):        []
 Under-replicated partitions (0):  []
 ```
 
+---
+
+# Console Setup
+
+Assumes you already have console installed on the broker.
+
+Documentation on this is a little light/confusing.
+https://docs.redpanda.com/current/reference/console/config/#redpanda-console-configuration-file
+
+
+## Security Groups
+
+_This may be less complicated/more secure by using internal/exteral listeners_
+
+* EC2 must be open on port 8080 to allow web console traffic
+* I also had to open ports 9092 & 9644 to the public IP of the instance, because some of the traffic is going across the internet.  This is _probably_ because my advertised address is the public IP.
+
+
+## redpanda-console.yaml
+
+
+```
+kafka:
+  brokers: 10.100.7.153:9092
+
+  tls:
+    enabled: true
+    caFilepath: /etc/redpanda/certs/ca.crt
+    certFilepath: /etc/redpanda/certs/broker.crt
+    keyFilepath: /etc/redpanda/certs/broker.key
+
+
+redpanda:
+  adminApi:
+    enabled: true
+    urls: ["https://localhost:9644"]
+    tls:
+      enabled: true
+      caFilepath: /etc/redpanda/certs/ca.crt
+      certFilepath: /etc/redpanda/certs/broker.crt
+      keyFilepath: /etc/redpanda/certs/broker.key
+```
+
+Then restart the console service:
+
+```
+sudo systemctl restart redpanda-console
+```
 
