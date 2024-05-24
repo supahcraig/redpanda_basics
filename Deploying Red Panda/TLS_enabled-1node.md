@@ -11,7 +11,7 @@ Assumes you already have a single node cluster up.  Check my other docs for addi
 
 ## Create the folder structure & permissions
 
-```
+```console
 sudo mkdir /etc/redpanda/certs
 sudo chown redpanda:redpanda /etc/redpanda/certs
 sudo chmod 777 /etc/redpanda/certs
@@ -24,7 +24,7 @@ cd /etc/redpanda/certs
 
 This will need to go as-is into a file named `ca.cnf`
 
-```
+```ini
 [ ca ]
 default_ca = CA_default
 
@@ -70,7 +70,7 @@ This will need to go into a file called `broker.cnf`
 You will need to modify the `[ alt names ]` section as per your speficic needs.   For POC purposes, what you'll probably want is to include at a minimum the _private_ IP's of your brokers.   In this example I've included the private DNS, the private IP, and the public IP of my only broker.   If you happen to have multiple brokers, the `broker.cnf` will need additional entries for the DNS & private IP's of the brokers.
 
 
-```
+```ini
 [ req ]
 prompt             = no
 distinguished_name = distinguished_name
@@ -100,7 +100,7 @@ IP.3  = <public IP>
 This is the distilled version of the public facing Redpanda TLS docs.
 
 
-```
+```console
 # cleanup
 rm -f *.crt *.csr *.key *.pem index.txt* serial.txt*
 
@@ -132,7 +132,7 @@ sudo chmod 444 broker.key broker.crt ca.crt
 
 Some of this is boilerplate from the bootstrap process, but the `rpk:` section & anything TLS-related has to be added by hand.
 
-```
+```yaml
 redpanda:
     data_directory: /var/lib/redpanda/data
     empty_seed_starts_cluster: false
@@ -199,7 +199,7 @@ schema_registry: {}
 
 Most changes to `redpanda.yaml` require redpanda to be restarted to take effect.
 
-```
+```console
 sudo systemctl restart redpanda
 ```
 
@@ -213,7 +213,7 @@ Before we get started, you don't HAVE to use an `rpk profile` to do this.  You c
 
 From your local machine (that is, not the broker)
 
-```
+```console
 rpk profile create one-node-TLS
 rpk profile use one-node-TLS
 rpk profile edit
@@ -222,7 +222,7 @@ rpk profile edit
 There are probably a thousand ways to do this.  This is one way I've found to work.  
 _NOTE: I'm 90% sure the insecure skip verify flag is needed becuase of a self-signed cert that the remote client can't verify_
 
-```
+```yaml
 name: one-node-TLS
 description: Single broker w/TLS enabled
 prompt: hi-red, "[%n]"
@@ -250,7 +250,7 @@ We'll need to verify both the admin api as well as the kafka api.  See other TLS
 
 `sudo` may be needed here if the truststore that `rpk` uses is owned by redpanda and is more than 444 restrictive.
 
-```
+```console
 rpk cluster info -v
 ```
 
@@ -262,7 +262,7 @@ The equivalent CLI version using TLS would be:
 
 Should return output like:
 
-```
+```logtalk
 22:19:01.489  DEBUG  opening connection to broker  {"addr": "127.0.0.1:9092", "broker": "seed_0"}
 22:19:01.493  DEBUG  connection opened to broker  {"addr": "127.0.0.1:9092", "broker": "seed_0"}
 22:19:01.493  DEBUG  issuing api versions request  {"broker": "seed_0", "version": 3}
@@ -285,7 +285,7 @@ ID    HOST          PORT
 
 `sudo` may be needed here if the truststore that `rpk` uses is owned by redpanda and is more than 444 restrictive.
 
-```
+```console
 rpk cluster health -v
 ```
 
@@ -296,7 +296,7 @@ The equivalent CLI version using TLS would be:
 
 Should return output like:
 
-```
+```logtalk
 22:21:08.998  DEBUG  Sending request  {"method": "GET", "url": "https://127.0.0.1:9644/v1/cluster/health_overview", "bearer": false, "basic": false}
 CLUSTER HEALTH OVERVIEW
 =======================
@@ -317,13 +317,13 @@ We'll need to verify both the admin api as well as the kafka api.  See other TLS
 
 ### Kafka API (port 9092)
 
-```
+```console
 rpk cluster info -v
 ```
 
 Should return output like this:
 
-```
+```logtalk
 17:21:38.580  DEBUG  opening connection to broker  {"addr": "18.118.226.7:9092", "broker": "seed_0"}
 17:21:38.693  DEBUG  connection opened to broker  {"addr": "18.118.226.7:9092", "broker": "seed_0"}
 17:21:38.693  DEBUG  issuing api versions request  {"broker": "seed_0", "version": 3}
@@ -344,13 +344,13 @@ ID    HOST          PORT
 
 ### Kafka Admin API (port 9644)
 
-```
+```console
 rpk cluster health -v
 ```
 
 Should return output like:
 
-```
+```logtalk
 17:25:04.150  DEBUG  Sending request  {"method": "GET", "url": "https://18.118.226.7:9644/v1/cluster/health_overview", "bearer": false, "basic": false}
 CLUSTER HEALTH OVERVIEW
 =======================
@@ -377,7 +377,7 @@ https://docs.redpanda.com/current/reference/console/config/#redpanda-console-con
 
 Install Redpanda console on your broker:
 
-```
+```console
 curl -1sLf 'https://dl.redpanda.com/nzc4ZYQK3WRGd9sy/redpanda/cfg/setup/bash.deb.sh' | \
 sudo -E bash && sudo apt-get install redpanda-console -y
 ```
@@ -402,7 +402,7 @@ _This may be less complicated/more secure by using internal/exteral listeners_
 ## redpanda-console.yaml
 
 
-```
+```yaml
 kafka:
   brokers: 10.100.7.153:9092
 
@@ -426,7 +426,7 @@ redpanda:
 
 Then restart the console service:
 
-```
+```console
 sudo systemctl restart redpanda-console
 ```
 
