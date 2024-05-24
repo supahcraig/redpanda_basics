@@ -8,7 +8,7 @@ https://docs.redpanda.com/current/reference/node-configuration-sample/
 
 And just in case that link ever moves, here is the sample config found above.
 
-```
+```yaml
 # organization and cluster_id help Redpanda identify your system.
 organization: ""
 cluster_id: ""
