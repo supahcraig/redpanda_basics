@@ -367,10 +367,28 @@ Under-replicated partitions (0):  []
 
 # Console Setup
 
-Assumes you already have console installed on the broker.
-
 Documentation on this is a little light/confusing.
 https://docs.redpanda.com/current/reference/console/config/#redpanda-console-configuration-file
+
+
+## Console Install
+
+### On-broker option
+
+Install Redpanda console on your broker:
+
+```
+curl -1sLf 'https://dl.redpanda.com/nzc4ZYQK3WRGd9sy/redpanda/cfg/setup/bash.deb.sh' | \
+sudo -E bash && sudo apt-get install redpanda-console -y
+```
+
+_NOTE: yaml configs found below are for an on-broker console install.
+
+
+### Off-broker option
+
+TODO:
+
 
 
 ## Security Groups
