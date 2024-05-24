@@ -378,8 +378,8 @@ https://docs.redpanda.com/current/reference/console/config/#redpanda-console-con
 _This may be less complicated/more secure by using internal/exteral listeners_
 
 * EC2 must be open on port 8080 to allow web console traffic
-* I also had to open ports 9092 & 9644 to the public IP of the instance, because some of the traffic is going across the internet.  This is _probably_ because my advertised address is the public IP.
-
+* I also had to open ports 9092 to the public IP of the instance, because some of the traffic is going across the internet.  This is _probably_ because my advertised address is the public IP.
+  * I initially had to open it on 9644 as well, but changing the `urls` in the `adminApi` section to localhost rather than the private IP has removed the need for that particular security group rule.
 
 ## redpanda-console.yaml
 
