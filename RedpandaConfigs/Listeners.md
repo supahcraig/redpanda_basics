@@ -100,7 +100,7 @@ redpanda:
     kafka_api_tls:
         - name: public
           enabled: true
-          require_client_auth: true
+          require_client_auth: false
           key_file: /etc/redpanda/certs/broker.key
           cert_file: /etc/redpanda/certs/broker.crt
           truststore_file: /etc/redpanda/certs/ca.crt
