@@ -8,7 +8,7 @@ https://docs.redpanda.com/current/deploy/deployment-option/self-hosted/manual/pr
 
 ## Prerequisites
 
-* Single EC2 instance, `c6a.large` with 30GB is suitable.  Smaller _may_ work.
+* Single EC2 instance, `c6a.large` with 30GB is suitable.  Smaller _may_ work (t3.large has been _lightly_ tested).
   * Ubuntu 24.04 (although older versions will definitely work)
   * EC2 Needs to be accessible from the client machine on ports `9092` & `9644`
   * EC2 needs ssh access to run the install
