@@ -37,7 +37,7 @@ flowchart TD
 ```
 
 
-### A simple example
+### A Simple Example
 
 _(Ignoring TLS for the moment)_
 
