@@ -62,8 +62,10 @@ rpk:
 *Quick Note on `redpanda.yaml`*:
 There will be a `redpanda.yaml` on each broker, but you can also have one on your client machine.   The easiest place to put it is in your working directory, but `/etc/redpanda/redpanda.yaml` is another valid location.   
 
-TODO:  link to redpanda.yaml doc and/or relevant repo page
+Here is a sample of "all" the rpk config options.   
+https://docs.redpanda.com/current/reference/node-configuration-sample/
 
+_NOTE: rpk profiles have removed the need for a local redpanda.yaml_
 
 
 ---
