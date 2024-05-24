@@ -74,6 +74,7 @@ If there is a TLS section (i.e. `kafka_api_tls`), the listener will expect traff
 
 Note that the `kafka_api_tls` listeners are defined such that public traffic requires TLS while private traffic does not require TLS.
 
+---
 
 # Reference `redpanda.yaml`
 
