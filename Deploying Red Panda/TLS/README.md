@@ -9,6 +9,9 @@ terraform init
 terraform apply --auto-approve
 ```
 
+This will create `broker.key`, `broker.crt`, and `ca.crt` files you'll want to distribute to your brokers.
+
+
 ## Copy certs to broker(s)
 
 You'll need `/etc/redpanda/certs` already created on all your brokers.
