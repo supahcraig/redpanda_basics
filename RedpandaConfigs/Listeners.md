@@ -72,7 +72,7 @@ If there is a TLS section (i.e. `kafka_api_tls`), the listener will expect traff
 6.  The reponse is the address & port corresponding to the PUBLIC listener (there will be multiple addresses/ports in the case of an actual cluster)  ==> `3.17.174.176:9093`
 
 
-Note that the `kafka_api_tls` listeners are defined such that public traffic requires TLS while private traffic does not require TLS.
+Note that the `kafka_api_tls` listeners are defined in the reference `redpanda.yaml` below such that public traffic requires TLS while private traffic does not require TLS.
 
 
 ## Console Integration
