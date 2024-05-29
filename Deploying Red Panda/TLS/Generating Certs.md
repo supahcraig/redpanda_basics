@@ -66,7 +66,7 @@ commonName       = optional
 
 This will need to go into a file called `broker.cnf`
 
-You will need to modify the `[ alt names ]` section as per your speficic needs.   For POC purposes, what you'll probably want is to include at a minimum the _private_ IP's of your brokers.   In this example I've included the private DNS, the private IP, and the public IP of my only broker.   If you happen to have multiple brokers, the `broker.cnf` will need additional entries for the DNS & private IP's of the brokers.
+You will need to modify the `[ alt names ]` section as per your speficic needs.   For POC purposes, what you'll probably want is to include at a minimum the _private_ IP's of your brokers.   In this example I've included the private DNS, the private IP, and the public IP of my only broker.   If you happen to have multiple brokers, the `broker.cnf` will need additional entries for the DNS & IP's of the brokers.
 
 
 ```ini
