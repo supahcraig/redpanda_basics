@@ -1,7 +1,10 @@
 # Enabling TLS from Ground Zero
 
-The Redpanda docs are missing steps and have some steps out of sequence.  Expect revised docs before Oct 1 2023.
 https://docs.redpanda.com/docs/manage/security/encryption/
+
+Josh Purcell repo also has good info:  https://github.com/vuldin/redpanda-tls-sso/blob/main/README-rhel.md
+
+
 
 # USING TERRAFORM
 
