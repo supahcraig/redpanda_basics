@@ -45,7 +45,7 @@ Benthos will attempt to create the topics if they don't already exist.   Test it
 
 ----
 
-## How to configure for TLS
+## How to configure for TLS & SASL/SCRAM
 
 Minimal TLS setup for publishing/consuming from BYOC (or any TLS-enabled/SASL-SCRAM cluster).  Note that BYOC has auto-topic creation disabled so you'll have to create the topics up front.
 
