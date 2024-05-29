@@ -94,13 +94,10 @@ redpanda:
 rpk:
     kafka_api:
         tls:
-            enabled: false
             ca_file: /etc/redpanda/certs/ca.crt
 
     admin_api:
       tls:
-          #key_file: /etc/redpanda/certs/broker.key
-          #cert_file: /etc/redpanda/certs/broker.crt
           truststore_file: /etc/redpanda/certs/ca.crt
 
     overprovisioned: true
