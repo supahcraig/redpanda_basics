@@ -37,7 +37,7 @@ and also
 scp -i ~/pem/cnelson-kp.pem ubuntu@3.17.174.176:/etc/redpanda/certs/{broker.key,broker.crt,ca.crt} .
 ```
 
-Really, you need a just key & cert that have been signed by one of the CA's in the broker's truststore file.  For our simple self-signed case, you can re-use the same `broker.key` and `broker.crt` that lives on the broker for TLS.
+Really, you need a just key & cert that have been signed by one of the CA's in the broker's truststore file.  For our simple self-signed case, you can re-use the same `broker.key` and `broker.crt` that lives on the broker for TLS.  Note that TLS requires that the hostnames/IPs be built into the broker config when creating the certs, the alt-names section is irrelevant for mTLS.
 
 
 
@@ -127,7 +127,7 @@ And everything should be working beautifully using mTLS.
 ---
 ---
 ---
-Certs are not my superpower.  This is was done via chatGPT.   No idea how this is going to go.
+Certs are not my superpower.  This is was done via chatGPT.   No idea how this is going to go, but the current state is that I couldn't get it working as-is.   I have working docs using `openssl` elsewhere in this repo, as well as some terraform that will create them locally.   I'm keeping this section here for now for posterity.  
 
 
 ## 1.  Generate Certificates
