@@ -23,7 +23,7 @@ docker run --rm -v ${PWD}/config.yaml:/benthos.yaml  --net=redpanda-quickstart-o
 
 `config.yaml`
 
-```
+```yaml
 input:
   label: ""
   kafka:
@@ -52,7 +52,7 @@ Minimal TLS setup for publishing/consuming from BYOC (or any TLS-enabled/SASL-SC
 Also used the `kafka_franz` output which has a slightly different construct for the brokers.
 
 
-```
+```yaml
 input:
   label: ""
   kafka:
@@ -84,7 +84,7 @@ output:
 
 I'm only including this because I struggled to make it work for no good reason.   I had to create a profile pointing to the docker instance and then it magically worked.  The profile doesn't even need to be in use, so clearly there is something going on with rpk that I don't understand.
 
-```
+```yaml
 input:
   label: ""
   kafka:
@@ -96,4 +96,49 @@ input:
 
 output:
   stdout: {}
+```
+
+
+---
+
+## From BYOC to BYOC
+
+this gets tls & sasl/scram involved on both sides & forces a docker deployment (since stdin doesn't really work in a docker deployment)
+
+```console
+docker run --rm -v ${PWD}/byoc-byoc.yaml:/benthos.yaml --net=redpanda-quickstart-one-broker_redpanda_network ghcr.io/benthosdev/benthos
+```
+
+
+```yaml
+input:
+  label: ""
+  kafka_franz:
+    seed_brokers:
+      - seed-c47ff96d.cnthrbjiuvqvkcfi4acg.byoc.prd.cloud.redpanda.com:9092
+    topics: ["benthos_input_byoc"]
+    consumer_group: test_benthos
+
+    tls:
+      enabled: true
+
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: benthos
+        password: benthos
+
+output:
+  label: ""
+  kafka_franz:
+    seed_brokers:
+      - seed-c47ff96d.cnthrbjiuvqvkcfi4acg.byoc.prd.cloud.redpanda.com:9092
+    topic: "benthos_dest_byoc"
+
+    tls:
+      enabled: true
+
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: benthos
+        password: benthos
 ```
