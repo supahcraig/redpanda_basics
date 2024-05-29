@@ -11,6 +11,9 @@ Josh Purcell repo also has good info:  https://github.com/vuldin/redpanda-tls-ss
 you may find it easier to create the certs locally using Terraform, and then copy them up to the server.   Check the README in the TLS section of this repo for details.
 
 
+---
+If not using Terraform to build the certs, follow this process.
+
 ## Pre-requisites
 
 ### Certificate Authority Config
