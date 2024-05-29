@@ -37,7 +37,7 @@ and also
 scp -i ~/pem/cnelson-kp.pem ubuntu@3.17.174.176:/etc/redpanda/certs/{broker.key,broker.crt,ca.crt} .
 ```
 
-Really, you need a just key & cert that have been signed by...what exactly? (ask Maltese)
+Really, you need a just key & cert that have been signed by one of the CA's in the broker's truststore file.  For our simple self-signed case, you can re-use the same `broker.key` and `broker.crt` that lives on the broker for TLS.
 
 
 
