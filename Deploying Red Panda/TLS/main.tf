@@ -16,8 +16,8 @@ resource "tls_self_signed_cert" "ca" {
   is_ca_certificate     = true
 
   subject {
-    common_name  = "pandaproxy-benchmarking"
-    organization = "pandaproxy-benchmarking"
+    common_name  = "redpanda-tls"
+    organization = "redpanda-tls"
   }
 }
 
