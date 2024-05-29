@@ -113,20 +113,20 @@ This is the distilled version of the public facing Redpanda TLS docs.
 # cleanup
 rm -f *.crt *.csr *.key *.pem index.txt* serial.txt*
 
-# create a ca key to self-sign certificates
+# create a ca key to self-sign certificates  // OUTPUT = ca.key
 openssl genrsa -out ca.key 2048
 chmod 400 ca.key
 
-# create a public cert for the CA
+# create a public cert for the CA  // OUTPUT = ca.crt
 openssl req -new -x509 -config ca.cnf -key ca.key -days 365 -batch -out ca.crt
 
-# create broker key
+# create broker key  // OUTPUT = broker.key
 openssl genrsa -out broker.key 2048
 
-# generate Certificate Signing Request
+# generate Certificate Signing Request  // OUTPUT = broker.csr
 openssl req -new -key broker.key -out broker.csr -nodes -config broker.cnf
 
-# sign the certificate with the CA signature
+# sign the certificate with the CA signature  // OUTPUT = broker.crt
 touch index.txt
 echo '01' > serial.txt
 openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch
