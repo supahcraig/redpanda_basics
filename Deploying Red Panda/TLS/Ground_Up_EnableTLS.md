@@ -363,6 +363,8 @@ IP.1  = 10.100.8.26
 IP.2  = 3.15.15.172
 ```
 
+You may _still_ see this error in some cases... perhaps the most common case would be trying to access the cluster remotely using the public IP.  Internally AWS does a NAT translation at the gateway to turn that public IP to a private IP, meaning that the EC2 instance never sees the public IP.  The `alt_names` section of your `broker.cnf` needs to have the private IP, even for public access.   This could also cause you problems when setting up your redpanda listeners, since redpanda can't really bind to the public IP due to this routing.  More info here:  https://repost.aws/questions/QUGknveVnmTfyJ4auBUEeJqg/public-ip-address-connectivity-in-aws
+
 
 
 ---
