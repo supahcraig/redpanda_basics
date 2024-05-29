@@ -60,14 +60,16 @@ redpanda:
     kafka_api:
         - address: 0.0.0.0
           port: 9092
+    admin:
+          address: 0.0.0.0
+          port: 9644
+
     kafka_api_tls:
           enabled: true
           key_file: /etc/redpanda/certs/broker.key
           cert_file: /etc/redpanda/certs/broker.crt
           truststore_file: /etc/redpanda/certs/ca.crt
-    admin:
-          address: 0.0.0.0
-          port: 9644
+
     admin_api_tls:
           enabled: true
           key_file: /etc/redpanda/certs/broker.key
