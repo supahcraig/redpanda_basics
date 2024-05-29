@@ -8,7 +8,7 @@ this does not handle the principal mapping (yet)
 Asuming you already have TLS working, getting to mTLS can be very easy.  I'm sure it can be more complex if you want it to be.
 
 
-**1.  Edit your `redpanda.yaml` for `required_client_auth`
+**1.  Edit your `redpanda.yaml` for `required_client_auth`**
 
 ```yaml
 kafka_api_tls:
