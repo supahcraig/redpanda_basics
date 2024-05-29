@@ -14,7 +14,7 @@ https://github.com/supahcraig/redpanda_basics/blob/main/Deploying%20Red%20Panda/
 
 
 ---
-If not using Terraform to build the certs, follow this process.
+# USING `openssl`
 
 ## Pre-requisites
 
