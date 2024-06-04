@@ -2,7 +2,7 @@
 
 
 
-```
+```yaml
 input:
   stdin: {}
 
@@ -30,7 +30,7 @@ output:
 type some json into stdin and it will show up in dynamo after 5 messages or 2 minutes, whichever comes first.  It uses the PutItem dynamoDB method, which will overwrite/update if there is a key collision.
 
 
-```
+```json
 {"id": 99, "stuff": "more stuff"}
 {"id": 99, "stuff": "different stuff"}
 {"id": 1007, "idk": "try this"}
@@ -43,14 +43,21 @@ type some json into stdin and it will show up in dynamo after 5 messages or 2 mi
 
 ## Set up Vault
 
+```bash
+brew tap hashicorp/tap
+brew install hashicorp/tap/vault
+
+vault secrets enable -version=1 kv
+vault server -dev
+```
 
 Find the vault token from when you started the server
 
-```
+```bash
  export VAULT_TOKEN="hvs.YOURvaultTOKEN"
 ```
 
-```
+```bash
 vault kv put -mount=secret myAWS id=myAWSid secret=myAWSsecretKEY
 vault kv get -mount=secret myAWS
 ```
