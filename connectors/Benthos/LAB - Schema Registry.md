@@ -6,6 +6,14 @@ This is more or less taken from Ash Jeffs' video on the topic.   He spun up a wh
 
 This will take randomized input json messages, convert them to avro using the schema registry, and then publish them to Redpanda.   They will then be consumed & decoded and printed to stdout.   Once that is running, we will modify the input json & schema in various ways to see how it all works.
 
+1.  Create inbound pipeline (see errors)
+2.  Create avro schema
+3.  Add a field to the generated data (see errors)
+4.  Update schema
+5.  Remove field from generated data (see errors)
+6.  Update schema
+
+
 
 ## Inbound Pipeline
 
@@ -46,10 +54,9 @@ output:
 ### Spin up Redpanda Connect for the inbound pipeline
 
 ```console
-benthos -w -c inbound.yaml
+rpk connect run -w inbound.yaml
 ```
 
-TODO:  change `benthos` to corresponding `rpk` CLI syntax
 
 This will throw errors because the schema registry does not yet exist.
 
@@ -93,10 +100,8 @@ output:
 ### Spin up Redpanda Connect for the outbound pipeline
 
 ```console
-benthos -w -c outbound.yaml
+rpk connect run -w outbound.yaml
 ```
-
-TODO:  change `benthos` to corresponding `rpk` CLI syntax
 
 This will throw errors because the schema registry does not yet exist.
 
@@ -131,8 +136,119 @@ curl -s \
   | jq
 ```
 
-The pair of Redpanda Connect processes should pick up the new schema quickly and cease throwing errors.
+Output:
 
+```json
+% ./insert_schema.sh
+{
+  "id": 1
+}
+```
+
+The pair of Redpanda Connect processes should pick up the new schema quickly and cease throwing errors.  You can also see messages being written by either consuming the topic or using the Redpanda Console.
+
+
+
+---
+
+
+# Make it break! 
+
+## Add a field to inbound data
+
+Modify the inbound.yaml to include this additional field which isn't part of our schema.  Because we invoked redpanda connect using the `-w` flag, it will _watch_ for changes to the config and restart the pipeline whenever it sees a new config.
+
+`root.Bouncing = random_int() % 2 == 0`
+
+
+should throw errors again
+
+```logtalk
+ERRO cannot decode textual record "redpanda_connect_example": cannot decode textual map: cannot determine codec: "Bouncing"  @service=benthos label="" path=root.pipeline.processors.1.catch.0
+ERRO cannot decode textual record "redpanda_connect_example": cannot decode textual map: cannot determine codec: "Bouncing"  @service=benthos label="" path=root.pipeline.processors.1.catch.0
+ERRO cannot decode textual record "redpanda_connect_example": cannot decode textual map: cannot determine codec: "Bouncing"  @service=benthos label="" path=root.pipeline.processors.1.catch.0
+ERRO cannot decode textual record "redpanda_connect_example": cannot decode textual map: cannot determine codec: "Bouncing"  @service=benthos label="" path=root.pipeline.processors.1.catch.0
+```
+
+## Modify the schema
+
+Adding this line to our schema will allow our generated json to adhere to the latest version of the schema, which will allow our pipeline to once again work.
+
+`{"name": "Bouncing", "type": "boolean", "default": true}` 
+
+```json
+{
+  "type": "record",
+  "name": "redpanda_connect_example",
+  "fields": [
+    {"name": "ID", "type": "string"},
+    {"name": "Name", "type": "string"},
+    {"name": "Gooeyness", "type": "double"},
+    {"name": "Bouncing", "type": "boolean", "default": true}
+  ]
+}
+```
+
+```console
+./insert_schema.sh
+```
+
+Output:
+
+```json
+% ./insert_schema.sh
+{
+  "id": 2
+}
+```
+
+And you should start to see new records in Console with the new `Bouncing` field added.
+
+
+## Remove a field
+
+Comment out the `root.Gooeyness` line from `inbound.yaml` to exclude it from the generated json.   This will no longer adhere to the schema since `Gooeyness` is a required field, so the pipeline will immediately start throwing errors.
+
+```logtalk
+ERRO cannot decode textual record "redpanda_connect_example": only found 3 of 4 fields  @service=benthos label="" path=root.pipeline.processors.1.catch.0
+ERRO cannot decode textual record "redpanda_connect_example": only found 3 of 4 fields  @service=benthos label="" path=root.pipeline.processors.1.catch.0
+ERRO cannot decode textual record "redpanda_connect_example": only found 3 of 4 fields  @service=benthos label="" path=root.pipeline.processors.1.catch.0
+ERRO cannot decode textual record "redpanda_connect_example": only found 3 of 4 fields  @service=benthos label="" path=root.pipeline.processors.1.catch.0
+```
+
+## Modify the schema again
+
+Adding a default value to the `Gooeyness` field will allow the inbound data to conform to the newest schema and data can beging flowing once again.
+
+`{"name": "Gooeyness", "type": "double", "default": -1}`
+
+```json
+{
+  "type": "record",
+  "name": "redpanda_connect_example",
+  "fields": [
+    {"name": "ID", "type": "string"},
+    {"name": "Name", "type": "string"},
+    {"name": "Gooeyness", "type": "double", "default": -1},
+    {"name": "Bouncing", "type": "boolean", "default": true}
+  ]
+}
+```
+
+```console
+./insert_schema.sh
+```
+
+Output:
+
+```json
+% ./insert_schema.sh
+{
+  "id": 3
+}
+```
+
+And you should start to see new records in Console with the new `Bouncing` field added.
 
 
 
