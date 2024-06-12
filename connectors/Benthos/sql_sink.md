@@ -26,7 +26,11 @@ output:
     columns: [id, name, gooeyness, ts]
     args_mapping:  root = [this.ID, this.Name, this.Gooeyness, timestamp_unix_micro()]
     init_statement: |
-      create table if not exists z (id varchar(100), name varchar(100), gooeyness decimal(10, 2), ts bigint);
+      create table if not exists z (
+      id varchar(100),
+      name varchar(100),
+      gooeyness decimal(10, 2),
+      ts bigint);
 ```
 
 
