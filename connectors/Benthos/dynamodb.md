@@ -47,14 +47,15 @@ type some json into stdin and it will show up in dynamo after 5 messages or 2 mi
 brew tap hashicorp/tap
 brew install hashicorp/tap/vault
 
-vault secrets enable -version=1 kv
 vault server -dev
+vault secrets enable -version=1 kv
 ```
 
-Find the vault token from when you started the server
+Find the vault token & address from when you started the server.  
 
 ```bash
- export VAULT_TOKEN="hvs.YOURvaultTOKEN"
+export VAULT_ADDR='http://127.0.0.1:8200'
+export VAULT_TOKEN="hvs.YOURvaultTOKEN"
 ```
 
 ```bash
