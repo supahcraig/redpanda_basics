@@ -41,6 +41,9 @@ type some json into stdin and it will show up in dynamo after 5 messages or 2 mi
 
 # Using Vault for credentials.
 
+https://developer.hashicorp.com/vault/tutorials/getting-started/getting-started-dev-server
+
+
 ## Set up Vault
 
 ```bash
