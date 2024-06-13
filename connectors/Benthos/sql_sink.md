@@ -8,10 +8,12 @@ docker run --name pg -p 5432:5432 -e POSTGRES_PASSWORD=mypass -e POSTGRES_USERNA
 
 ## Insert random data into Postgres
 
+This should take about a minute forty-five to generate ~100k records.
+
 ```yaml
 input:
   generate:
-    interval: 1s
+    interval: 0.001s
     mapping: |
       root.ID = uuid_v4()
       root.Name = ["frosty", "spot", "oodles"].index(random_int() % 3)
