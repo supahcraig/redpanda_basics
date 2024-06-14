@@ -46,7 +46,7 @@ https://developer.hashicorp.com/vault/tutorials/getting-started/getting-started-
 
 ## Set up Vault
 
-```bash
+```console
 brew tap hashicorp/tap
 brew install hashicorp/tap/vault
 
@@ -56,7 +56,7 @@ vault secrets enable -version=1 kv
 
 Find the vault token & address from when you started the server.  
 
-```bash
+```console
 export VAULT_ADDR='http://127.0.0.1:8200'
 export VAULT_TOKEN="hvs.YOURvaultTOKEN"
 ```
@@ -64,14 +64,14 @@ export VAULT_TOKEN="hvs.YOURvaultTOKEN"
 
 Store your access id & secret in the vault...
 
-```bash
+```console
 vault kv put -mount=secret myAWS id=myAWSid secret=myAWSsecretKEY
 ```
 
 
 And for good measure spit the key/values back out...
 
-```bash
+```console
 vault kv get -mount=secret myAWS
 ```
 
