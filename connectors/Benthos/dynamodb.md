@@ -89,7 +89,7 @@ or using `rpk`:
 
 Note that the `--set` flags need to precede the config in the args list.
 
-```
+```bash
 rpk connect run \
 --set "output.aws_dynamodb.credentials.id=`vault kv get -mount=secret -field=id myAWS`" \
 --set "output.aws_dynamodb.credentials.secret=`vault kv get -mount=secret -field=secret myAWS`" \
