@@ -61,10 +61,21 @@ export VAULT_ADDR='http://127.0.0.1:8200'
 export VAULT_TOKEN="hvs.YOURvaultTOKEN"
 ```
 
+
+Store your access id & secret in the vault...
+
 ```bash
 vault kv put -mount=secret myAWS id=myAWSid secret=myAWSsecretKEY
+```
+
+
+And for good measure spit the key/values back out...
+
+```bash
 vault kv get -mount=secret myAWS
 ```
+
+
 
 I have my aws ID & secret stored in `myAWS.id` & `myAWS.secret` respectively.  Setting the secret reference on the command line will override the credentials in the yaml, so you can quite literally have `id: YOUR_ACCESS_KEY` in the yaml as I do above, and the below command will still work.
 
