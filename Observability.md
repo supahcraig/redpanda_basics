@@ -10,6 +10,7 @@ THis is a total work in progress.  If you're reading this, shame on you.
 4.  generate the grafana dashboard
 5.  spin up grafana via docker
 
+TODO:  get this all into either 1 docker compose, or an additional "observability stack" that can talk to the Redpanda stack.
 
 ## Redpanda Spin Up
 
@@ -56,7 +57,7 @@ scrape_configs:
 
 ## Spin up Prometheus
 
-This will put it in the same network as 
+This will put it in the same network as the Redpanda cluster.
 
 ```console
 docker run -d -p 9090:9090 --network redpanda-quickstart-one-broker_redpanda_network -v /Users/cnelson/sandbox/benthos/prometheus.yml:/etc/prometheus/prometheus.yml --name prometheus prom/prometheu
@@ -70,4 +71,7 @@ docker run -d -p 3000:3000 --name=grafana --network redpanda-quickstart-one-brok
 ```
 
 Add a data source for your prometheus endpoint:  `http://prometheus:9090`
+
+TODO:  build a useful dashboard in grafana & share json config here.
+
 
