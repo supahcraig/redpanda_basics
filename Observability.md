@@ -37,9 +37,8 @@ It will spit out something like this
   metrics_path: /public_metrics
 ```
 
-TODO:  determine if `9644` is good or needs to be `19644`
 
-Which you'll then supplement with additional Prometheus config info to get something like this:
+Which you'll then supplement with additional Prometheus config for the scrape intervals, as well as (optionally) the Redpanda Connect target.
 
 ```yaml
 global:
@@ -52,6 +51,12 @@ scrape_configs:
     - targets:
         - redpanda-0:9644
   metrics_path: /public_metrics
+
+- job_name: benthos
+  static_configs:
+    - targets:
+      - redpanda-0:4159
+  metrics_path: /metrics
 ```
 
 
@@ -75,3 +80,30 @@ Add a data source for your prometheus endpoint:  `http://prometheus:9090`
 TODO:  build a useful dashboard in grafana & share json config here.
 
 
+---
+
+
+Via docker compose...not quite working just yet.   Seems like the networks aren't quite talking yet.
+
+```yaml
+version: '3.7'
+services:
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports: 
+      - 3000:3000
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    # Mount prometheus configuration
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    ports: 
+      - 9090:9090
+
+networks:
+  redpanda-quickstart-one-broker_redpanda_network:
+    external: true
+```
