@@ -1,6 +1,6 @@
-THis is a total work in progress.  If you're reading this, shame on you.
+THis is a total work in progress.  If you're trying to follow along with any of this, shame on you.
 
-
+This repo may cover some of the same ground:  https://github.com/redpanda-data/observability/blob/main/cloud/docker-compose.yml
 
 # Docker
 
