@@ -8,21 +8,9 @@ For the most part, the instructions found here are correct.   Maybe not quite so
 You can use the Redpanda fork of OMB, which wishes it were up to date but often times we have to fix stuff & submit PRs but in the meanwhile you may have to roll your own.
 
 
-### Redpanda Fork
-
-
-### My Current Fork
-
-
-I have forked this repo here to add some logging messages & also increase a timeout that you'll hit when you try to test with lots of producers. 
-
-```
-git clone https://github.com/supahcraig/openmessaging-benchmark.git
-```
-
 ### Dave V's Current Fork
 
-Dave Voutila has put some additional tuning in to help with large numbers of producers.  It is currently in the speedy branch (as of 3/21/24)
+Dave Voutila has put some additional tuning in to help with large numbers of producers.  It is currently in the speedy branch (as of 3/21/24...as of 8/5/2024 it's part of the main branch)
 
 ```
 git clone https://github.com/voutilad/openmessaging-benchmark.git
@@ -80,6 +68,9 @@ if [ "$(uname)" = "Darwin" ]; then export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YE
 
 ### _Are you running against an existing BYOC cluster?_
 
+https://redpandadata.atlassian.net/wiki/spaces/CS/pages/325025793/Benchmarking+Redpanda+Cloud+for+Customers
+
+
 
 #### Yes?
 Set this environment variable to so ansible will know what to do
@@ -100,6 +91,7 @@ ansible-playbook --inventory  hosts.ini \
 deploy.yaml
 ```
 
+It will prompt you for the admin password for your local machine.
 
 
 #### No?
@@ -132,10 +124,10 @@ cd /opt/benchmark
 
 ### Pick your workload yaml
 
-These are found in `/opt/benchmark/workload` but what I tend to do is create a new workload yaml under that path.  Here are some examples.
+These are found in `/opt/benchmark/workload` but what I tend to do is create a new workload yaml under that path.  Here are some examples:
 
 
-*8k producers*
+*8k-producers.yaml*
 ```
 topics: 1
 partitionsPerTopic: 30
@@ -177,7 +169,7 @@ testDurationMinutes: 5
 ## Run thw workload
 
 ```
-bin/benchmark --drivers driver-redpanda/redpanda-ack-all-group-linger-1ms.yaml workloads/test.yaml
+bin/benchmark --drivers driver-redpanda/redpanda-ack-all-group-linger-1ms.yaml workloads/8k-producers.yaml
 ```
 
 You may want to add the `-t swarm` option, but it's not clear what that does and only Wes seems to recommend it.
@@ -203,166 +195,6 @@ Navigate to the IP of the prometheus host (found in `hosts.ini` under `driver-re
 ---
 
 
-
-These instructions work pretty well.  Notable change is that the ansible-playbook step may need `--ask-become-pass` or else you may see some sudo errors.
-
-```
-  if [ "$(uname)" = "Darwin" ]; then export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES; fi
-        ansible-galaxy install -r requirements.yml
-        ansible-playbook --ask-become-pass deploy.yaml
-```
-
-Then ssh & run the workload
-
-
-
-
-
-Pizza Hut Workload yaml example
-
-```
-topics: 1
-partitionsPerTopic: 30
-messageSize: 1024
-payloadFile: "payload/payload-1Kb.data"
-subscriptionsPerTopic: 2
-consumerPerSubscription: 1
-producersPerTopic: 8000
-producerRate: 1000
-consumerBacklogSizeGB: 0
-warmupDurationMinutes: 5
-testDurationMinutes: 5
-```
-
-*Randomized payloads*
-```
-name: Test config
-
-topics: 1
-partitionsPerTopic: 30
-
-messageSize: 1024
-useRandomizedPayloads: true
-randomBytesRatio: 0.5
-randomizedPayloadPoolSize: 1000
-
-subscriptionsPerTopic: 1
-consumerPerSubscription: 2
-producersPerTopic: 100
-
-# Discover max-sustainable rate
-producerRate: 200
-
-consumerBacklogSizeGB: 0
-warmupDurationMinutes: 5
-testDurationMinutes: 5
-```
-
-
-
-
-
-## Pointing OMB at a BYOC Cluster
-
-https://redpandadata.atlassian.net/wiki/spaces/CS/pages/325025793/Benchmarking+Redpanda+Cloud+for+Customers
-
-This is the highly distilled version of Tristan's document.  If anything doesn't work, go back to his version, or the deployment-automation instructions.
-
-```
-git clone https://github.com/redpanda-data/openmessaging-benchmark
-cd openmessaging-benchmark
-mvn clean install -Dlicense.skip=true
-```
-
-You may want to tweak tfvars before you continue.
-```
-cd driver-redpanda
-terraform init
-```
-
-### Spin up the resources
-
-```
-terraform apply --auto-approve --var=owner=cnelson
-```
-
-Set your BYOC cluster endpoint as an env variable to make the ansible deploy a little easier to tweak
-
-```
-export REDPANDA_BOOTSTRAP_SERVER="seed-17627eef.cnplkb3olu5rkpe5aqng.byoc.prd.cloud.redpanda.com:9092"
-```
-
-### Deploy Redpanda stuff
-
-```
-ansible-playbook --inventory  hosts.ini \
---ask-become-pass \
--e "tls_enabled=true sasl_enabled=true sasl_username=cnelson sasl_password=cnelson" \
--e bootstrapServers=${REDPANDA_BOOTSTRAP_SERVER} \
-deploy.yaml
-```
-
-
-### Set up the workload test
-
-####SSH into one of the client machines
-
-```
-ssh -i ~/.ssh/redpanda_aws ubuntu@$(terraform output --raw client_ssh_host)
-```
-
-#### Become root
-
-```
-sudo su -
-cd /opt/benchmark
-```
-
-
-
-#### Configure Workload
-
-This is an example workload configuration yaml, found in `driver-redpanda/deploy/workload
-
-```
-name:  pizzahut-8k-producers
-
-topics: 1
-partitionsPerTopic: 30
-messageSize: 1024
-payloadFile: "payload/payload-1Kb.data"
-subscriptionsPerTopic: 2
-consumerPerSubscription: 1
-producersPerTopic: 8000
-producerRate: 1000
-consumerBacklogSizeGB: 0
-warmupDurationMinutes: 5
-testDurationMinutes: 5
-```
-
-Base workload I've been testing with"
-```
-name: Test config
-
-topics: 1
-partitionsPerTopic: 30
-
-messageSize: 1024
-useRandomizedPayloads: true
-randomBytesRatio: 0.5
-randomizedPayloadPoolSize: 1000
-
-subscriptionsPerTopic: 1
-consumerPerSubscription: 2
-producersPerTopic: 100
-
-# Discover max-sustainable rate
-producerRate: 200
-
-consumerBacklogSizeGB: 0
-warmupDurationMinutes: 5
-testDurationMinutes: 5
-```
 
 
 
