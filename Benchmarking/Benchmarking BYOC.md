@@ -172,3 +172,6 @@ From where you ran the terraform apply:
 ```bash
 terraform destroy --auto-approve
 ```
+
+
+
