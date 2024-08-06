@@ -36,8 +36,6 @@ terraform init
 If you need to make any changes to the instance types or counts, update `terraform.tfvars` now.
 * If you want to point to an existing BYOC or Dedicated cluster, set the Redpanda instances to 0
 * Set the client machine count to whatever you need.   4, 8, 20....higher client counts are not out of the question
-* If you want to create VMs for a _new_ redpanda self-hosted cluster, set redpanda instances to the number of brokers you want in the cluster
-* If you want to point to an existing self-hosted cluster....._I don't know how to set it just yet_
 
 
 The `terraform.tfvars` config for typical BYOC perf test might look like this:
