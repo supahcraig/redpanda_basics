@@ -170,5 +170,5 @@ then you can `tail -f ~/nohup.out` to continue watching the progress and not wor
 From where you ran the terraform apply:
 
 ```bash
-terraform destroy
+terraform destroy --auto-approve
 ```
