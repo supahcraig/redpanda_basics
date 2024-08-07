@@ -27,7 +27,6 @@ mvn clean install -Dlicense.skip=true
 ```bash
 cd driver-redpanda/deploy
 cp terraform.tfvars.example terraform.tfvars
-terraform init
 ```
 
 
@@ -66,6 +65,7 @@ num_instances = {
 Then actually run terraform apply.
 
 ```bash
+terraform init
 terraform apply --auto-approve
 ```
 
