@@ -132,6 +132,7 @@ These are found in `/opt/benchmark/workload` but what I tend to do is create a n
 ```yaml
 topics: 1
 partitionsPerTopic: 60
+keyDistributor: "RANDOM_NANO"
 messageSize: 1024
 payloadFile: "payload/payload-1Kb.data"
 subscriptionsPerTopic: 2
@@ -143,7 +144,7 @@ warmupDurationMinutes: 5
 testDurationMinutes: 5
 ```
 
-
+`keyDistributor: "RANDOM_NANO"` will give a more uniform distribution of connections, since the publishing will be to more random partitions.   It will also give an actual connection count closer to the target producer count.
 
 ## Run the workload
 
