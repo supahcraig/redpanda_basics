@@ -1,5 +1,9 @@
 # Using OMB
 
+_NOTE:  instructions in the redpanda-data repo are now much more complete, but don't yet detail how to connect it to an existing BYOC._
+https://github.com/redpanda-data/openmessaging-benchmark/tree/main/driver-redpanda
+
+
 
 ## Clone the Repo
 
@@ -20,9 +24,18 @@ mvn clean install -Dlicense.skip=true
 
 ---
 
+## Create SSH key
+
+Create an ssh key for the benchmark using the following.  If you have a keypair you'd rather use, you'll have to update `terraform.tfvars` to point to it instead.
+
+```
+ssh-keygen -f ~/.ssh/redpanda_aws
+```
+
+Set the password to blank.
 
 
-## Set up Terraform
+## Initialize Terraform
 
 ```bash
 cd driver-redpanda/deploy
