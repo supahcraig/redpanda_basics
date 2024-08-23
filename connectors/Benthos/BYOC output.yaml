@@ -1,0 +1,14 @@
+output:
+  kafka_franz:
+    seed_brokers:
+      - cr4a1n5ifk5911l1qrq0.any.us-east-1.mpx.prd.cloud.redpanda.com:9092
+
+    topic: '${! json("Name")}-${! json("Gooeyness") * 100}'
+
+    tls:
+      enabled: true
+
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: test-user
+        passwrod: test-pass
