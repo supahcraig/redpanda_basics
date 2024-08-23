@@ -1,4 +1,6 @@
+name: byoc-profile
 description: Redpanda Production "craig/teal-desert-horse"
+prompt: hi-red, "[%n]"
 from_cloud: true
 kafka_api:
     brokers:
