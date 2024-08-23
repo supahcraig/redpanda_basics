@@ -1,0 +1,17 @@
+```yaml
+name: metal
+description: deployment-automation
+prompt: hi-red, "[%n]"
+from_cloud: false
+kafka_api:
+    brokers:
+        - 3.135.213.79:9092
+        - 18.117.187.167:9092
+        - 3.141.193.126:9092
+admin_api:
+    addresses:
+        - 3.135.213.79:9644
+        - 18.117.187.167:9092
+        - 3.141.193.126:9092
+schema_registry: {}
+```
