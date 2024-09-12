@@ -151,3 +151,69 @@ echo "AWS_BUCKET_NAME=$BUCKET_NAME" >> .env
 echo "AWS_REGION=us-east-1" >> .env
 ```
 
+Export those to env vars:
+
+```bash
+export $(grep -v '^#' .env | xargs)
+cat .env
+```
+
+
+## Clickhouse
+
+Not sure why we can't just deploy this as part of the docker compose we ran earlier....
+
+```bash
+docker network create clickhouse-network
+```
+
+```bash
+docker run -d \
+    --name demo-clickhouse-server \
+    --ulimit nofile=262144:262144 \
+    --network clickhouse-network \
+    -p 18123:8123 \
+    -p 19000:9000 \
+    clickhouse/clickhouse-server
+```
+
+Drop into the ClickHouse client within the container:
+
+```bash
+docker exec -it demo-clickhouse-server clickhouse-client
+```
+
+
+## Generate the table DDL
+
+Run this the same place those environment variables are exported, OR just do the replacement yourself.
+
+```bash
+echo "CREATE TABLE music_logs_s3_raw (
+        user_id UUID,
+        gender String,
+        geo String,
+        music_type String,
+        listening_device String,
+        year_of_music UInt16,
+        song_id UUID,
+        timestamp DateTime
+) ENGINE = S3('https://$AWS_BUCKET_NAME.s3.amazonaws.com/logs/music-listening-logs/*','$AWS_ID', '$AWS_SECRET', JSONEachRow);"
+```
+
+which should generate DDL looking like this:
+
+```bash
+CREATE TABLE music_logs_s3_raw (
+        user_id UUID,
+        gender String,
+        geo String,
+        music_type String,
+        listening_device String,
+        year_of_music UInt16,
+        song_id UUID,
+        timestamp DateTime
+) ENGINE = S3('https://redpanda-demo-49446.s3.amazonaws.com/logs/music-listening-logs/*','AKIAXxxxxxIVNUPZEB', '9F5xxxxxxxxxx1H+LdLfTVPxxxForDte', JSONEachRow);
+```
+
+
