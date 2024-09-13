@@ -8,6 +8,8 @@ Clickhouse??
 
 ---
 
+# Environment Setup
+
 ## Spin up 3 node redpanda cluster + console, locally in Docker
 ```yaml
 networks:
@@ -215,5 +217,62 @@ CREATE TABLE music_logs_s3_raw (
         timestamp DateTime
 ) ENGINE = S3('https://redpanda-demo-49446.s3.amazonaws.com/logs/music-listening-logs/*','AKIAXxxxxxIVNUPZEB', '9F5xxxxxxxxxx1H+LdLfTVPxxxForDte', JSONEachRow);
 ```
+
+And then paste that output into the Clickhouse client to actually execute the create table DDL, response should look something like:
+
+```
+Query id: 59669988-af29-4b76-9396-cb2c076c0863
+
+Ok.
+
+0 rows in set. Elapsed: 0.013 sec.
+```
+
+----
+
+# Data Pipeline
+
+
+## Redpanda Connect kafka->S3 pipeline
+
+```yaml
+input:
+  kafka_franz:
+    seed_brokers: [ "redpanda:19092" ]
+    topics: [ "music-listening-logs" ]
+    consumer_group: "redpanda-s3-pipe"
+    commit_period: 3s
+pipeline:
+  processors:
+    - bloblang: |
+        root = this
+output:
+  aws_s3:
+    bucket: ${AWS_BUCKET_NAME}
+    path: logs/music-listening-logs/${!timestamp_unix_nano()}.json
+    tags: {}
+    content_type: application/octet-stream
+    metadata:
+      exclude_prefixes: []
+    max_in_flight: 64
+    region: ${AWS_REGION}
+    batching:
+      count: 100
+      processors:
+        - archive:
+            format: lines
+    credentials:
+      id: ${AWS_ID}
+      secret: ${AWS_SECRET}
+```
+
+And execute it via:
+
+```bash
+rpk connect run -e .env music_log_store.yaml
+```
+
+
+
 
 
