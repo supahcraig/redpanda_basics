@@ -273,6 +273,341 @@ rpk connect run -e .env music_log_store.yaml
 ```
 
 
+------
 
+## Kinley's demo
+
+crk4h23v3oritbs0s0jg.any.us-east-1.mpx.prd.cloud.redpanda.com:9092
+
+```yaml
+input:
+  kafka:
+    addresses: [ crgsf2gj1v2u1117mal0.any.us-east-1.mpx.prd.cloud.redpanda.com:9092 ]
+    tls:
+      enabled: true
+    sasl:
+      mechanism: "SCRAM-SHA-256"
+      user: test-user
+      password: test-pass
+    consumer_group: benthos
+    start_from_oldest: true
+    topics: [ documents-serverless ]
+
+pipeline:
+  processors:
+    - branch:
+        request_map: |
+          root = this.text
+        processors:
+          - openai_embeddings:
+              api_key: \${OPENAI_KEY}
+              model: gpt-4o
+        result_map: |
+          root.embedding = this
+
+output:
+  mongodb:
+    url: mongodb+srv://craig:\${MONGO_PASSWORD}@cluster0.yyels.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+    database: VectorStore
+    collection: Embeddings
+    operation: "insert-one"
+    write_concern:
+      w: 1
+      j: false
+      w_timeout: "10s"
+    document_map: |-
+      root.text = this.text
+      root.metadata = this.metadata
+      root.embedding = this.embedding
+
+metrics:
+  prometheus: {}
+```32rh explo
+
+-----
+
+## RPG demo
+
+1.  spin up RP/Console/PG-vector
+2.  set rpk profile
+3.  create some topics
+4.  put the broker addresses into an env var
+(5) install ollama
+6.  pull the ollama model
+7.  env var for the local llm addr (localhost)
+8.  env var for OPENAPI key
+9.  npm install the front end
+10.  createa npc1 pipeline (yaml below)
+11.  run pipeline in the background:  `rpk connect run -e .env npc1-ollama.yaml &`  (hit enter to shove into the background)
+12.  ask it a question:  `echo "how are you?" | rpk topic produce npc1-request`  ==> response will be in the `rpg-response` topic (check console, but be patient)
+13.  create npc2 pipeline (this is the OpenAI yaml below)
+14.  run pipeline in the background:  `rpk connect run -e .env npc2-openai.yaml &`  (hit enter to shove into the background)
+15.  ask it a question:  echo "how are you?" | rpk topic produce npc2-request`
+16.  response should come back in the terminal
+
+Now for the complex stuff.
+
+17.  create the routing rpcn config
+18.  run the pipeline `nohup rpk connect run -e .env npc-reroute.yaml &`
+19.  ask it a qeustion:  `echo "how are you?" | rpk topic produce npc2-request`
+
+Add in some RAG stuff.
+
+20.  pull the ollama model we want to use:  `ollama pull nomic-embed-text`
+21.  log into pgsql:  `psql -h localhost -p 5432 --username root` (password is `secret`)
+22.  create a HNSW index:  `CREATE INDEX IF NOT EXISTS text_hnsw_index ON whisperingrealm USING hnsw (embedding vector_l2_ops);`
+23.  put pg creds into env var
+24.  createe embeddings pipeline (`pg-embedding.yaml`)
+25.  `redpanda-connect run -e .env pg-embedding.yaml`
+26.  Rag pipeline (`npc21-genai-rag.yaml`)
+27.  run the RAG pipeline:  `nohup redpanda-connect run -e .env npc1-genai-rag.yaml &`
+28 then the npc2 rag pipeline `nohup redpanda-connect run -e .env npc2-openai-rag.yaml &`
+
+run the app
+```
+cd ~/redpanda-connect-genai-gaming-demo/frontend
+node index.js &
+echo http://$HOSTNAME.$_SANDBOX_ID.instruqt.io
+```
+
+`npc1-ollama.yaml`
+```yaml
+input:
+  kafka_franz:
+    seed_brokers:
+      - \${REDPANDA_BROKERS}
+    topics: ["npc1-request"]
+    consumer_group: "ollama-npc1"
+pipeline:
+  processors:
+    - log:
+        message: \${! content() }
+    - ollama_chat:
+        server_address: "\${LOCAL_LLM_ADDR}"
+        model: llama3.1:8b
+        prompt:  \${! content().string() }
+        system_prompt: Answer like having a conversation, you are a hero who lives in a fantasy world and say no more than 5 sentences and in an upbeat tone.
+    - mapping: |
+        root = {
+          "who": "npc1",
+          "msg":  content().string()
+        }
+    - log:
+        message: \${! json() }
+output:
+  kafka_franz:
+    seed_brokers:
+      - \${REDPANDA_BROKERS}
+    topic: "rpg-response"
+    compression: none
+```
+
+
+`npc2-openai.yaml`
+```yaml
+input:
+  kafka_franz:
+    seed_brokers:
+      - \${REDPANDA_BROKERS}
+    topics: ["npc2-request"]
+    consumer_group: "openai-npc2"
+pipeline:
+  processors:
+    - log:
+        message: \${! content() }
+    - openai_chat_completion:
+        server_address: https://api.openai.com/v1
+        api_key: \${OPENAI_KEY}
+        model: gpt-4o
+        system_prompt: Answer like having a conversation, you are a sorcerer in a fantasy world, specialized in light magic and say no more than 5 sentences and in an shy tone.
+    - mapping: |
+        root = {
+          "who": "npc2",
+          "msg":  content().string()
+        }
+    - log:
+        message: \${! json() }
+output:
+  kafka_franz:
+    seed_brokers:
+      - \${REDPANDA_BROKERS}
+    topic: "rpg-response"
+    compression: none
+```
+
+
+`npc-reroute.yaml`
+```yaml
+input:
+  kafka_franz:
+    seed_brokers:
+      - \${REDPANDA_BROKERS}
+    topics: ["npc-request"]
+    consumer_group: "npc-reroute"
+output:
+  switch:
+    cases:
+      - check: this.who == "npc1"
+        output:
+          kafka_franz:
+            seed_brokers:
+              - \${REDPANDA_BROKERS}
+            topic: npc1-request
+          processors:
+            - type: bloblang
+              bloblang: |
+                root = this.msg
+      - check: this.who == "npc2"
+        output:
+          kafka_franz:
+            seed_brokers:
+              - \${REDPANDA_BROKERS}
+            topic: npc2-request
+          processors:
+            - type: bloblang
+              bloblang: |
+                root = this.msg
+```
+
+`pg-embedding.yaml`
+```yaml
+input:
+  file:
+    paths: [ ./story/*.md ]
+    scanner:
+      to_the_end: {}
+pipeline:
+  processors:
+    - mapping: |
+        meta text = content()
+    - branch:
+        processors:
+          - ollama_embeddings:
+              server_address: "\${LOCAL_LLM_ADDR}"
+              model: nomic-embed-text
+        result_map: |-
+          root.embeddings = this
+          root.text = metadata("text").string()
+          root.key = metadata("path").string()
+    - log:
+        message: \${! json("embeddings") }
+output:
+ sql_insert:
+    driver: postgres
+    dsn: "postgresql://\${PGVECTOR_USER}:\${PGVECTOR_PWD}@localhost:5432/root?sslmode=disable"
+    table: whisperingrealm
+    columns: ["key", "doc", "embedding"]
+    args_mapping: "[this.key, this.text, this.embeddings.vector()]"
+```
+
+`npc1-ganai-rag.yaml`
+```yaml
+input:
+  kafka_franz:
+    seed_brokers:
+      - \${REDPANDA_BROKERS}
+    topics: ["npc1-request"]
+    consumer_group: "ollama-npc1"
+pipeline:
+  processors:
+    - log:
+        message: \${! content() }
+    - mapping: |
+        meta original_question = content()
+    - branch:
+        processors:
+          - ollama_embeddings:
+              server_address: "\${LOCAL_LLM_ADDR}"
+              model: nomic-embed-text
+        result_map: |-
+            root.embeddings = this
+            root.question = content()
+    - branch:
+       processors:
+          - sql_raw:
+              driver: "postgres"
+              dsn: "postgresql://\${PGVECTOR_USER}:\${PGVECTOR_PWD}@localhost:5432/root?sslmode=disable"
+              query: SELECT doc FROM whisperingrealm ORDER BY embedding <-> \$1 LIMIT 1
+              args_mapping: root = [ this.embeddings.vector() ]
+       result_map: |-
+          root.embeddings = deleted()
+          root.question = deleted()
+          root.search_results = this
+    - log:
+        message: \${! json("search_results") }
+    - ollama_chat:
+        server_address: "\${LOCAL_LLM_ADDR}"
+        model: llama3.1:8b
+        prompt:  \${! meta("original_question") }
+        system_prompt: You are the hero Corin in this fantasy world and say no more than 5 sentences and in an upbeat tone. \${! json("search_results") }
+    - mapping: |
+        root = {
+          "who": "npc1",
+          "msg":  content().string()
+        }
+    - log:
+        message: \${! json() }
+output:
+  kafka_franz:
+    seed_brokers:
+      - \${REDPANDA_BROKERS}
+    topic: "rpg-response"
+    compression: none
+```
+
+`npc2-openai-rag.yaml`
+```yaml
+input:
+  kafka_franz:
+    seed_brokers:
+      - \${REDPANDA_BROKERS}
+    topics: ["npc2-request"]
+    consumer_group: "openai-npc2"
+pipeline:
+  processors:
+    - log:
+        message: \${! content() }
+    - mapping: |
+        meta original_question = content()
+    - branch:
+        processors:
+          - ollama_embeddings:
+              server_address: "\${LOCAL_LLM_ADDR}"
+              model: nomic-embed-text
+        result_map: |-
+            root.embeddings = this
+            root.question = content()
+    - branch:
+       processors:
+          - sql_raw:
+              driver: "postgres"
+              dsn: "postgresql://\${PGVECTOR_USER}:\${PGVECTOR_PWD}@localhost:5432/root?sslmode=disable"
+              query: SELECT doc FROM whisperingrealm ORDER BY embedding <-> \$1 LIMIT 3
+              args_mapping: root = [ this.embeddings.vector() ]
+       result_map: |-
+          root.embeddings = deleted()
+          root.question = meta("original_question")
+          root.search_results = this
+    - log:
+        message: \${! json("search_results") }
+    - openai_chat_completion:
+        server_address: https://api.openai.com/v1
+        api_key: \${OPENAI_KEY}
+        model: gpt-4o
+        system_prompt: You are a sorcerer Lyria in this fantasy world, specialized in light magic and say no more than 5 sentences and in an shy tone.
+    - mapping: |
+        root = {
+          "who": "npc2",
+          "msg":  content().string()
+        }
+    - log:
+        message: \${! json() }
+output:
+  kafka_franz:
+    seed_brokers:
+      - \${REDPANDA_BROKERS}
+    topic: "rpg-response"
+    compression: none
+```
 
 
