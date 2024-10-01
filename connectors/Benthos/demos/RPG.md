@@ -148,25 +148,28 @@ services:
 
 ### 2.  set rpk profile
 
+```bash
 rpk profile create local
 rpk profile set kafka_api.brokers=localhost:19092,localhost:29092,localhost:39092
 rpk profile set admin_api.addresses=localhost:19644,localhost:29644,localhost:39644
 rpk profile set prompt=hi-green
 rpk profile use local
-
+```
 
 ### 3.  create some topics
 
+```
 rpk topic create bonus  npc-request npc1-request npc2-request npc3-request rpg-response
-
+```
 
 ### 4.  put the broker addresses into `.env`
 
+```
 cd ~/redpanda-connect-genai-gaming-demo
 cat > .env <<EOF
 REDPANDA_BROKERS="localhost:19092,localhost:29092,localhost:39092"
 EOF
-
+```
 
 ### 5.  pull the ollama model
 
@@ -176,7 +179,9 @@ Download from ollama.com/download
 
 #### pull model
 
+```
 ollama pull llama3.1:8b
+```
 
 
 ### 6.  env var for the local llm addr (localhost)
