@@ -195,8 +195,9 @@ echo 'LOCAL_LLM_ADDR="http://127.0.0.1:11434"' >> .env
 
 You'll need your OpenAI API key here.
 
-echo 'OPENAI_KEY="<Your OPEN AI KEY>"' >> .env
-
+```bash
+echo 'OPENAI_KEY="YOUR_OPENAI_KEY"' >> .env
+```
 
 ### 8.  npm install the front end  (not truly necessary)
 
