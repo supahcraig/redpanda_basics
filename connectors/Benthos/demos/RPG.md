@@ -509,7 +509,7 @@ pipeline:
           - sql_raw:
               driver: "postgres"
               dsn: "postgresql://${PGVECTOR_USER}:${PGVECTOR_PWD}@localhost:5432/root?sslmode=disable"
-              query: SELECT doc FROM whisperingrealm ORDER BY embedding <-> $1 LIMIT 1
+              query: SELECT doc FROM whisperingrealm ORDER BY embedding <-> $1 LIMIT 3
               args_mapping: root = [ this.embeddings.vector() ]
        result_map: |-
           root.embeddings = deleted()
@@ -572,19 +572,19 @@ INFO {"msg":"I'm on a mission to find and save my best friend, Lyra! She was tak
 input:
   kafka_franz:
     seed_brokers:
-      - \${REDPANDA_BROKERS}
+      - ${REDPANDA_BROKERS}
     topics: ["npc2-request"]
     consumer_group: "openai-npc2"
 pipeline:
   processors:
     - log:
-        message: \${! content() }
+        message: ${! content() }
     - mapping: |
         meta original_question = content()
     - branch:
         processors:
           - ollama_embeddings:
-              server_address: "\${LOCAL_LLM_ADDR}"
+              server_address: "${LOCAL_LLM_ADDR}"
               model: nomic-embed-text
         result_map: |-
             root.embeddings = this
@@ -593,7 +593,7 @@ pipeline:
        processors:
           - sql_raw:
               driver: "postgres"
-              dsn: "postgresql://\${PGVECTOR_USER}:\${PGVECTOR_PWD}@localhost:5432/root?sslmode=disable"
+              dsn: "postgresql://${PGVECTOR_USER}:${PGVECTOR_PWD}@localhost:5432/root?sslmode=disable"
               query: SELECT doc FROM whisperingrealm ORDER BY embedding <-> \$1 LIMIT 3
               args_mapping: root = [ this.embeddings.vector() ]
        result_map: |-
@@ -601,10 +601,10 @@ pipeline:
           root.question = meta("original_question")
           root.search_results = this
     - log:
-        message: \${! json("search_results") }
+        message: ${! json("search_results") }
     - openai_chat_completion:
         server_address: https://api.openai.com/v1
-        api_key: \${OPENAI_KEY}
+        api_key: ${OPENAI_KEY}
         model: gpt-4o
         system_prompt: You are a sorcerer Lyria in this fantasy world, specialized in light magic and say no more than 5 sentences and in an shy tone.
     - mapping: |
@@ -613,11 +613,11 @@ pipeline:
           "msg":  content().string()
         }
     - log:
-        message: \${! json() }
+        message: ${! json() }
 output:
   kafka_franz:
     seed_brokers:
-      - \${REDPANDA_BROKERS}
+      - ${REDPANDA_BROKERS}
     topic: "rpg-response"
     compression: none
 ```
