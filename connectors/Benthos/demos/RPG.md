@@ -367,49 +367,67 @@ rpk topic produce npc-request
 Then produce a message from npc1
 
 ```json
-{"who: "npc1", "tell me about your hat."}
+{"who: "npc1", "msg": "tell me about your hat."}
 ```
 
 This one should take a little while to return since it is running against your local LLM, and it should be in the "voice" of NPC1 based on the prompt we included in the pipeline config for NPC1.
 
 
 ```json
-{"who: "npc2", "tell me about your hat."}
+{"who: "npc2", :msg": "tell me about your hat."}
 ```
 
 This one should return very quicly since it is running against OpeanAI, and it should be in the "voice" of NPC2 based on the prompt we included in the pipeline config for NPC2.
 
 
+---
 
-Add in some RAG stuff.
+## Add in some RAG stuff.
 
-20.  pull the ollama model we want to use:  `ollama pull nomic-embed-text`
-21.  log into pgsql:  `psql -h localhost -p 5432 --username root` (password is `secret`)
-22.  create a HNSW index:  `CREATE INDEX IF NOT EXISTS text_hnsw_index ON whisperingrealm USING hnsw (embedding vector_l2_ops);`
-23.  put pg creds into env var
-24.  createe embeddings pipeline (`pg-embedding.yaml`)
-25.  `redpanda-connect run -e .env pg-embedding.yaml`
-26.  Rag pipeline (`npc21-genai-rag.yaml`)
-27.  run the RAG pipeline:  `nohup redpanda-connect run -e .env npc1-genai-rag.yaml &`
-28 then the npc2 rag pipeline `nohup redpanda-connect run -e .env npc2-openai-rag.yaml &`
+### 20.  pull the ollama model we want to use:  
 
-run the app
 ```
-cd ~/redpanda-connect-genai-gaming-demo/frontend
-node index.js &
-echo http://$HOSTNAME.$_SANDBOX_ID.instruqt.io
+ollama pull nomic-embed-text
 ```
 
-export REDPANDA_BROKERS=localhost:19092,localhost:29092,localhost:39092
+### 21.  log into pgsql:  
 
-cd ~/redpanda-connect-genai-gaming-demo/frontend
-node index.js &
-echo http://$HOSTNAME.$_SANDBOX_ID.instruqt.io
+Drop into the Postgres container (or use `psql` locally if you have it)
+
+```
+psql -h localhost -p 5432 --username root
+```
+
+(password is `secret`)
+
+### 22.  create a HNSW index:  
+
+```sql
+CREATE INDEX IF NOT EXISTS text_hnsw_index ON whisperingrealm USING hnsw (embedding vector_l2_ops);
+```
+
+Then look at the table & indexes:
+
+```sql
+\d+ whisperingrealm
+```
+
+### 23.  put pg creds into env var
+
+back on your local machine add the postgres creds to the `.env` file for use in the embeddings pipeline.
+
+```
+echo 'PGVECTOR_USER="root"' >> .env
+echo 'PGVECTOR_PWD="secret"' >> .env
+```
 
 
+### 24.  createe embeddings pipeline (`pg-embedding.yaml`)
 
-
-
+* Redpanda Connect first reads Markdown files from a specified directory, processes their
+* Extracts the text from each file, then generates embeddings using a locally running text Nomic embedding model.
+* Then it takes the text, its embeddings, and the file path as key mapped and inserted into vector database.
+* The final output is stored in a PostgreSQL table named whisperingrealm, with columns for the file path, text content, and its vector representation. This setup enables efficient vector-based searches on the stored documents, all configured declaratively without needing to write code.
 
 `pg-embedding.yaml`
 ```yaml
@@ -425,41 +443,63 @@ pipeline:
     - branch:
         processors:
           - ollama_embeddings:
-              server_address: "\${LOCAL_LLM_ADDR}"
+              server_address: "${LOCAL_LLM_ADDR}"
               model: nomic-embed-text
         result_map: |-
           root.embeddings = this
           root.text = metadata("text").string()
           root.key = metadata("path").string()
     - log:
-        message: \${! json("embeddings") }
+        message: ${! json("embeddings") }
 output:
  sql_insert:
     driver: postgres
-    dsn: "postgresql://\${PGVECTOR_USER}:\${PGVECTOR_PWD}@localhost:5432/root?sslmode=disable"
+    dsn: "postgresql://${PGVECTOR_USER}:${PGVECTOR_PWD}@localhost:5432/root?sslmode=disable"
     table: whisperingrealm
     columns: ["key", "doc", "embedding"]
     args_mapping: "[this.key, this.text, this.embeddings.vector()]"
 ```
+
+
+
+### 25.  Run the embeddings pipeline
+
+This is a one-shot pipeline to do the embeddings and write to postgres.
+
+```
+rpk connect  run -e .env pg-embedding.yaml
+```
+
+
+### 26.  Create the RAG pipeline for NPC1 (`npc21-genai-rag.yaml`)
+
+This script performs the following steps:
+
+* Consume messages from the 'npc1-request' topic on the Redpanda
+* Generates text embeddings using locally running language model that was used to generate embeddings in the vector database.
+* Find the three most similar documents from the whisperingrealm table in the Postgresql database.
+* Generates a response using a another locally running language model (llama3.1). You'll use the original question and incorporates the retrieved search results as the context in prompt.
+* Send the LLM generated response messages to the 'rpg-response' topic on Redpanda
+
 
 `npc1-ganai-rag.yaml`
 ```yaml
 input:
   kafka_franz:
     seed_brokers:
-      - \${REDPANDA_BROKERS}
+      - ${REDPANDA_BROKERS}
     topics: ["npc1-request"]
     consumer_group: "ollama-npc1"
 pipeline:
   processors:
     - log:
-        message: \${! content() }
+        message: ${! content() }
     - mapping: |
         meta original_question = content()
     - branch:
         processors:
           - ollama_embeddings:
-              server_address: "\${LOCAL_LLM_ADDR}"
+              server_address: "${LOCAL_LLM_ADDR}"
               model: nomic-embed-text
         result_map: |-
             root.embeddings = this
@@ -468,34 +508,64 @@ pipeline:
        processors:
           - sql_raw:
               driver: "postgres"
-              dsn: "postgresql://\${PGVECTOR_USER}:\${PGVECTOR_PWD}@localhost:5432/root?sslmode=disable"
-              query: SELECT doc FROM whisperingrealm ORDER BY embedding <-> \$1 LIMIT 1
+              dsn: "postgresql://${PGVECTOR_USER}:${PGVECTOR_PWD}@localhost:5432/root?sslmode=disable"
+              query: SELECT doc FROM whisperingrealm ORDER BY embedding <-> $1 LIMIT 1
               args_mapping: root = [ this.embeddings.vector() ]
        result_map: |-
           root.embeddings = deleted()
           root.question = deleted()
           root.search_results = this
     - log:
-        message: \${! json("search_results") }
+        message: ${! json("search_results") }
     - ollama_chat:
-        server_address: "\${LOCAL_LLM_ADDR}"
+        server_address: "${LOCAL_LLM_ADDR}"
         model: llama3.1:8b
-        prompt:  \${! meta("original_question") }
-        system_prompt: You are the hero Corin in this fantasy world and say no more than 5 sentences and in an upbeat tone. \${! json("search_results") }
+        prompt:  ${! meta("original_question") }
+        system_prompt: You are the hero Corin in this fantasy world and say no more than 5 sentences and in an upbeat tone. ${! json("search_results") }
     - mapping: |
         root = {
           "who": "npc1",
           "msg":  content().string()
         }
     - log:
-        message: \${! json() }
+        message: ${! json() }
 output:
   kafka_franz:
     seed_brokers:
-      - \${REDPANDA_BROKERS}
+      - ${REDPANDA_BROKERS}
     topic: "rpg-response"
     compression: none
 ```
+
+
+### 27.  run the NPC1 RAG pipeline:  
+
+```
+rpk connect run -e .env npc1-genai-rag.yaml &
+```
+
+Test it by asking it a question:
+
+```
+echo "what is your quest" | rpk topic produce npc1-request
+```
+
+You should see output similar to this initially...
+
+```log
+INFO what is your quest                            @service=redpanda-connect label="" path=root.pipeline.processors.0
+cnelson 13:15:04 ~/sandbox/redpanda-connect-genai-gaming-demo main  local % INFO [{"doc":"Detailed Background and Personality:\n\nOrigins and Role:\n\nCosmic Creation: Elara was born from the primordial energies at the dawn of the universe, a manifestation of the cosmos's desire for balance and understanding. As the Goddess of Wisdom, her role is to oversee the growth of knowledge and enlightenment across all realms.\nGuardian of Knowledge: Elara is tasked with guarding ancient secrets and the accumulated wisdom of millennia. She maintains the balance between revealing knowledge and preserving secrets that could lead to chaos if misused.\nPersonality Quirks, Faults, and Flaws:\n\nDetachment: As a goddess, Elara sometimes exhibits a sense of detachment from the more mundane concerns of the worlds she oversees. While she is deeply caring, her broad perspective can make her seem aloof or indifferent to individual struggles unless they impact a larger pattern or balance.\nBurdens of Wisdom: The vast knowledge Elara carries comes with its burdens. She often struggles with the loneliness of her omniscience, knowing outcomes but having to watch events unfold without interference, adhering to cosmic laws even when she desires to help more directly.\nInscrutable Motives: To those she guides, Elara’s motives can sometimes appear inscrutable or mysterious, leading to misunderstandings about her intentions. Her guidance is often delivered in riddles or parables, which can be frustrating to those looking for direct answers.\nReluctance to Direct Intervention: Elara is bound by divine principles that limit her direct involvement in the affairs of mortals. This restriction is often a source of internal conflict, as she feels the urge to help more directly than her role allows."}]  @service=redpanda-connect label="" path=root.pipeline.processors.4
+```
+
+Followed by the actual response:
+
+```log 
+INFO {"msg":"I'm on a mission to find and save my best friend, Lyra! She was taken by dark forces from the land of Eldrador. I've been searching far and wide, following every lead, and battling fearsome foes to rescue her. Nothing will stop me - not even the Dark Sorcerer's minions!","who":"npc1"}  @service=redpanda-connect label="" path=root.pipeline.processors.7
+```
+
+
+
+### 28.  Create the NPC2 RAG pipeline 
 
 `npc2-openai-rag.yaml`
 ```yaml
@@ -551,5 +621,38 @@ output:
     topic: "rpg-response"
     compression: none
 ```
+
+### 29.  Run the NPC2 RAG pipeline
+
+```
+rpk connect run -e .env npc2-openai-rag.yaml &
+```
+
+
+### 30.  run the app
+
+
+```bash 
+cd ~/redpanda-connect-genai-gaming-demo/frontend
+node index.js &
+echo http://$HOSTNAME.$_SANDBOX_ID.instruqt.io
+```
+
+```bash
+export REDPANDA_BROKERS=localhost:19092,localhost:29092,localhost:39092
+```
+
+```bash
+cd ~/redpanda-connect-genai-gaming-demo/frontend
+node index.js &
+echo http://$HOSTNAME.$_SANDBOX_ID.instruqt.io
+```
+
+
+
+
+
+
+
 
 
