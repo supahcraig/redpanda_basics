@@ -309,35 +309,13 @@ output:
 
 15.  response should come back in the terminal
 
-Now for the complex stuff.
 
-17.  create the routing rpcn config
-18.  run the pipeline `nohup rpk connect run -e .env npc-reroute.yaml &`
-19.  ask it a qeustion:  `echo "how are you?" | rpk topic produce npc2-request`
+---
 
-Add in some RAG stuff.
-
-20.  pull the ollama model we want to use:  `ollama pull nomic-embed-text`
-21.  log into pgsql:  `psql -h localhost -p 5432 --username root` (password is `secret`)
-22.  create a HNSW index:  `CREATE INDEX IF NOT EXISTS text_hnsw_index ON whisperingrealm USING hnsw (embedding vector_l2_ops);`
-23.  put pg creds into env var
-24.  createe embeddings pipeline (`pg-embedding.yaml`)
-25.  `redpanda-connect run -e .env pg-embedding.yaml`
-26.  Rag pipeline (`npc21-genai-rag.yaml`)
-27.  run the RAG pipeline:  `nohup redpanda-connect run -e .env npc1-genai-rag.yaml &`
-28 then the npc2 rag pipeline `nohup redpanda-connect run -e .env npc2-openai-rag.yaml &`
-
-run the app
-```
-cd ~/redpanda-connect-genai-gaming-demo/frontend
-node index.js &
-echo http://$HOSTNAME.$_SANDBOX_ID.instruqt.io
-```
+## Now for the complex stuff.
 
 
-
-
-
+###17.  create the routing rpcn config
 
 `npc-reroute.yaml`
 ```yaml
@@ -371,6 +349,67 @@ output:
               bloblang: |
                 root = this.msg
 ```
+
+
+### 18.  run the pipeline 
+
+```
+rpk connect run -e .env npc-reroute.yaml &
+```
+
+
+### 19.  ask it a qeustion 
+
+```
+rpk topic produce npc-request
+```
+
+Then produce a message from npc1
+
+```json
+{"who: "npc1", "tell me about your hat."}
+```
+
+This one should take a little while to return since it is running against your local LLM, and it should be in the "voice" of NPC1 based on the prompt we included in the pipeline config for NPC1.
+
+
+```json
+{"who: "npc2", "tell me about your hat."}
+```
+
+This one should return very quicly since it is running against OpeanAI, and it should be in the "voice" of NPC2 based on the prompt we included in the pipeline config for NPC2.
+
+
+
+Add in some RAG stuff.
+
+20.  pull the ollama model we want to use:  `ollama pull nomic-embed-text`
+21.  log into pgsql:  `psql -h localhost -p 5432 --username root` (password is `secret`)
+22.  create a HNSW index:  `CREATE INDEX IF NOT EXISTS text_hnsw_index ON whisperingrealm USING hnsw (embedding vector_l2_ops);`
+23.  put pg creds into env var
+24.  createe embeddings pipeline (`pg-embedding.yaml`)
+25.  `redpanda-connect run -e .env pg-embedding.yaml`
+26.  Rag pipeline (`npc21-genai-rag.yaml`)
+27.  run the RAG pipeline:  `nohup redpanda-connect run -e .env npc1-genai-rag.yaml &`
+28 then the npc2 rag pipeline `nohup redpanda-connect run -e .env npc2-openai-rag.yaml &`
+
+run the app
+```
+cd ~/redpanda-connect-genai-gaming-demo/frontend
+node index.js &
+echo http://$HOSTNAME.$_SANDBOX_ID.instruqt.io
+```
+
+export REDPANDA_BROKERS=localhost:19092,localhost:29092,localhost:39092
+
+cd ~/redpanda-connect-genai-gaming-demo/frontend
+node index.js &
+echo http://$HOSTNAME.$_SANDBOX_ID.instruqt.io
+
+
+
+
+
 
 `pg-embedding.yaml`
 ```yaml
