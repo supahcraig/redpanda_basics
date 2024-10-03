@@ -68,6 +68,33 @@
 ## Adding a field to an incoming document
 
 
+### Simple field addition
+
+```yaml
+pipeline:
+  processors:
+    - mapping: |
+        root = this
+        root.new_field = "this is the value for your new field"
+```
+
+### Add field conditionally
+
+This will add a field called `priority`, and the value of that field is set using the `match` function.   The `=>` operator is how the field assignment is performed.  `_ =>` is the default/unmatched case.
+
+```yaml
+pipeline:
+  processors:
+    - mapping: |
+        root = this
+        root.priority = match this {
+            this.source_system == "payment_gateway" && this.message == "Server latency detected."   => 1 ,
+            this.source_system == "payment_gateway" ||  this.source_system == "inventory_system" => 2 ,
+            this.source_system == "auth_service"  => 3 ,
+            _ => 4,
+        }
+```
+
 
 
 ## Removing a field from a document
