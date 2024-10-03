@@ -1,34 +1,6 @@
 
 
-# Adding a field to an incoming document
-
-
-{
-   "timestamp":"2024-10-01T16:01:21Z",
-   "event_id":"1632a866-a6ab-4f6c-85a8-417bd4550a48",
-   "request_id":"req3630",
-   "context":{
-      "user_id":"user612",
-      "path":"/profile",
-      "method":"DELETE",
-      "status_code":401
-   },
-   "errors":[
-      {
-         "code":"E502",
-         "description":"Bad Gateway",
-         "details":"Received an invalid response from the upstream server."
-      },
-      {
-         "code":"E503",
-         "description":"Service Unavailable",
-         "details":"The server is temporarily unavailable."
-      }
-   ],
-}
-
-
-
+# Repdanda Connect bloblang/mapping examples
 
 
 ---
@@ -93,11 +65,12 @@
 }
 ```
 
+## Adding a field to an incoming document
 
 
 
 
-## removing a field from a document
+## Removing a field from a document
 
 NOTE:  `mapping` used to be called `bloblang`, you may find old references.
 
