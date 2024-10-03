@@ -39,3 +39,35 @@ pipeline:
 
 
 
+This example will add a field to the payload in each branch
+
+```yaml
+input:
+  generate:
+    interval: 1s
+    mapping: |
+      root.Name = ["frosty", "spot", "oodles"].index(random_int() % 3)
+      root.Gooeyness = (random_int() % 100) / 100
+
+pipeline:
+  processors:
+    - workflow:
+        meta_path:  meta.workflow
+        branches:
+          b1:
+            processors:
+              - mapping: |-
+                  root = this
+
+            result_map: root.b1 = "branch b1"
+
+          b2:
+            processors:
+              - mapping: |-
+                  root = this
+                  root.processorb1 = "processor mapping b2"
+
+            result_map: root.b2 = "branch b2"
+output:
+   stdout: {}
+```
