@@ -5,7 +5,12 @@ This is the new connector that uses the snowflake SDK behind the scenes (ported 
 
 ## Snowflake setup
 
-create an account
+
+
+### Create a trial account at snowflake.com
+
+It's free.  Just do it.
+
 
 ### Create the minimum required objects
 
