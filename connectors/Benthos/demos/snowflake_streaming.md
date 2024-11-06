@@ -220,3 +220,34 @@ where 1 = 1
   and 1 = 1
 order by date_added desc;
 ```
+
+
+## Using other SQL Tools
+
+### Dbeaver
+
+You can find the jdbc jar here:  https://repo1.maven.org/maven2/net/snowflake/snowflake-jdbc/3.19.1/
+but it also prompted me to download it which was much easer.
+
+
+#### Connection properties
+
+* Host:  `<account>.snowflakecomputing.com`
+  * Your account can be found from the Snowflake UI:  `select current_organization_name() || '-' || current_account_name();`
+* Port:  `443`
+* Authenticator:  `snowflake` (not sure what the other options do)
+
+It did not require any other fancy settings.
+
+
+### CLI / snowsql
+
+```bash
+brew install --cask snowflake-snowsql
+```
+
+```bash
+snowsql -a <account> -u <username>
+```
+
+Then supply your password when prompted.
