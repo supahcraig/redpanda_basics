@@ -127,13 +127,12 @@ pipeline:
 This same key removeal can also be done with a reusable mapping:
 
 ```yaml
-
-
 map stuff {
   root.description = deleted()
 }
 
 root.errors = this.errors.map_each(e -> e.apply("stuff"))
+```
 
 ```yaml
     - mapping: |
