@@ -32,18 +32,12 @@ Then actually install Docker:
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
-Test it with the Docker Hello World:
-
-```bash
-sudo docker run hello-world
-```
 
 
 ## Spin up the Environment
 
 
-
-### Use the Debezium-Exaples repo, with some redpanda mods
+### Use the Debezium-Examples repo, with some redpanda mods
 
 
 
@@ -51,7 +45,7 @@ sudo docker run hello-world
 
 ```bash
 git clone https://github.com/debezium/debezium-examples.git
-cd debezium-examples/tutorial/debezium-db2-init/db2server
+cd debezium-examples/tutorial
 ```
 
 There are are two files we'll need to modify for this to work _on our terms._
