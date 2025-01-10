@@ -165,7 +165,7 @@ services:
 Set an environment variable for the Debezium Version:
 
 ```bash
-export DEBEZIUM_VERION=2.1
+export DEBEZIUM_VERSION=2.1
 ```
 
 And bring up the compose environment:
@@ -174,7 +174,7 @@ And bring up the compose environment:
 docker-compose -f redpanda-db2-cdc-compose.yaml up --build -V
 ```
 
-The `-V` flag should remove the volumes, but it might not.   `rm -rf db2data` might be necessary. 
+This will build the db2 & Kafka Connect containers as part of the spin up process.  The `-V` flag should remove the volumes, but it might not.   `rm -rf db2data` might be necessary. 
 
 
 This should create 4 containers:
@@ -194,6 +194,8 @@ Here is the relevant connection info for the db2 instance to verify.  I use dbea
 
 
 ### Register the connector
+
+_Open another terminal window, again connected to your Ubuntu host._
 
 The Kafka Connect instance is just the KC framework, you'll need to register the actual connector.
 
