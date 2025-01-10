@@ -165,7 +165,7 @@ services:
 Set an environment variable for the Debezium Version:
 
 ```bash
-export DEBEZIUM_VERION-2.1
+export DEBEZIUM_VERION=2.1
 ```
 
 And bring up the compose environment:
