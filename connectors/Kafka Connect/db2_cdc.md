@@ -348,6 +348,9 @@ https://github.com/debezium/debezium-examples/tree/main/tutorial#using-db2
 
 You can maybe build the container using the above, but I manually copied those files into the running container.   Remains to be seen if this will work.  ==> _Narrator:  it did not._
 
+
+Medium article discussing it:  https://medium.com/@Dylan.Wang/log-based-cdc-between-db2-postgresql-using-debezium-f43c329a61f5
+
 ---
 
 
