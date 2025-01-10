@@ -1,25 +1,6 @@
-this is a work in progress.... doubtful it will even work.
+# DB2 CDC with Kafka Connect
 
-ae8oalim*(nkllC
-
-https://debezium.io/documentation/reference/connectors/db2.html#_putting_tables_into_capture_mode
-
-trial license is limited to 4 core/8GB
-
-it also has some T&C about restrictions around replication & CDC.  YOLO.
-
-```
-- SQL Replication with non-Db2 databases ("Db2 databases" includes databases hosted on IBM Db2 Hosted). Use of SQL Replication for any other purpose, source or target besides homogeneous uses (Db2 LUW to Db2 LUW replication), for example to source or target Db2 for z/OS, Db2 iSeries, any Db2 Warehouse edition, and any appliance that embeds Db2 Warehouse, is not allowed
-
-- Q Replication Functionality
-
-- Change Data Capture functionality, except for supporting shadow table functionality within a single Db2 instance to replicate from row-organized tables into column-organized tables
-```
-
-https://early-access.ibm.com/software/support/trial/cst/programwebsite.wss?siteId=1120&h=null&tabId=
-
-
-*trying to install this on bare metal is a nightmare.*
+You'll need an EC2 instance open on port 8080 (if you want to use Redpanda Console) and 50000 (if you want to use a remote SQL client).
 
 ---
 
@@ -60,13 +41,6 @@ sudo docker run hello-world
 
 ## Spin up the Environment
 
-Here are some random notes from stuff I built along the way.
-
-https://www.ibm.com/docs/en/db2/11.5?topic=system-linux
-
-The official IBM DB2 image can be had here, but it will be easier to use the debezium-examples docker build, which has cdc already enabled.
-
-IBM Docker image: `icr.io/db2_community/db2`
 
 
 ### Use the Debezium-Exaples repo, with some redpanda mods
@@ -193,11 +167,20 @@ services:
 
 ### Spin up the container
 
+Set an environment variable for the Debezium Version:
+
+```bash
+export DEBEZIUM_VERION-2.1
+```
+
+And bring up the compose environment:
+
 ```bash
 docker-compose -f redpanda-db2-cdc-compose.yaml up --build -V
 ```
 
 The `-V` flag should remove the volumes, but it might not.   `rm -rf db2data` might be necessary. 
+
 
 This should create 4 containers:
 
@@ -354,126 +337,57 @@ docker-compose down
 
 
 ---
-
-
-
-
-
-```bash
-docker run -h db2 --name db2 --restart=always --detach --privileged=true -p 50001:50000 --env-file .env_list -v /Docker-examples:/database examples
-```
-
-This container will create a sample database called db2inst1 with 4 tables, and will also enable CDC on those tables.   You can verify this via dbeaver
-
-
-
-
-
-
-
-
 ---
----
----
+___
 
-## Configure DB2 for CDC
+# Appendix of junk that might be helpful
 
-The debezium-examples docker container already has CDC enabled with all the objects created in the db: tables, UDF's, agents etc.   Here is a walkthrough if you needed to set it up on your own, although I never could get it to work.
-
+## Docs & repos
 https://debezium.io/documentation/reference/connectors/db2.html#_putting_tables_into_capture_mode
 
 https://github.com/debezium/debezium-connector-db2/blob/main/src/test/docker/db2-cdc-docker/Dockerfile
 
+https://github.com/debezium/debezium-examples/tree/main/tutorial#using-db2
+
 You can maybe build the container using the above, but I manually copied those files into the running container.   Remains to be seen if this will work.  ==> _Narrator:  it did not._
 
-
-
-
----
----
 ---
 
-```bash
-git clone 
-cd debezium-connector-db2/src/test/docker/db2-cdc-docker
+
+## Bare metal install using a trial license
+
+ae8oalim*(nkllC
+
+https://debezium.io/documentation/reference/connectors/db2.html#_putting_tables_into_capture_mode
+
+trial license is limited to 4 core/8GB
+
+it also has some T&C about restrictions around replication & CDC.  YOLO.
+
+```
+- SQL Replication with non-Db2 databases ("Db2 databases" includes databases hosted on IBM Db2 Hosted). Use of SQL Replication for any other purpose, source or target besides homogeneous uses (Db2 LUW to Db2 LUW replication), for example to source or target Db2 for z/OS, Db2 iSeries, any Db2 Warehouse edition, and any appliance that embeds Db2 Warehouse, is not allowed
+
+- Q Replication Functionality
+
+- Change Data Capture functionality, except for supporting shadow table functionality within a single Db2 instance to replicate from row-organized tables into column-organized tables
 ```
 
-
-In the container:
-
-```bash
-mkdir -p /asncdctools/src
-mkdir /var/custom
-chmod -R  777 /var/custom
-```
-
-From the host:
-
-`export DB2=<your continerID>`
-
-```bash
-docker cp asncdc_UDF.sql ${DB2}:/asncdctools/src
-docker cp asncdcaddremove.sql ${DB2}:/asncdctools/src
-docker cp asncdctables.sql ${DB2}:/asncdctools/src
-docker cp dbsetup.sh ${DB2}:/asncdctools/src
-docker cp asncdc.c ${DB2}:/asncdctools/src
-docker cp cdcsetup.sh ${DB2}:/var/custom
-```
-
-Back in the container...
-
-```bash
-chmod -R  777  /asncdctools
-chmod 777 /var/custom/cdcsetup.sh
-```
-
-Then export the path for `bldrtn`
-
-```bash
-export PATH=$PATH:/opt/ibm/db2/V12.1/samples/c/
-export PATH=$PATH:/opt/ibm/db2/V12.1/include/
-```
+https://early-access.ibm.com/software/support/trial/cst/programwebsite.wss?siteId=1120&h=null&tabId=
 
 
+*trying to install this on bare metal is a nightmare.*
 
+## IBM docker repo
 
+Here are some random notes from stuff I built along the way.
 
-Before you build the container, you'll need to update the Dockerfile to point the latest db2 image:  `FROM ibmcom/db2`
+https://www.ibm.com/docs/en/db2/11.5?topic=system-linux
 
-If you use the 11.5 base image it will crash shortly after startup as it tries to upgrade itself.  ==> apparently using ibmcom/db2 doesnt make it not crash.  
+The official IBM DB2 image can be had here, but it will be easier to use the debezium-examples docker build, which has cdc already enabled.
 
-```bash
-docker build -t db2cdc .
-```
+IBM Docker image: `icr.io/db2_community/db2`
 
-
-```bash
-docker run -h db2 --name db2 --restart=always --detach --privileged=true -p 50000:50000 --env-file .env_list -v /Docker:/database db2cdc
-```
-
-## An actual working DB2 Container with CDC enabled
-OR from debezium-examples... _this actually works with CDC enabled_
-
-```bash
-docker run -h db2 --name db2 --restart=always --detach --privileged=true -p 50001:50000 --env-file .env_list -v /Docker-examples:/database examples
-```
-
-
-https://github.com/debezium/debezium-examples/blob/main/tutorial/debezium-db2-init/db2server/Dockerfile
-
-
-
-
-
-Add the `bldrtn` command to the PATH:
-
-```bash
-export PATH=$PATH:/opt/ibm/db2/V12.1/samples/c/
-```
-
-
-
-
+_it remains unclear how to take this "base" image and make it CDC-enabled.  I tried, and failed._
 
 
 
