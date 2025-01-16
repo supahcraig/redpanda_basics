@@ -11,17 +11,17 @@ pipeline:
         key: table_cursor
 
     - catch:
-      - mapping: 'root.seq = -1'
+      - mapping: 'root.id = -1'
 
     - log:
         message: 'Using cached value: ${! content() }'
 
     - sql_raw:
         driver: postgres
-        dsn: postgres://root:secret@localhost:5432/root?sslmode=disable
+        dsn: postgres://admin:admin@postgres:5432/root?sslmode=disable
 
-        query: 'select * from cms.content_notification_status where seq > $1'
-        args_mapping: root = [ this.seq ]
+        query: 'select * from testdb.customers where id > $1'
+        args_mapping: root = [ this.id ]
 
     - unarchive:
         format: json_array
