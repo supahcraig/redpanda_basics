@@ -36,8 +36,6 @@ output:
       - kafka_franz:
           seed_brokers:
             - localhost:19092
-            - localhost:29092
-            - localhost:39092
           topic: content_delta
 
       - processors:
