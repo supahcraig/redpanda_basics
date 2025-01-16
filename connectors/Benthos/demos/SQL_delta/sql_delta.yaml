@@ -1,0 +1,71 @@
+input:
+  generate:
+    interval: '@every 5s'
+    mapping: 'root = {}'
+
+pipeline:
+  processors:
+    - cache:
+        resource: cached_pgstate
+        operator: get
+        key: table_cursor
+
+    - catch:
+      - mapping: 'root.seq = -1'
+
+    - log:
+        message: 'Using cached value: ${! content() }'
+
+    - sql_raw:
+        driver: postgres
+        dsn: postgres://root:secret@localhost:5432/root?sslmode=disable
+
+        query: 'select * from cms.content_notification_status where seq > $1'
+        args_mapping: root = [ this.seq ]
+
+    - unarchive:
+        format: json_array
+
+output:
+  broker:
+    # send each processed message to each output sequentially
+    pattern: fan_out_sequential
+    outputs:
+      - stdout: {}
+
+      - kafka_franz:
+          seed_brokers:
+            - localhost:19092
+            - localhost:29092
+            - localhost:39092
+          topic: content_delta
+
+      - processors:
+          - mapping: |
+              root.seq = json("seq").from_all().max()
+        cache:
+          target: cached_pgstate
+          key: table_cursor
+          max_in_flight: 1
+
+cache_resources:
+  - label: cached_pgstate
+    multilevel: [ inmem, pgstate ]
+
+  - label: inmem
+    memory:
+      compaction_interval: ''
+
+  - label: pgstate
+    sql:
+      driver: postgres
+      dsn: postgres://root:secret@localhost:5432/root?sslmode=disable
+      table: rpcn_connect_state
+      key_column: key
+      value_column: val
+      set_suffix: ON CONFLICT(key) DO UPDATE SET val=excluded.val
+      init_statement: |
+        CREATE TABLE IF NOT EXISTS rpcn_connect_state (
+          key bytea PRIMARY KEY,
+          val bytea
+        );
