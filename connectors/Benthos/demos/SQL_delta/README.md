@@ -21,6 +21,7 @@ input:
     mapping: 'root = {}'
 ```
 
+---
 
 ### Trick #2 - Using a cache store the high watermark
 
@@ -35,6 +36,7 @@ pipeline:
         key: table_cursor
 ```
 
+---
 
 ### Trick #3 - what if it's the first time running this and the cache doesn't exist yet?
 
@@ -45,6 +47,8 @@ Fetching the cache will throw an error if the cache key doesn't exist, so we'll 
       - mapping: 'root.seq = -1'
 ```
 
+---
+
 ### Trick #4 - log which cache is being used
 
 It's very easy to accidentally use the wrong cache, so logging it is very helpful for troubleshooting.
@@ -53,6 +57,8 @@ It's very easy to accidentally use the wrong cache, so logging it is very helpfu
     - log:
         message: 'Using cached value: ${! content() }'
 ```
+
+---
 
 ### Trick #5 - fetching the data from within the pipeline processors section, rather than as the primary input
 
@@ -69,6 +75,8 @@ This will connect to the database and run the query, injecting the cached value 
     - unarchive:
         format: json_array
 ```
+
+---
 
 ### Trick #6 - no real trick here, just publish the messages to Redpanda
 
@@ -88,6 +96,8 @@ output:
           topic: content_delta
 ```
 
+---
+
 ### Trick #7 - record the new HWM into the cache
 
 The new HWM will be set by finding the max value of the HWM field in each batch of data returned by the query.   This eliminates the need to explictily sort the data here, or by adding an ORDER BY in the query, which could be an expensive operation.  The HWM is put into `root.seq` and then sent to the cache.   It's important to only update the cache _after_ the messages have been published to Redpanda.  Otherwise data loss could occur if there was a problem publishing.
@@ -101,6 +111,8 @@ The new HWM will be set by finding the max value of the HWM field in each batch 
           key: table_cursor
           max_in_flight: 1
 ```
+
+---
 
 ### Trick #8 - Using a multi-level cache for speed & persistence
 
