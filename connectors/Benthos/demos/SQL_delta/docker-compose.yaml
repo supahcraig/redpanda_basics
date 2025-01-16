@@ -1,0 +1,98 @@
+#version: '3.7'
+
+networks:
+  rp_network:
+    driver: bridge
+
+services:
+  redpanda-0:
+    container_name: redpanda-0
+    command:
+      - redpanda
+      - start
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-pandaproxy-addr internal://redpanda-0:8082,external://localhost:18082
+      - --schema-registry-addr internal://0.0.0.0:8081,external://0.0.0.0:18081
+      - --rpc-addr redpanda-0:33145
+      - --advertise-rpc-addr redpanda-0:33145
+      - --mode dev-container
+      - --smp 1
+      - --default-log-level=info
+    image: docker.redpanda.com/redpandadata/redpanda:v24.2.3
+    networks:
+      - rp_network
+    ports:
+      - 18081:18081
+      - 18082:18082
+      - 19092:19092
+      - 19644:9644
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9644/v1/status/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  redpanda-console:
+    container_name: redpanda-console
+    image: docker.redpanda.com/redpandadata/console:v2.7.1
+    networks:
+      - rp_network
+    entrypoint: /bin/sh
+    command: -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console'
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["redpanda-0:9092"]
+          schemaRegistry:
+            enabled: true
+            urls: ["http://redpanda-0:8081"]
+        redpanda:
+          adminApi:
+            enabled: true
+            urls: ["http://redpanda-0:9644"]
+        connect:
+          enabled: true
+          clusters:
+            - name: "DebeziumConnect"
+              url: "http://debezium-kafka-connect:8083"  # The URL where Kafka Connect is running
+    ports:
+      - 8080:8080
+    depends_on:
+      redpanda-0:
+        condition: service_healthy
+
+
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      - POSTGRES_USERNAME=admin
+      - POSTGRES_PASSWORD=admin
+    command: ["postgres", "-c", "wal_level=logical"]
+    networks:
+      - rp_network
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  configure-postgres:
+    image: postgres:latest
+    container_name: configure-postgres
+    networks:
+      - rpnetwork
+    environment:
+      PGPASSWORD: 'admin'
+    command: >
+      psql -h postgres -U admin -c "CREATE DATABASE inventory;"
+    stdin_open: true
+    tty: true
+    restart: 'no'
+    depends_on:
+      postgres:
+        condition: service_healthy
