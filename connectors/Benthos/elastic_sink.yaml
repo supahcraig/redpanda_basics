@@ -1,0 +1,29 @@
+input:
+  kafka_franz:
+    seed_brokers:
+      - localhost:19092
+      - localhost:29092
+      - localhost:39092
+
+    topics: [ "content_notification" ]
+    consumer_group: "sink_to_elastic"
+
+
+pipeline:
+  processors:
+    - mapping: |
+        root = this
+        root.event_datetime = timestamp_unix()
+
+    - log:
+        message: '${! content()  }'
+
+
+output:
+  elasticsearch:
+    urls: [ "${ELASTIC_URL}" ]
+    sniff: false
+    healthcheck: false
+    index: "directtv"
+    id: ${!this.id}
+    api_key: "${ELASTIC_API_KEY}"
