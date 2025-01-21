@@ -3,6 +3,21 @@
 You can use Redpanda Connect to track a high watermark column using a cache processor.
 
 
+## Create the Docker Environment
+
+Use docker-compose to create containers for Postgres, Redpanda, Redpanda Console, and PGadmin.   Default users/passwords are defined in the docker-compose yaml, but also carried through to the `pgpass` and `servers.json` files that are used by PGadmin for mounting the database at startup.
+
+```bash
+docker-compose up -V
+```
+
+## CDC in action
+
+
+
+
+---
+
 ## Breaking down the pipeline
 
 There is quite a bit going on here, let's break it down into the individual components.   Like the great man once said, thee's no trick.  It's just a little trick.
