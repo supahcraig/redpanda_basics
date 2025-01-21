@@ -81,6 +81,26 @@ services:
       timeout: 5s
       retries: 5
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    networks:
+      - rp_network
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@redpanda.com
+      PGADMIN_DEFAULT_PASSWORD: zzz
+    volumes:
+      - ./servers.json:/pgadmin4/servers/json
+      - ./pgpass:/pgpass
+      - ./pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+
   configure-postgres:
     image: postgres:latest
     container_name: configure-postgres
