@@ -1,0 +1,21 @@
+input:
+  generate:
+    interval: 3s
+    mapping: |
+      root.id = uuid_v4()
+      root.destination_system = ["DLS", "CMS", "YYZ"].index(random_int() % 3)
+      root.notification_type = ["INITIAL", "UPDATE", "TOMBSTONE"].index(random_int() % 3)
+      root.status = ["SUCCESS", "FAILURE", "IN-PROCESS"].index(random_int() % 3)
+      root.duration = random_int(seed:timestamp_unix_nano(), min:0, max:100)
+
+
+pipeline:
+  processors:
+    - log:
+        message: '${! content() }'
+
+output:
+  kafka_franz:
+    seed_brokers:
+        - localhost:19092
+    topic: content_notification
