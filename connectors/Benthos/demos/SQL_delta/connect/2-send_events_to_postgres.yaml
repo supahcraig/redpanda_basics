@@ -1,0 +1,35 @@
+input:
+  kafka_franz:
+    seed_brokers:
+      - localhost:19092
+    topics:
+      - content_notification
+    consumer_group: "sink_to_pg"
+
+pipeline:
+  processors:
+    - log:
+        message: '${! content() }'
+
+output:
+  sql_insert:
+    driver: postgres
+    dsn: postgres://admin:admin@postgres:5432/root?sslmode=disable
+    table: cms.content_notification_status
+    columns:
+      - id
+      - destination_system
+      - notification_type
+      - status
+      - duration
+
+    args_mapping:
+      root = [this.id, 
+              this.destination_system, 
+              this.notification_type, 
+              this.status, 
+              this.duration ]
+
+    batching:
+      count: 10000
+      period: 5s
