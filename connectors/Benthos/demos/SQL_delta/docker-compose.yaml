@@ -68,7 +68,7 @@ services:
     container_name: postgres
     image: postgres:latest
     environment:
-      - POSTGRES_USERNAME=admin
+      - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
     command: ["postgres", "-c", "wal_level=logical"]
     networks:
@@ -105,7 +105,7 @@ services:
     image: postgres:latest
     container_name: configure-postgres
     networks:
-      - rpnetwork
+      - rp_network
     environment:
       PGPASSWORD: 'admin'
     command: >
