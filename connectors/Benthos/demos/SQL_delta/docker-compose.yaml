@@ -114,11 +114,14 @@ services:
     networks:
       - rp_network
     volumes:
+      - ./postgres/init_db.sh:/init_db.sh
       - ./postgres/inventory.sql:/inventory.sql
     environment:
       PGPASSWORD: 'admin'
     command: >
-      psql -h postgres -U admin -f /inventory.sql
+      bash -c "
+        chmod +x /init_db.sh && /init_db.sh
+      "
     stdin_open: true
     tty: true
     restart: 'no'
