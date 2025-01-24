@@ -97,6 +97,12 @@ services:
       - ./servers.json:/pgadmin4/servers.json
       - ./pgpass:/var/lib/pgadmin/.pgpass
       #- ./pgadmin-data:/var/lib/pgadmin
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
     depends_on:
       postgres:
         condition: service_healthy
