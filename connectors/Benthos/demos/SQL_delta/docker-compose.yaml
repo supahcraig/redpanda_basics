@@ -111,7 +111,7 @@ services:
       PGPASSWORD: 'admin'
     command: >
       psql -h postgres -U admin -c "CREATE DATABASE inventory;"
-      psql -h postgres -U admin -d inventory -f /inventory.sql
+      psql -h postgres -U admin -d inventory -f /postgres/inventory.sql
     stdin_open: true
     tty: true
     restart: 'no'
