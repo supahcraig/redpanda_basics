@@ -120,7 +120,15 @@ services:
       PGPASSWORD: 'admin'
     command: >
       bash -c "
-        chmod +x /init_db.sh && /init_db.sh
+        # Ensure the script has executable permissions
+        chmod +x /init_db.sh &&
+        # Wait for PostgreSQL to be ready
+        until pg_isready -h postgres -U admin -d postgres; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done
+        # Run the shell script after PostgreSQL is ready
+        bash /init_db.sh
       "
     stdin_open: true
     tty: true
