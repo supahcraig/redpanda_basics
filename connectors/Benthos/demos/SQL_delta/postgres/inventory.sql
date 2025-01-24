@@ -1,6 +1,5 @@
-CREATE DATABASE inventory;
-
-CREATE TABLE public.products (
+  
+CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description VARCHAR(512),
@@ -8,14 +7,13 @@ CREATE TABLE public.products (
 );
 
 
-CREATE TABLE public.products_on_hand (
+CREATE TABLE products_on_hand (
   product_id SERIAL PRIMARY KEY,
-  quantity INT NOT NULL,
-  FOREIGN KEY (product_id) REFERENCES inventory.products(id)
+  quantity INT NOT NULL
 );
 
 
-CREATE TABLE public.customers (
+CREATE TABLE customers (
   id SERIAL PRIMARY KEY,
   first_name VARCHAR(255) NOT NULL,
   last_name VARCHAR(255) NOT NULL,
@@ -23,15 +21,13 @@ CREATE TABLE public.customers (
 );
 
 
-CREATE TABLE public.orders (
+CREATE TABLE orders (
   id SERIAL PRIMARY KEY,
   order_date DATE NOT NULL,
   purchase_date DATE NOT NULL,
   purchaser INT NOT NULL,
   quantity INT NOT NULL,
-  product_id INT NOT NULL,
-  FOREIGN KEY (purchaser) REFERENCES inventory.customers(id),
-  FOREIGN KEY (product_id) REFERENCES inventory.products(id)
+  product_id INT NOT NULL
 );
 
 
