@@ -113,10 +113,12 @@ services:
     container_name: configure-postgres
     networks:
       - rp_network
+    volumes:
+      - ./postgres/inventory.sql:/inventory.sql
     environment:
       PGPASSWORD: 'admin'
     command: >
-      psql -h postgres -U admin -c "CREATE DATABASE inventory;" && psql -h postgres -U admin -d inventory -f /postgres/inventory.sql
+      psql -h postgres -U admin -f /inventory.sql
     stdin_open: true
     tty: true
     restart: 'no'
