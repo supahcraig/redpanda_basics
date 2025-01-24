@@ -99,8 +99,8 @@ services:
       #- ./pgadmin-data:/var/lib/pgadmin
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 30s
-      retries: 3
+      interval: 3s
+      retries: 10
       start_period: 10s
       timeout: 10s
     depends_on:
