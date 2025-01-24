@@ -1,3 +1,5 @@
+CREATE DATABASE inventory;
+
 CREATE TABLE inventory.products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
