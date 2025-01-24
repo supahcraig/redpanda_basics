@@ -84,7 +84,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin4_container
+    container_name: pgadmin
     restart: always
     networks:
       - rp_network
@@ -92,11 +92,11 @@ services:
       - "8888:80"
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@redpanda.com
-      PGADMIN_DEFAULT_PASSWORD: zzz
+      PGADMIN_DEFAULT_PASSWORD: admin
     volumes:
-      - ./servers.json:/pgadmin4/servers/json
+      - ./servers.json:/pgadmin4/servers.json
       - ./pgpass:/pgpass
-      - ./pgadmin-data:/var/lib/pgadmin
+      #- ./pgadmin-data:/var/lib/pgadmin
     depends_on:
       postgres:
         condition: service_healthy
@@ -111,6 +111,7 @@ services:
       PGPASSWORD: 'admin'
     command: >
       psql -h postgres -U admin -c "CREATE DATABASE inventory;"
+      psql -h postgres -U admin -d inventory -f /inventory.sql
     stdin_open: true
     tty: true
     restart: 'no'
