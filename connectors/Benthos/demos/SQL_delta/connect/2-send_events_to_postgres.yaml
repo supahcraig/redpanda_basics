@@ -14,22 +14,22 @@ pipeline:
 output:
   sql_insert:
     driver: postgres
-    dsn: postgres://admin:admin@postgres:5432/root?sslmode=disable
-    table: cms.content_notification_status
+    dsn: postgres://admin:admin@localhost:5432/inventory?sslmode=disable
+    table: public.content_notification
     columns:
-      - id
+      - event_id
       - destination_system
       - notification_type
       - status
       - duration
 
     args_mapping:
-      root = [this.id, 
+      root = [this.event_id, 
               this.destination_system, 
               this.notification_type, 
               this.status, 
               this.duration ]
 
     batching:
-      count: 10000
+      count: 10
       period: 5s

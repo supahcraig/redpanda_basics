@@ -2,7 +2,7 @@ input:
   generate:
     interval: 3s
     mapping: |
-      root.id = uuid_v4()
+      root.event_id = uuid_v4()
       root.destination_system = ["DLS", "CMS", "YYZ"].index(random_int() % 3)
       root.notification_type = ["INITIAL", "UPDATE", "TOMBSTONE"].index(random_int() % 3)
       root.status = ["SUCCESS", "FAILURE", "IN-PROCESS"].index(random_int() % 3)

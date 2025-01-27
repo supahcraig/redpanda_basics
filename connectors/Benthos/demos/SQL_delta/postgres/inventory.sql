@@ -31,3 +31,16 @@ CREATE TABLE orders (
 );
 
 
+CREATE TABLE content_notification (
+  id uuid primary key,
+  destination_system VARCHAR(25),
+  notification_type VARCHAR(25),
+  status VARCHAR(25),
+  duration FLOAT,
+  notification_date DATE,
+  d_notification_date DATE DEFAULT CURRENT_DATE,
+  notification_timestamp TIMESTAMP,
+  d_notification_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  notification_timestamp_tz TIMESTAMPTZ,
+  d_notification_timestamp_tz TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);

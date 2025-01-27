@@ -18,9 +18,9 @@ pipeline:
 
     - sql_raw:
         driver: postgres
-        dsn: postgres://admin:admin@postgres:5432/inventory?sslmode=disable
+        dsn: postgres://admin:admin@localhost:5432/inventory?sslmode=disable
 
-        query: 'select * from testdb.customers where id > $1'
+        query: 'select * from content_notification where id > $1'
         args_mapping: root = [ this.id ]
 
     - unarchive:
@@ -35,12 +35,12 @@ output:
 
       - kafka_franz:
           seed_brokers:
-            - redpanda-0:19092
+            - localhost:19092
           topic: content_delta
 
       - processors:
           - mapping: |
-              root.seq = json("seq").from_all().max()
+              root.id = json("id").from_all().max()
         cache:
           target: cached_pgstate
           key: table_cursor
@@ -57,7 +57,7 @@ cache_resources:
   - label: pgstate
     sql:
       driver: postgres
-      dsn: postgres://admin:admin@postgres:5432/inventory?sslmode=disable
+      dsn: postgres://admin:admin@localhost:5432/inventory?sslmode=disable
       table: rpcn_connect_state
       key_column: key
       value_column: val
