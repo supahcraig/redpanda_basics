@@ -32,7 +32,8 @@ CREATE TABLE orders (
 
 
 CREATE TABLE content_notification (
-  id uuid primary key,
+  id serial primary key,
+  event_id uuid,
   destination_system VARCHAR(25),
   notification_type VARCHAR(25),
   status VARCHAR(25),
@@ -44,3 +45,4 @@ CREATE TABLE content_notification (
   notification_timestamp_tz TIMESTAMPTZ,
   d_notification_timestamp_tz TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
