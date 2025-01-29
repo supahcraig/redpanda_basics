@@ -1,0 +1,69 @@
+input:
+  generate:
+    interval: '@every 5s'
+    mapping: 'root = {}'
+
+pipeline:
+  processors:
+    - cache:
+        resource: cached_pgstate
+        operator: get
+        key: content_notification
+
+    - catch:
+      - mapping: 'root.hwm_ts = "1980-01-01 00:00:00.000".ts_parse("2006-01-02 15:04:05.000").ts_unix_milli()'
+
+    - log:
+        message: 'Using cached value: ${! content() }'
+
+    - sql_raw:
+        driver: postgres
+        dsn: postgres://admin:admin@localhost:5432/inventory?sslmode=disable
+
+        query: 'select * from content_notification where notification_timestamp > to_timestamp( $1 / 1000.0)'
+        args_mapping: root = [ this.hwm_ts ]
+
+    - unarchive:
+        format: json_array
+
+output:
+  broker:
+    # send each processed message to each output sequentially
+    pattern: fan_out_sequential
+    outputs:
+      #- stdout: {}
+
+      - kafka_franz:
+          seed_brokers:
+            - localhost:19092
+          topic: content_delta
+
+      - processors:
+          - mapping: |
+              root.hwm_ts = json("notification_timestamp").from_all().map_each(str -> str.ts_parse("2006-01-02T15:04:05.999999Z").ts_unix()).max()
+        cache:
+          target: cached_pgstate
+          key: content_notification
+          max_in_flight: 1
+
+cache_resources:
+  - label: cached_pgstate
+    multilevel: [ inmem, pgstate ]
+
+  - label: inmem
+    memory:
+      compaction_interval: ''
+
+  - label: pgstate
+    sql:
+      driver: postgres
+      dsn: postgres://admin:admin@localhost:5432/inventory?sslmode=disable
+      table: rpcn_hwm_state
+      key_column: key
+      value_column: val
+      set_suffix: ON CONFLICT(key) DO UPDATE SET val=excluded.val
+      init_statement: |
+        CREATE TABLE IF NOT EXISTS rpcn_hwm_state (
+          key bytea PRIMARY KEY,
+          val jsonb
+        );
