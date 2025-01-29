@@ -27,7 +27,6 @@ docker-compose up -V
 
 There is quite a bit going on here, let's break it down into the individual components.   Like the great man once said, thee's no trick.  It's just a little trick.
 
-_NOTE: this assumes the high watermark column is numeric.  If it is a date or timestamp, it needs some special treatment._
 
 
 ### Trick #1 - making it run continually
@@ -45,7 +44,7 @@ input:
 
 ### Trick #2 - Using a cache store the high watermark
 
-From the jump, we need to fetch (get) the current high watermark (aka HWM) value from a cache.  The cache is defined as a resource near the end of the config.  What's important here is that the HWM is stored as a key/value pair in the cache.
+From the jump, we need to fetch (get) the current high watermark (aka HWM) value from a cache.  The cache is defined as a resource near the end of the config.  What's important here is that the HWM is stored as a key/value pair in the cache, where the key is `content_notification_id`.  This can be whatever you like, but I've chosen to align my key name with the table & field I'm tracking.  This will allow us to use a single cache table to track the HWM across multiple tables.
 
 ```yaml
 pipeline:
@@ -53,18 +52,25 @@ pipeline:
     - cache:
         resource: cached_pgstate
         operator: get
-        key: table_cursor
+        key: content_notification_id
 ```
 
 ---
 
 ### Trick #3 - what if it's the first time running this and the cache doesn't exist yet?
 
-Fetching the cache will throw an error if the cache key doesn't exist, so we'll use a `catch` to trap for that.   If the value isn't found, assume the current HWM is -1, which _theoretically_ would be the lowest value in your table.  But you should set it accordingly.   You could also set it to purposefully skip rows (i.e. "only pull new rows"). 
+Fetching the cache will throw an error if the cache key doesn't exist, so we'll use a `catch` to trap for that.   If the value isn't found, assume the current high watermark (aka HWM) is -1, which _theoretically_ would be the lowest value in your table.  But you should set it accordingly.   You could also set it to purposefully skip rows (i.e. "only pull new rows"). 
 
 ```yaml
     - catch:
-      - mapping: 'root.seq = -1'
+      - mapping: 'root.hwm_id = -1'
+```
+
+If you're tracking a timestamp column, it is a little trickier since we have to assume the starting point is some date arbitratily in the past, and then cast that as a unix timestamp.
+
+```yaml
+    - catch:
+      - mapping: 'root.hwm_ts = "1980-01-01 00:00:00.000".ts_parse("2006-01-02 15:04:05.000").ts_unix_milli()'
 ```
 
 ---
@@ -90,15 +96,27 @@ This will connect to the database and run the query, injecting the cached value 
         dsn: postgres://root:secret@localhost:5432/root?sslmode=disable
 
         query: 'select * from cms.content_notification_status where seq > $1'
-        args_mapping: root = [ this.seq ]
+        args_mapping: root = [ this.hwm_id ]
 
     - unarchive:
         format: json_array
 ```
 
+For timestamps, we need to handle the data type casting inside the SQL, like this:
+
+```yaml
+        query: 'select * from content_notification where notification_timestamp > to_timestamp( $1 / 1000.0)'
+        args_mapping: root = [ this.hwm_ts ]
+```
+
+_TODO:  store the actual "pretty" timestamp in the cache.  This would be nice becasue you could quickly see where the HWM is relative to the current time._
+
+
 ---
 
 ### Trick #6 - no real trick here, just publish the messages to Redpanda
+
+_I have the output logging commented out here to allow for easy visibility to the cache value that is being used._
 
 ```yaml
 output:
@@ -106,7 +124,7 @@ output:
     # send each processed message to each output sequentially
     pattern: fan_out_sequential
     outputs:
-      - stdout: {}
+      #- stdout: {}
 
       - kafka_franz:
           seed_brokers:
@@ -125,11 +143,19 @@ The new HWM will be set by finding the max value of the HWM field in each batch 
 ```yaml
       - processors:
           - mapping: |
-              root.seq = json("seq").from_all().max()
+              root.hwm_id = json("id").from_all().max()
         cache:
           target: cached_pgstate
-          key: table_cursor
+          key: content_notification_id
           max_in_flight: 1
+```
+
+Timestamps require special handling, since bloblang doesn't really have a concept of datetimes, and therefore can't do a comparison to see what the max value is.  So we have to convert to a unix timestamp, but _of course_ Postgres doesn't return the timestamp in the RFC3339 format that bloblang requires so we need to `ts_parse` it from the ISO 8601 format into RFC3339 format.   _IF_ the timestamp were already in RFC3339 format, we could simply call `ts_parse` without any arguments.   And then since we're actually operating on a set, we need to map this conversion onto each row in the set.  That 2006 date buried in the conversion is how Golang identifies date components; it's not actually using 2006 as the date, only as a formatting directive.
+
+```yaml
+      - processors:
+          - mapping: |
+              root.hwm_ts = json("notification_timestamp").from_all().map_each(str -> str.ts_parse("2006-01-02T15:04:05.999999Z").ts_unix()).max()
 ```
 
 ---
@@ -138,7 +164,7 @@ The new HWM will be set by finding the max value of the HWM field in each batch 
 
 The cache itself is defined as a resource, which allows it to be referenced elsewhere in the pipeline.  It's a multi-level cache, with in-memory (`inmem`) being the primary and sql (`pgstate`)  being the fallback/persistent layer.  When `get` operations are performed against the cache, it will first check in memory for the requested key, and if not found, will then fall back to checking Postrges.
 
-Here we set up the cache table (`rpcn_connect_state`) in Postgres, defining the key & value fields.  This will end up being a single row with a json object of the form `{key_column: key, value_column, val}` which you can query for yourself inside the database.  
+Here we set up the cache table (`rpcn_connect_state`) in Postgres, defining the key & value fields.  This will end up being a single row with a json object of the form `{key_column: key, value_column, val}` which you can query for yourself inside the database.  You don't have to pre-create the cache table, the `init_statement` will create it for you if it doesn't already exist.
 
 ```yaml
 
@@ -154,13 +180,13 @@ cache_resources:
     sql:
       driver: postgres
       dsn: postgres://root:secret@localhost:5432/root?sslmode=disable
-      table: rpcn_connect_state
+      table: rpcn_hwm_state
       key_column: key
       value_column: val
       set_suffix: ON CONFLICT(key) DO UPDATE SET val=excluded.val
       init_statement: |
-        CREATE TABLE IF NOT EXISTS rpcn_connect_state (
+        CREATE TABLE IF NOT EXISTS rpcn_hwm_state (
           key bytea PRIMARY KEY,
-          val bytea
+          val jsonb
         );
 ```
