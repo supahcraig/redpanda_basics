@@ -190,3 +190,12 @@ cache_resources:
           val jsonb
         );
 ```
+
+The row in the cache table will look like this:
+
+`rpcn_hwm_state`
+
+|Key|Val|
+|---|---|
+|`content_notification_id`|`{"hwm_id": 4005}`|
+|`content_notification_ts`|`{"hwm_ts": 1738158502`|
