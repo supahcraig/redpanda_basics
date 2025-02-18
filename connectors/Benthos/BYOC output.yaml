@@ -11,4 +11,4 @@ output:
     sasl:
       - mechanism: SCRAM-SHA-256
         username: test-user
-        passwrod: test-pass
+        password: test-pass
