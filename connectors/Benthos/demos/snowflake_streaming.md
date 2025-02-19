@@ -384,4 +384,50 @@ output:
 ```
 
 
+## Custom topic:table mapping & dumping raw JSON
+
+You'll have to pre-create the snowflake table with a variant column called `json_payload` ==> need to verify schema evolution won't auto-create the table here
+
+```yaml
+input:
+  kafka_franz:
+    seed_brokers: ["${REDPANDA_BROKERS}"]
+    topics: ["dg_alpha", "dg_bravo"]
+    consumer_group: "redpanda_connect_to_snowflake"
+    tls: {enabled: true}
+    checkpoint_limit: 4096
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: testUser
+        password: ${secrets.REDPANDA_PASS}
+    # Define the batching policy. This cookbook creates small batches,
+    # but in a production environment use the largest file size you can.
+    batching:
+      count: 100 # Collect 100 messages before flushing
+      period: 5s # or after 5 seconds, whichever comes first
+
+pipeline:
+  processors:
+    # wraps the entire incoming message payload into a new json document 
+    - mapping: |
+        root = { "json_payload": this }
+
+output:
+  snowflake_streaming:
+    # Use your Snowflake account identifier
+    account: "qakjoow-rp25422"
+    user: STREAMING_USER
+    role: REDPANDA_CONNECT
+    database: STREAMING_DB
+    schema: STREAMING_SCHEMA
+    # maps incoming topic names to output Snowflake table names
+    table: ${! match @kafka_topic {
+      "dg_alpha" => "json_raw_alpha",
+      "dg_bravo" => "json_raw_bravo"
+      } }
+    private_key: "${secrets.SNOWFLAKE_KEY}"
+    schema_evolution:
+      enabled: true
+    max_in_flight: 1
+```
 
