@@ -329,14 +329,15 @@ output:
         password: ${secrets.REDPANDA_PASS}
 ```
 
-### Filter out rows from stream
+### Add some Transformations:  drop rows, calculate a new field, modify text
 
 ```yaml
 pipeline:
   processors:
     - mutation: |
-        root = if this.assignment_score < 25 { deleted() }
+        root = if this.class == "FORTRAN" { deleted() }
         root.status = if this.assignment_score >= 50 { "passed" } else { "failed" }
+        root.name = this.name.uppercase()
 ```
 
 
