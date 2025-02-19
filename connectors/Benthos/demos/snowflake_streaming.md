@@ -291,6 +291,16 @@ output:
         password: ${secrets.REDPANDA_PASS}
 ```
 
+### Add a field to the payload
+
+```yaml
+pipeline:
+  processors:
+    - mapping: |
+        root = this
+        root.ts = timestamp_unix_micro()
+```
+
 
 ## Data Generation Bravo
 
@@ -319,7 +329,11 @@ output:
         password: ${secrets.REDPANDA_PASS}
 ```
 
+### Filter out rows from stream
 
+```yaml
+
+```
 
 
 ## Snowflake Streaming - BYOC
