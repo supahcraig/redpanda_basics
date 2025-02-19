@@ -1,4 +1,4 @@
-# Snoflake Streaming
+# Snowflake Streaming
 
 This is the new connector that uses the snowflake SDK behind the scenes (ported to golang), bypassing snowpipe & explicit stages etc.   
 
@@ -251,3 +251,118 @@ snowsql -a <account> -u <username>
 ```
 
 Then supply your password when prompted.
+
+
+---
+---
+---
+
+
+# Snowflake Customer Demo
+
+https://docs.redpanda.com/redpanda-cloud/develop/connect/cookbooks/snowflake_ingestion/
+
+
+## Data Generation Alpha
+
+```yaml
+input:
+  generate:
+    interval: 0.05s
+    mapping: |
+      root.event_id = uuid_v4()
+      root.destination_system = ["DFW", "ORD", "YYZ"].index(random_int() % 3)
+      root.notification_type = ["INITIAL", "UPDATE", "TOMBSTONE"].index(random_int() % 3)
+      root.status = ["SUCCESS", "FAILURE", "IN-PROCESS"].index(random_int() % 3)
+      root.duration = random_int(seed:timestamp_unix_nano(), min:0, max:100)
+
+output:
+  kafka_franz:
+    seed_brokers:
+        - seed-250c2947.cups29shnemutsavv9sg.byoc.prd.cloud.redpanda.com:9092
+    topic: dg_alpha
+
+    tls:
+      enabled: true
+
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: testUser
+        password: ${secrets.REDPANDA_PASS}
+```
+
+
+## Data Generation Bravo
+
+```yaml
+input:
+  generate:
+    interval: 0.05s
+    mapping: |
+      root.assignment_id = uuid_v4()
+      root.name = ["Craig", "Taylor", "Travis", "Sammy"].index(random_int() % 4)
+      root.class = ["Calculus", "Differential Equations", "Linear Algebra", "Computer Science", "FORTRAN"].index(random_int() % 5)
+      root.assignment_score =  random_int(seed:timestamp_unix_nano(), min:0, max:100)
+
+output:
+  kafka_franz:
+    seed_brokers:
+        - seed-250c2947.cups29shnemutsavv9sg.byoc.prd.cloud.redpanda.com:9092
+    topic: dg_bravo
+
+    tls:
+      enabled: true
+
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: testUser
+        password: ${secrets.REDPANDA_PASS}
+```
+
+
+
+
+## Snowflake Streaming - BYOC
+
+_note:  I used `private_key` rather than `private_key_file` and used the output from this command for the private key secret:
+
+```bash
+awk '{printf "%s\\n", $0}' snowflake_private_key.p8
+```
+
+
+
+```yaml
+input:
+  kafka_franz:
+    seed_brokers: ["${REDPANDA_BROKERS}"]
+    topics: ["dg_alpha", "dg_bravo"]
+    consumer_group: "redpanda_connect_to_snowflake"
+    tls: {enabled: true}
+    checkpoint_limit: 4096
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: testUser
+        password: ${secrets.REDPANDA_PASS}
+    # Define the batching policy. This cookbook creates small batches,
+    # but in a production environment use the largest file size you can.
+    batching:
+      count: 100 # Collect 10 messages before flushing
+      period: 5s # or after 10 seconds, whichever comes first
+output:
+  snowflake_streaming:
+    # Replace this placeholder with your account identifier
+    account: "qakjoow-rp25422"
+    user: STREAMING_USER
+    role: REDPANDA_CONNECT
+    database: STREAMING_DB
+    schema: STREAMING_SCHEMA
+    table:  ${!@kafka_topic}
+    private_key: "${secrets.SNOWFLAKE_KEY}"
+    schema_evolution:
+      enabled: true
+    max_in_flight: 1
+```
+
+
+
