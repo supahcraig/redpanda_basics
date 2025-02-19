@@ -370,7 +370,7 @@ input:
       period: 5s # or after 10 seconds, whichever comes first
 output:
   snowflake_streaming:
-    # Replace this placeholder with your account identifier
+    # Use your Snowflake account identifier
     account: "qakjoow-rp25422"
     user: STREAMING_USER
     role: REDPANDA_CONNECT
