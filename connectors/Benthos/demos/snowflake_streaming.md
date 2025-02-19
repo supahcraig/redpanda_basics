@@ -312,7 +312,7 @@ input:
       root.assignment_id = uuid_v4()
       root.name = ["Craig", "Taylor", "Travis", "Sammy"].index(random_int() % 4)
       root.class = ["Calculus", "Differential Equations", "Linear Algebra", "Computer Science", "FORTRAN"].index(random_int() % 5)
-      root.assignment_score =  random_int(seed:timestamp_unix_nano(), min:0, max:100)
+      root.assignment_score =  random_int(seed:timestamp_unix_nano(), min:-20, max:100)
 
 output:
   kafka_franz:
@@ -332,7 +332,11 @@ output:
 ### Filter out rows from stream
 
 ```yaml
-
+pipeline:
+  processors:
+    - mutation: |
+        root = if this.assignment_score < 25 { deleted() }
+        root.status = if this.assignment_score >= 50 { "passed" } else { "failed" }
 ```
 
 
