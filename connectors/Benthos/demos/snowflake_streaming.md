@@ -304,6 +304,8 @@ pipeline:
 
 ## Data Generation Bravo
 
+This generator will put messages into a kafka topic with a key, and uses the `murmur2_hash` partitioner to spread the data out across partitions.
+
 ```yaml
 input:
   generate:
@@ -320,6 +322,7 @@ output:
         - seed-250c2947.cups29shnemutsavv9sg.byoc.prd.cloud.redpanda.com:9092
     topic: dg_bravo
     key: ${! this.name }
+    partitioner: murmur2_hash
 
     tls:
       enabled: true
@@ -387,7 +390,9 @@ output:
 
 ## Custom topic:table mapping & dumping raw JSON
 
-You'll have to pre-create the snowflake table with a variant column called `json_payload` ==> need to verify schema evolution won't auto-create the table here
+You'll have to pre-create the snowflake table with a variant column called `json_payload` ==> need to verify schema evolution won't auto-create the table here.
+
+_NOTE: `this.metadata()` is deprecated, but the AI will still suggest it.   `metadata()` is the new syntax.
 
 ```yaml
 input:
@@ -409,13 +414,13 @@ input:
 
 pipeline:
   processors:
-    # wraps the entire incoming message payload into a new json document 
+    # wraps the entire incoming message payload into a new json document + some metadata
     - mapping: |
         root = {
-          "message_key": this.meta("kafka_key"),
+          "message_key": metadata("kafka_key"),
           "insert_timestamp": now(),
-          "message_timestamp": this.meta("kafka_timestamp_ms")
-          "raw_json": this
+          "message_timestamp": metadata("kafka_timestamp_ms"),
+          "raw_json": this,
         }
 
 output:
