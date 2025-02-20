@@ -499,3 +499,88 @@ output:
 and then in your output, use `@table_name` or `${!metadata("table_name")}` as the dynamic table name.
 
 
+# DLQ & Downstream Exception handling
+
+If there are any errors thrown, the metadata `error` gets updated.  Using a `fallback` and a `reject_errored` component in the output, we can direct errors to a DLQ.  
+
+_note: in this specific example we are conditionally injecting `error` metadata whenever the score is above a certain value to simulate an error condition.   We are also logging the error meta data to allow for inspection._
+
+```yaml
+input:
+  kafka_franz:
+    seed_brokers: ["${REDPANDA_BROKERS}"]
+    topics: ["dg_alpha", "dg_bravo"]
+    consumer_group: "redpanda_connect_to_snowflake"
+    tls: {enabled: true}
+    checkpoint_limit: 4096
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: testUser
+        password: ${secrets.REDPANDA_PASS}
+    # Define the batching policy. This cookbook creates small batches,
+    # but in a production environment use the largest file size you can.
+    batching:
+      count: 100 # Collect 100 messages before flushing
+      period: 3s # or after 5 seconds, whichever comes first
+
+pipeline:
+  processors:
+    # wraps the entire incoming message payload into a new json document + some metadata
+    - mapping: |
+        root = {}
+        root.message_key = metadata("kafka_key")
+        root.insert_timestamp = now()
+        root.message_timestamp = metadata("kafka_timestamp_ms") / 1000
+        root.raw_json =  this
+        meta error = if this.raw_json.assignment_score > 90 {
+          "Score too high"
+        } else {
+          deleted()
+        }
+
+    - log:
+            message: "Assignment Score: ${! this.raw_json.assignment_score }, Errored: ${! errored() }"
+
+output:
+  fallback:
+    - reject_errored:
+        snowflake_streaming:
+          # Use your Snowflake account identifier
+          account: "qakjoow-rp25422"
+          user: STREAMING_USER
+          role: REDPANDA_CONNECT
+          database: STREAMING_DB
+          schema: STREAMING_SCHEMA
+          # maps incoming topic names to output Snowflake table names
+          table: ${! match @kafka_topic {
+            "dg_alpha" => "json_raw_alpha",
+            "dg_bravo" => "json_raw_bravo"
+            } }
+          private_key: "${secrets.SNOWFLAKE_KEY}"
+          schema_evolution:
+            enabled: true
+            new_column_type_mapping: |-
+              root = match this.name {
+                this == "message_key" => "STRING",
+                this == "insert_timestamp" => "TIMESTAMP",
+                this == "message_timestamp" => "TIMESTAMP",
+                _ => "VARIANT"
+              }
+          max_in_flight: 1
+
+    - kafka_franz:
+        seed_brokers:
+            - ${REDPANDA_BROKERS}
+        topic: snowflake_dlq
+
+        tls:
+          enabled: true
+
+        sasl:
+          - mechanism: SCRAM-SHA-256
+            username: testUser
+            password: ${secrets.REDPANDA_PASS}
+
+
+
+
