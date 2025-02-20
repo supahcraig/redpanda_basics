@@ -319,6 +319,7 @@ output:
     seed_brokers:
         - seed-250c2947.cups29shnemutsavv9sg.byoc.prd.cloud.redpanda.com:9092
     topic: dg_bravo
+    key: ${! this.name }
 
     tls:
       enabled: true
@@ -410,7 +411,12 @@ pipeline:
   processors:
     # wraps the entire incoming message payload into a new json document 
     - mapping: |
-        root = { "json_payload": this }
+        root = {
+          "message_key": this.meta("kafka_key"),
+          "insert_timestamp": now(),
+          "message_timestamp": this.meta("kafka_timestamp_ms")
+          "raw_json": this
+        }
 
 output:
   snowflake_streaming:
@@ -428,6 +434,47 @@ output:
     private_key: "${secrets.SNOWFLAKE_KEY}"
     schema_evolution:
       enabled: true
+      new_column_type_mapping: |-
+        root = match this.name {
+          this == "message_key" => "STRING",
+          this == "insert_timestamp" => "TIMESTAMP",
+          this == "message_timestamp" => "TIMESTAMP",
+          _ +> "VARIANT"
+        }
     max_in_flight: 1
 ```
 
+
+# More than one way to skin a cat
+
+
+##  pushing the content to a single json variant column
+
+Also note that you could move the mapping from the pipeline and push it into the output itself:
+
+```yaml
+output:
+  snowflake_streaming:
+    # Use your Snowflake account identifier
+    <snip>...
+    mapping: |
+      root = {
+        "json_payload": this
+      }
+```
+
+## Using metadata to handle the table mapping
+
+```yaml
+output:
+  processors:
+    - mapping: |
+        root = this
+        meta table_name = match {
+          meta("kafka_topic") == "topic_1" => "table_alpha",
+          meta("kafka_topic") == "topic_2" => "table_beta",
+          _ => meta("kafka_topic")
+        }
+```
+
+and then in your output, use `@table_name` or `${!metadata("table_name")}` as the dynamic table name.
