@@ -419,7 +419,7 @@ pipeline:
         root = {
           "message_key": metadata("kafka_key"),
           "insert_timestamp": now(),
-          "message_timestamp": metadata("kafka_timestamp_ms"),
+          "message_timestamp": metadata("kafka_timestamp_ms") / 1000,
           "raw_json": this,
         }
 
@@ -444,7 +444,7 @@ output:
           this == "message_key" => "STRING",
           this == "insert_timestamp" => "TIMESTAMP",
           this == "message_timestamp" => "TIMESTAMP",
-          _ +> "VARIANT"
+          _ => "VARIANT"
         }
     max_in_flight: 1
 ```
@@ -462,7 +462,7 @@ pipeline:
         root = {}
         root.message_key = metadata("kafka_key")
         root.insert_timestamp = now()
-        root.message_timestamp = metadata("kafka_timestamp_ms")
+        root.message_timestamp = metadata("kafka_timestamp_ms") / 1000
         root.raw_json =  this
 ```
 
