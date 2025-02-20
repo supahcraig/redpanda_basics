@@ -452,6 +452,20 @@ output:
 
 # More than one way to skin a cat
 
+## A different way to do the json mapping
+
+```yaml
+pipeline:
+  processors:
+    # wraps the entire incoming message payload into a new json document + some metadata
+    - mapping: |
+        root = {}
+        root.message_key = metadata("kafka_key")
+        root.insert_timestamp = now()
+        root.message_timestamp = metadata("kafka_timestamp_ms")
+        root.raw_json =  this
+```
+
 
 ##  pushing the content to a single json variant column
 
@@ -483,3 +497,5 @@ output:
 ```
 
 and then in your output, use `@table_name` or `${!metadata("table_name")}` as the dynamic table name.
+
+
