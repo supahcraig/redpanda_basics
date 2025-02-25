@@ -1,5 +1,14 @@
 THis is a total work in progress.  If you're trying to follow along with any of this, shame on you.
 
+
+# From Redpanda githug
+
+https://github.com/redpanda-data/observability/tree/main/cloud
+
+
+
+# A more DIY approach
+
 This repo may cover some of the same ground:  https://github.com/redpanda-data/observability/blob/main/cloud/docker-compose.yml
 
 # Docker
