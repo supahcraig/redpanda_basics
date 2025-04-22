@@ -84,6 +84,33 @@ output:
 The output (apparently) maps the fields in the input document to the columns in the target table.  So your table must match your columns or else you'll need to inject a mapping step to map your input fields to your target columns.  Or make your target table be a `VARIANT` type and then sort it all out once it's landed into Snowflake.
 
 
+### BYOC Considerations
+
+You can't point to a pem file in BYOC, so you'll need to put it into a secret.  As of 4/20 Tyler Rockwood was working on some magic, but for now you need to use a shell command to get the key into a single row.
+
+```bash
+awk 'NR>1 && $0 !~ /-----/ { printf "%s", $0 }' yourfile.pem
+```
+
+And put that output into a new secret in the BYOC UI.
+
+
+```yaml
+output:
+  snowflake_streaming:
+    account: "onvnpmw-tz92224"
+    user: ingest
+    role: ingest
+    database: ingest
+    schema: ingest
+    table: coinbase_raw
+    private_key: |
+      -----BEGIN PRIVATE KEY-----
+      ${secrets.SNOW}
+      -----END PRIVATE KEY-----
+```
+
+
 ---
 
 ## Examples
