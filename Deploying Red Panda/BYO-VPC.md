@@ -23,7 +23,6 @@ cat > byoc.auto.tfvars.json <<EOF
   "ignore_tags": [
   ],
   "vpc_id": "${AWS_VPC_ID}",
-  "zones": [],
   "enable_private_link": false,
   "create_rpk_user": true,
   "force_destroy_cloud_storage": true
@@ -31,6 +30,7 @@ cat > byoc.auto.tfvars.json <<EOF
 EOF
 ```
 
+NOTE:  `  "zones": [],` was removed from the tfvars, I think because it's set in the variables.tf
 
 
 
