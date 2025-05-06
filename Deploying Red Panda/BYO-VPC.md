@@ -98,7 +98,7 @@ export REDPANDA_NETWORK_ID=$(curl -X POST "https://api.redpanda.com/v1/networks"
  -H "accept: application/json" \
  -H "content-type: application/json" \
  -H "authorization: Bearer ${BEARER_TOKEN}" \
- --data-binary @redpanda-network.json | jq -r '.operation.metadata.network.id')
+ --data-binary @redpanda-network.json | jq -r '.operation.metadata.network_id')
 ```
 
 >>> the docs should utilize the env vars created by terraform
