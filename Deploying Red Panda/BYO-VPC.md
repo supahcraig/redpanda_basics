@@ -62,7 +62,7 @@ something like this: ` ["arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0b79a7
 ```json
 cat > redpanda-network.json <<EOF
 {
-  {"network": 
+  "network": { 
     "name":"${REDPANDA_COMMON_PREFIX}-network",
     "resource_group_id": "${REDPANDA_RG_ID}",
     "cloud_provider":"CLOUD_PROVIDER_AWS",
