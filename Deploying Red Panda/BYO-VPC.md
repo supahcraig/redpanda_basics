@@ -6,55 +6,39 @@ looks like you can do this through the UI
 
 https://docs.redpanda.com/redpanda-cloud/get-started/cluster-types/byoc/aws/vpc-byo-aws/
 
-in `variables.tf` there are several references to the CIDR range, this needs to match your VPC
+in `variables.tf` there are several references to the CIDR range, this needs to match your VPC.  You need at least 2 subnets in both public & private sections, and all 3 AZ in the AZ section.
 
-also you may want to tweak the public/private cidr & AZ sections
+You may also want to set `enable_private_link` to false in the `byoc.auto.tfvars.json` file.
+
+```json
+cat > byoc.auto.tfvars.json <<EOF
+{
+  "aws_account_id": "${AWS_ACCOUNT_ID}",
+  "region": "${AWS_REGION}",
+  "common_prefix": "${REDPANDA_COMMON_PREFIX}",
+  "condition_tags": {
+  },
+  "default_tags": {
+  },
+  "ignore_tags": [
+  ],
+  "vpc_id": "${AWS_VPC_ID}",
+  "zones": [],
+  "enable_private_link": false,
+  "create_rpk_user": true,
+  "force_destroy_cloud_storage": true
+}
+EOF
+```
+
+
+
+
 
 be certain your subnet cidr's don't overlap (i.e. a /20 needs to allow space for the /24 terraform wants to create
 
 Client ID & secret are found by navigating to the cloud UI, under service accts
 RG_ID is the resource group, thelast bit of the URL
-
-API call in the docs is wrong, missing the "network" wrapper
-
-```json
-{
-  "network": {
-    "name":"cnelson-byovpc-redpanda-network",
-    "resource_group_id": "7a87e349-e3d1-455c-910b-e07508a03cca",
-    "cloud_provider":"CLOUD_PROVIDER_AWS",
-    "region": "us-east-2",
-    "cluster_type":"TYPE_BYOC",
-    "customer_managed_resources": {
-      "aws": {
-        "management_bucket": {
-          "arn": "arn:aws:s3:::rp-861276079005-us-east-2-mgmt-20250502201030255800000012"
-        },
-        "dynamodb_table": {
-          "arn": "arn:aws:dynamodb:us-east-2:861276079005:table/rp-861276079005-us-east-2-mgmt-tflock-382d2ez0ds"
-        },
-        "private_subnets": {
-          "arns": ["arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0b79a7c3052ce4e82"]
-        },
-        "vpc": {
-          "arn": "arn:aws:ec2:us-east-2:861276079005:vpc/vpc-0342476ccc1ef05f4"
-        }
-      }
-   }
- }
-}
-```
-
-
-Then the jq is wrong:
-
-```bash
-curl -X POST "https://api.redpanda.com/v1/networks" \
- -H "accept: application/json" \
- -H "content-type: application/json" \
- -H "authorization: Bearer ${BEARER_TOKEN}" \
- --data-binary @redpanda-network.json
-```
 
 
 Turn your `terraform output` into environment vars
@@ -63,7 +47,71 @@ Turn your `terraform output` into environment vars
 eval $(terraform output -json | jq -r 'to_entries[] | "export " + (.key | ascii_upcase) + "=" + (.value.value|tostring)')
 ```
 
+Also export this:
+
+```bash
+export COMMON_PREFIX=cnelson-byovpc
+```
+
+
+
+API call in the docs is wrong, missing the "network" wrapper.   Also, the `private subnets` section needs to have the individual arns quoted.
+
+something like this: ` ["arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0b79a7c3052ce4e82"]` and not the array itself wrapped in quotes.
+
+```json
+cat > redpanda-network.json <<EOF
+{
+  {"network": 
+    "name":"${COMMON_PREFIX}-network",
+    "resource_group_id": "${REDPANDA_RG_ID}",
+    "cloud_provider":"CLOUD_PROVIDER_AWS",
+    "region": "${AWS_REGION}",
+    "cluster_type":"TYPE_BYOC",
+    "customer_managed_resources": {
+      "aws": {
+        "management_bucket": {
+          "arn": "${MANAGEMENT_BUCKET_ARN}"
+        },
+        "dynamodb_table": {
+          "arn": "${DYNAMODB_TABLE_ARN}"
+        },
+        "private_subnets": {
+          "arns": ${PRIVATE_SUBNET_IDS}
+        },
+        "vpc": {
+          "arn": "${VPC_ARN}"
+        }
+      }
+   }
+  }
+}
+EOF
+```
+
+
+
+Then the jq is wrong:
+
+```bash
+export REDPANDA_NETWORK_ID=$(curl -X POST "https://api.redpanda.com/v1/networks" \
+ -H "accept: application/json" \
+ -H "content-type: application/json" \
+ -H "authorization: Bearer ${BEARER_TOKEN}" \
+ --data-binary @redpanda-network.json | jq -r '.operation.metadata.network.id')
+```
+
 >>> the docs should utilize the env vars created by terraform
+
+
+The AZ's you export here are going to determine if you are single az or not.
+
+`export AWS_ZONES='["use-az1"]'`  for a single AZ
+
+then update to the latest version
+`export REDPANDA_VERSION=25.1`
+
+you don't need to export the cluster name if you did my "CLUSTER_NAME" env var above.
 
 json doc is missing the `cluster` wrapper
 
@@ -74,7 +122,7 @@ cat > redpanda-cluster.json <<EOF
   "cluster": {
     "cloud_provider":"CLOUD_PROVIDER_AWS",
     "connection_type":"CONNECTION_TYPE_PRIVATE",
-    "name": "${REDPANDA_CLUSTER_NAME}",
+    "name": "${COMMON_PREFIX}-cluster",
     "resource_group_id": "${REDPANDA_RG_ID}",
     "network_id": "${REDPANDA_NETWORK_ID}",
     "region": "${AWS_REGION}",
