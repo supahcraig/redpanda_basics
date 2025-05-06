@@ -50,7 +50,7 @@ eval $(terraform output -json | jq -r 'to_entries[] | "export " + (.key | ascii_
 Also export this:
 
 ```bash
-export COMMON_PREFIX=cnelson-byovpc
+export REDPANDA_COMMON_PREFIX=cnelson-byovpc
 ```
 
 
@@ -63,7 +63,7 @@ something like this: ` ["arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0b79a7
 cat > redpanda-network.json <<EOF
 {
   {"network": 
-    "name":"${COMMON_PREFIX}-network",
+    "name":"${REDPANDA_COMMON_PREFIX}-network",
     "resource_group_id": "${REDPANDA_RG_ID}",
     "cloud_provider":"CLOUD_PROVIDER_AWS",
     "region": "${AWS_REGION}",
@@ -122,7 +122,7 @@ cat > redpanda-cluster.json <<EOF
   "cluster": {
     "cloud_provider":"CLOUD_PROVIDER_AWS",
     "connection_type":"CONNECTION_TYPE_PRIVATE",
-    "name": "${COMMON_PREFIX}-cluster",
+    "name": "${REDPANDA_COMMON_PREFIX}-cluster",
     "resource_group_id": "${REDPANDA_RG_ID}",
     "network_id": "${REDPANDA_NETWORK_ID}",
     "region": "${AWS_REGION}",
