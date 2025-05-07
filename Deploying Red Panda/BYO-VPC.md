@@ -16,21 +16,28 @@ cat > byoc.auto.tfvars.json <<EOF
   "aws_account_id": "${AWS_ACCOUNT_ID}",
   "region": "${AWS_REGION}",
   "common_prefix": "${REDPANDA_COMMON_PREFIX}",
-  "condition_tags": {
-  },
-  "default_tags": {
-  },
-  "ignore_tags": [
-  ],
+  "condition_tags": {},
+  "default_tags": {},
+  "ignore_tags": [],
   "vpc_id": "${AWS_VPC_ID}",
+  "vpc_cidr_block": "10.100.0.0/16",
+  "zones": ["use2-az1", "use2-az2", "use2-az3"],
+  "public_subnet_cidrs": [
+     "10.100.50.0/24",
+     "10.100.51.0/24",
+     "10.100.52.0/24"
+  ],
+  "private_subnet_cidrs": [
+     "10.100.100.0/24",
+     "10.100.101.0/24",
+     "10.100.102.0/24"
+  ],
   "enable_private_link": false,
   "create_rpk_user": true,
   "force_destroy_cloud_storage": true
 }
 EOF
 ```
-
-NOTE:  `  "zones": [],` was removed from the tfvars, I think because it's set in the variables.tf
 
 
 
