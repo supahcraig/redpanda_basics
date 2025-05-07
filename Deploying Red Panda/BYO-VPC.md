@@ -110,7 +110,7 @@ EOF
 
 
 
-Then the jq is wrong:
+Then the jq needs to be corrected to:
 
 ```bash
 export REDPANDA_NETWORK_ID=$(curl -X POST "https://api.redpanda.com/v1/networks" \
@@ -120,12 +120,14 @@ export REDPANDA_NETWORK_ID=$(curl -X POST "https://api.redpanda.com/v1/networks"
  --data-binary @redpanda-network.json | jq -r '.operation.metadata.network_id')
 ```
 
+NOTE:  if the network already exists, it will put `null` into the env var.  Your network ID can be found after the fact from the Cloud UI.
+
 >>> the docs should utilize the env vars created by terraform
 
 
 The AZ's you export here are going to determine if you are single az or not.
 
-`export AWS_ZONES='["use-az1"]'`  for a single AZ
+`export AWS_ZONES='["use2-az1", "use2-az2", "use-az3"]'`  for a single AZ
 
 then update to the latest version
 `export REDPANDA_VERSION=25.1`
