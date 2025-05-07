@@ -54,6 +54,18 @@ Turn your `terraform output` into environment vars
 eval $(terraform output -json | jq -r 'to_entries[] | "export " + (.key | ascii_upcase) + "=" + (.value.value|tostring)')
 ```
 
+This is the same, but will quote the array elements
+
+```bash
+eval $(terraform output -json | jq -r '
+  to_entries[] |
+  "export \(.key | ascii_upcase)=" +
+  (if (.value.value | type) == "array"
+   then "[" + (.value.value | map("\"" + . + "\"") | join(",")) + "]"
+   else (.value.value | @sh)
+   end)')
+```
+
 Also export this:
 
 ```bash
