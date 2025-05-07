@@ -127,7 +127,7 @@ NOTE:  if the network already exists, it will put `null` into the env var.  Your
 
 The AZ's you export here are going to determine if you are single az or not.
 
-`export AWS_ZONES='["use2-az1", "use2-az2", "use-az3"]'`  for a single AZ
+`export AWS_ZONES='["use2-az1", "use2-az2", "use2-az3"]'`  for a single AZ
 
 then update to the latest version
 `export REDPANDA_VERSION=25.1`
