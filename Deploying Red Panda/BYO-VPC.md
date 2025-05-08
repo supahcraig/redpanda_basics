@@ -6,9 +6,35 @@ looks like you can do this through the UI
 
 https://docs.redpanda.com/redpanda-cloud/get-started/cluster-types/byoc/aws/vpc-byo-aws/
 
-in `variables.tf` there are several references to the CIDR range, this needs to match your VPC.  You need at least 2 subnets in both public & private sections, and all 3 AZ in the AZ section.
+Clone the repo:  https://github.com/redpanda-data/cloud-examples.git
 
-You may also want to set `enable_private_link` to false in the `byoc.auto.tfvars.json` file.
+
+## Environment Variables.
+
+```bash
+export REDPANDA_COMMON_PREFIX=cnelson-byovpc
+export AWS_ACCOUNT_ID=
+export AWS_REGION=us-east-2
+export AWS_VPC_ID=
+export REDPANDA_CLIENT_ID=
+export REDPANDA_CLIENT_SECRET=
+export REDPANDA_RG_ID= #Retrieve the ID from the URL of the resource group when accessing within Redpanda Cloud
+```
+
+Client ID & secret are found by navigating to the cloud UI, under service accts
+RG_ID is the resource group, thelast bit of the URL
+
+
+## Terraform Setup
+
+Generate a `byoc.auto.tfvars.json` to specify your VPC info.   This will create subnets, but if you already have subnets you want to use, I think you'll want to leave those as `[ ]`, since defaults are specified in `variables.tf`.   The CIDR ranges here are unique to my VPC, yours will be different.  Be certain your subnet CIDR's don't overlap existing subnets (i.e. a /20 needs to allow space for the /24 terraform wants to create.
+
+* the public subnets are not strictly necessary.
+* if I leave them in, all the routes seem to get created ok
+* if I remove them, I needed to create a NAT Gateway (with a public address, new elastic IP, and gave it a private IP that fit into the public subnet CIDR, i.e. 10.100.1.1)
+* At least TWO private subnets are required by the EKS control plane
+* UNSURE:  to do a single AZ deployment, the terraform doesn't change
+  * when you create the Redpanda Cluster, set the REDPANDA_ZONES env var to a single AZ rather than all 3.   Currently verifying this.
 
 ```json
 cat > byoc.auto.tfvars.json <<EOF
@@ -39,16 +65,15 @@ cat > byoc.auto.tfvars.json <<EOF
 EOF
 ```
 
+## Terraform Apply
 
+```bash
+terraform init
+terraform plan
+terraform apply
+```
 
-
-be certain your subnet cidr's don't overlap (i.e. a /20 needs to allow space for the /24 terraform wants to create
-
-Client ID & secret are found by navigating to the cloud UI, under service accts
-RG_ID is the resource group, thelast bit of the URL
-
-
-Turn your `terraform output` into environment vars
+`terraform apply` will generate a number of terraform outputs that we will want to stick into environment variables:
 
 ```bash
 eval $(terraform output -json | jq -r 'to_entries[] | "export " + (.key | ascii_upcase) + "=" + (.value.value|tostring)')
@@ -66,17 +91,28 @@ eval $(terraform output -json | jq -r '
    end)')
 ```
 
-Also export this:
+
+__NOTE__: You may need to add a route from the public subnets to the internet gateway.
+
+
+
+
+## Authenticate with Redpanda Cloud
 
 ```bash
-export REDPANDA_COMMON_PREFIX=cnelson-byovpc
+export BEARER_TOKEN=$(curl --request POST \
+--url 'https://auth.prd.cloud.redpanda.com/oauth/token' \
+--header 'content-type: application/x-www-form-urlencoded' \
+--data grant_type=client_credentials \
+--data client_id=${REDPANDA_CLIENT_ID} \
+--data client_secret=${REDPANDA_CLIENT_SECRET} \
+--data audience=cloudv2-production.redpanda.cloud | jq -r '.access_token')
 ```
 
 
+## Create the Redpanda Network
 
-API call in the docs is wrong, missing the "network" wrapper.   Also, the `private subnets` section needs to have the individual arns quoted.
-
-something like this: ` ["arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0b79a7c3052ce4e82"]` and not the array itself wrapped in quotes.
+If you had your own subnets you wanted to use, you would paste the full arn's of those subnets as an array into the `private_subnets` field:  `["arn:subnet1", "arn:subnet2", etc]`
 
 ```json
 cat > redpanda-network.json <<EOF
@@ -108,9 +144,15 @@ cat > redpanda-network.json <<EOF
 EOF
 ```
 
+Cat the file to ensure all your environment variables were correctly substituted.
 
+If you had existing subnets you wanted to deploy into, you would use the arn of your existing subnets.   >> I think
+something like this: ` ["arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0b79a7c3052ce4e82", "arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0b79a7c3052ce4e82"]` and not the array itself wrapped in quotes.
 
-Then the jq needs to be corrected to:
+>>>> API call in the docs is wrong, missing the "network" wrapper.   Also, the `private subnets` section needs to have the individual arns quoted.
+>>>> also the jq is wrong
+
+Run this to actually create the Redpanda Network
 
 ```bash
 export REDPANDA_NETWORK_ID=$(curl -X POST "https://api.redpanda.com/v1/networks" \
@@ -125,16 +167,25 @@ NOTE:  if the network already exists, it will put `null` into the env var.  Your
 >>> the docs should utilize the env vars created by terraform
 
 
-The AZ's you export here are going to determine if you are single az or not.
+## Create the Redpanda Cluster
 
-`export AWS_ZONES='["use2-az1", "use2-az2", "use2-az3"]'`  for a single AZ
+__NOTE__: this step doesn't create the _actual_ cluster, just the logical cluster within Redpanda Cloud
 
-then update to the latest version
+### More Environment Variables
+
+`export REDPANDA_ZONES='["use2-az1"]'`
+
+The AZ's you export here are going to determine if you are single az or not.   A single AZ would look like:
+
+
+then update to the latest version & tier
 `export REDPANDA_VERSION=25.1`
+`export REDPANDA_THROUGHPUT_TIER=tier-1-aws-v3-arm`
 
-you don't need to export the cluster name if you did my "CLUSTER_NAME" env var above.
 
-json doc is missing the `cluster` wrapper
+### Cluster Create
+
+>>>> json doc is missing the `cluster` wrapper
 
 ```json
 cat > redpanda-cluster.json <<EOF
@@ -149,7 +200,7 @@ cat > redpanda-cluster.json <<EOF
     "region": "${AWS_REGION}",
     "throughput_tier": "${REDPANDA_THROUGHPUT_TIER}",
     "type": "TYPE_BYOC",
-    "zones": ${AWS_ZONES},
+    "zones": ${REDPANDA_ZONES},
     "redpanda_version": "${REDPANDA_VERSION}",
     "customer_managed_resources": {
       "aws": {
@@ -205,5 +256,33 @@ cat > redpanda-cluster.json <<EOF
 EOF
 ```
 
+Then run this api to create the cluster based on the json spec.
 
-Then you may need to add a route from the public subnets to the internet gateway.
+```bash
+export REDPANDA_ID=$(curl -X POST "https://api.redpanda.com/v1/clusters" \
+ -H "accept: application/json" \
+ -H "content-type: application/json" \
+ -H "authorization: Bearer ${BEARER_TOKEN}" \
+ --data-binary @redpanda-cluster.json | jq -r '.operation.resource_id')
+```
+
+## Create the Cluster Resources (aka deploy agent)
+
+Redpanda Cloud login:
+
+```bash
+rpk cloud login \
+  --save \
+  --client-id=${REDPANDCA_CLIENT_ID} \
+  --client-secret=${REDPANDA_CLIENT_SECRET} \
+  --no-profile
+```
+
+and then actually kick it off:
+
+```bash
+rpk cloud byoc aws apply \
+  --redpanda-id=${REDPANDA_ID}
+```
+  
+
