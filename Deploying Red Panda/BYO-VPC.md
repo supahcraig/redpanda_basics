@@ -16,6 +16,9 @@ We have terraform build out the subnets within your VPC, and a few other minor t
 
 No public subnets are _necessary_ but if you don't create any public subnets, then you will need to profide your own routes from the private subnet to the internet via NAT gateway.   This could mean you need to create your own NAT Gateway in a public subnet, with a public address & elastic IP.  Creating a single public subnet avoids this hassle.  Multiple public subnets does not appear to add any value.
 
+#### Using pre-existing subnets
+TBD:  I think the proper course of action is to remove the subnet cidr sections from the terraform, and then put the private subnets into `redpanda-cluster.json`, although it is not clear how it will know what the public subnets are.
+
 
 ### PHASE 2: 
 We build out some json that will be passed to the Redpanda control plane API to create the Redpanda Network and Redpand Cluster (which are really just logical "things" within Redpanda Cloud, not the actual network/resources in AWS).  The cluster create step is where you specify single- or multi-az, by setting the REDPANDA_ZONES env var.  The output from these API calls is essentially to just return the ID's of the network & cluster.  You can see the network in the cloud UI, but the cluster won't be there until into phase 3.   
