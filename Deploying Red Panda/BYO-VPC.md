@@ -24,7 +24,7 @@ NOTE:  if you find yourself spinning up & tearing down clusters (during testing,
 
 
 ### PHASE 3: 
-We actually deploy the agent into the cloud infra and start creating EKS & EC2 instances.   You will see in the Cloud UI that the screen will change to "Step 3 of 3" while it is working.   If that screen does not come up, the most likely culprit is that your agent does not have access to the public internet; you are missing a route or similar.  Use the AWS Rechability Analyzer for help here, with the agent instance as the source and your internet gateway as your destination.  The Redpanda Cloud Admin panel has a link to the Agents Log, which will bring up Grafana for your cluster.   Logs should begin writing very shorly thereafter.
+We actually deploy the agent into the cloud infra and start creating EKS & EC2 instances.   You will see in the Cloud UI that the screen will change to "Step 3 of 3" after a few minutes while it is working.   If that screen does not come up, the most likely culprit is that your agent does not have access to the public internet; you are missing a route or similar.  Use the AWS Rechability Analyzer for help here, with the agent instance as the source and your internet gateway as your destination.  The Redpanda Cloud Admin panel has a link to the Agents Log, which will bring up Grafana for your cluster.   Logs should begin writing very shorly thereafter.
 
 
 ---
