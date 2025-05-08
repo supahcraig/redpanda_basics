@@ -65,7 +65,7 @@ cat > byoc.auto.tfvars.json <<EOF
   "vpc_cidr_block": "10.100.0.0/16",
   "zones": ${AWS_ZONES},
   "public_subnet_cidrs": [
-     "10.100.50.0/24",
+     "10.100.50.0/24"
   ],
   "private_subnet_cidrs": [
      "10.100.100.0/24",
