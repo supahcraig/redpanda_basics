@@ -9,6 +9,12 @@ https://docs.redpanda.com/redpanda-cloud/get-started/cluster-types/byoc/aws/vpc-
 Clone the repo:  https://github.com/redpanda-data/cloud-examples.git
 
 
+There are 3 main phases to this that are not quite as intertwined as you might expect.
+
+**PHASE 1**:  We have terraform build out the subnets within your VPC, and a few other minor things.  No EKS or EC2 is deployed at this time.   If possible, it will create the NAT gateway & add the necessary routes to make your network usable.   You will specify the AZ's you want to work in, but it's important to understand that you need at least TWO AZ's in this phase because the EKS Control Plane requires two availability zones.   So you will want to create as many private subnets as you have AZ's, with the minimum being 2.  _This is unrelated to your cluster being single- or multi-az._
+
+No public subnets are _necessary_ but if you don't create any public subnets, then you will need to profide your own routes from the private subnet to the internet via NAT gateway.   This could mean you need to create your own NAT Gateway in a public subnet, with a public address & elastic IP.
+
 ## Environment Variables.
 
 ```bash
