@@ -13,7 +13,7 @@ There are 3 main phases to this that are not quite as intertwined as you might e
 
 **PHASE 1**:  We have terraform build out the subnets within your VPC, and a few other minor things.  No EKS or EC2 is deployed at this time.   If possible, it will create the NAT gateway & add the necessary routes to make your network usable.   You will specify the AZ's you want to work in, but it's important to understand that you need at least TWO AZ's in this phase because the EKS Control Plane requires two availability zones.   So you will want to create as many private subnets as you have AZ's, with the minimum being 2.  _This is unrelated to your cluster being single- or multi-az._
 
-No public subnets are _necessary_ but if you don't create any public subnets, then you will need to profide your own routes from the private subnet to the internet via NAT gateway.   This could mean you need to create your own NAT Gateway in a public subnet, with a public address & elastic IP.
+No public subnets are _necessary_ but if you don't create any public subnets, then you will need to profide your own routes from the private subnet to the internet via NAT gateway.   This could mean you need to create your own NAT Gateway in a public subnet, with a public address & elastic IP.  Creating a single public subnet avoids this hassle.
 
 ## Environment Variables.
 
@@ -35,12 +35,6 @@ RG_ID is the resource group, thelast bit of the URL
 
 Generate a `byoc.auto.tfvars.json` to specify your VPC info.   This will create subnets, but if you already have subnets you want to use, I think you'll want to leave those as `[ ]`, since defaults are specified in `variables.tf`.   The CIDR ranges here are unique to my VPC, yours will be different.  Be certain your subnet CIDR's don't overlap existing subnets (i.e. a /20 needs to allow space for the /24 terraform wants to create.
 
-* the public subnets are not strictly necessary.
-* if I leave them in, all the routes seem to get created ok
-* if I remove them, I needed to create a NAT Gateway (with a public address, new elastic IP, and gave it a private IP that fit into the public subnet CIDR, i.e. 10.100.1.1)
-* At least TWO private subnets are required by the EKS control plane
-* UNSURE:  to do a single AZ deployment, the terraform doesn't change
-  * when you create the Redpanda Cluster, set the REDPANDA_ZONES env var to a single AZ rather than all 3.   Currently verifying this.
 
 ```json
 cat > byoc.auto.tfvars.json <<EOF
