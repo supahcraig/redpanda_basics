@@ -54,6 +54,7 @@ RG_ID is the resource group, thelast bit of the URL
 
 Generate a `byoc.auto.tfvars.json` to specify your VPC info.   This will create subnets, but if you already have subnets you want to use, I think you'll want to leave those as `[ ]`, since defaults are specified in `variables.tf`.   The CIDR ranges here are unique to my VPC, yours will be different.  Be certain your subnet CIDR's don't overlap existing subnets (i.e. a /20 needs to allow space for the /24 terraform wants to create.
 
+### Creating NEW subnets in an Existing VPC
 
 ```json
 cat > byoc.auto.tfvars.json <<EOF
@@ -82,7 +83,29 @@ cat > byoc.auto.tfvars.json <<EOF
 EOF
 ```
 
-### Using existing Subnets
+### Using EXISTING Subnets in an Existing VPC
+
+If you have a set of private subnets which already exist that you want to deploy into, you will need to supply the subnet ID's (i.e. `subnet-xxxxxxxxxxxxx`) to terraform in the form of an array.   Put them into an environment variable.
+
+```bash
+export PRIVATE_SUBNET_IDS='["subnet1", "subnet2", "subnet3"]'
+```
+
+
+**NOTE:**  it is undocumented, but the subnets you deploy into require a specifc tag or else it will fail during the `rpk cloud byoc aws apply` step.
+
+|key | value|
+|---|---|
+|`kubernetes.io/role/internal-elb` | 1 |
+
+You can automate this by terateingover all of them to apply the tag:
+
+```bash
+aws ec2 create-tags \
+  --resources $(echo "$PRIVATE_SUBNET_IDS" | jq -r '.[]') \
+  --tags Key=kubernetes.io/role/internal-elb,Value=1
+```
+
 
 ```json
 cat > byoc.auto.tfvars.json <<EOF
@@ -96,16 +119,17 @@ cat > byoc.auto.tfvars.json <<EOF
   "vpc_id": "${AWS_VPC_ID}",
   "vpc_cidr_block": "10.100.0.0/16",
   "zones": ${AWS_ZONES},
-  "private_subnet_ids": [
- "arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0cd46d5c269d7d758",
- "arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0dde1aa366a6890f2",
- "arn:aws:ec2:us-east-2:861276079005:subnet/subnet-063429daba4a6ca18"  ],
+  "private_subnet_ids": ${PRIVATE_SUBNET_IDS},
   "enable_private_link": false,
   "create_rpk_user": false,
   "force_destroy_cloud_storage": true
 }
 EOF
 ```
+
+It is recommended you cat the file to ensure your variables were interpolated correctly.
+
+---
 
 
 ## Terraform Apply
@@ -133,9 +157,6 @@ eval $(terraform output -json | jq -r '
    else (.value.value | @sh)
    end)')
 ```
-
-
-__NOTE__: You may need to add a route from the public subnets to the internet gateway.
 
 
 
@@ -216,14 +237,25 @@ __NOTE__: this step doesn't create the _actual_ cluster, just the logical cluste
 
 ### More Environment Variables
 
-`export REDPANDA_ZONES='["use2-az1"]'`
 
 The AZ's you export here are going to determine if you are single az or not.   A single AZ would look like:
 
+```bash
+export REDPANDA_ZONES='["use2-az1"]'
+```
+
+Multi-AZ would look like 
+
+```bash
+export REDPANDA_ZONES='["use2-az1", "use2-az2", "use2-az3"]'
+```
+
 
 then update to the latest version & tier
-`export REDPANDA_VERSION=25.1`
-`export REDPANDA_THROUGHPUT_TIER=tier-1-aws-v3-arm`
+```bash
+export REDPANDA_VERSION=25.1
+export REDPANDA_THROUGHPUT_TIER=tier-1-aws-v3-arm
+```
 
 
 ### Cluster Create
