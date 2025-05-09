@@ -82,6 +82,32 @@ cat > byoc.auto.tfvars.json <<EOF
 EOF
 ```
 
+### Using existing Subnets
+
+```json
+cat > byoc.auto.tfvars.json <<EOF
+{
+  "aws_account_id": "${AWS_ACCOUNT_ID}",
+  "region": "${AWS_REGION}",
+  "common_prefix": "${REDPANDA_COMMON_PREFIX}",
+  "condition_tags": {},
+  "default_tags": {},
+  "ignore_tags": [],
+  "vpc_id": "${AWS_VPC_ID}",
+  "vpc_cidr_block": "10.100.0.0/16",
+  "zones": ${AWS_ZONES},
+  "private_subnet_ids": [
+ "arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0cd46d5c269d7d758",
+ "arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0dde1aa366a6890f2",
+ "arn:aws:ec2:us-east-2:861276079005:subnet/subnet-063429daba4a6ca18"  ],
+  "enable_private_link": false,
+  "create_rpk_user": false,
+  "force_destroy_cloud_storage": true
+}
+EOF
+```
+
+
 ## Terraform Apply
 
 ```bash
