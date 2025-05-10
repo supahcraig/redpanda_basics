@@ -54,6 +54,9 @@ RG_ID is the resource group, thelast bit of the URL
 
 Generate a `byoc.auto.tfvars.json` to specify your VPC info.   This will create subnets, but if you already have subnets you want to use, I think you'll want to leave those as `[ ]`, since defaults are specified in `variables.tf`.   The CIDR ranges here are unique to my VPC, yours will be different.  Be certain your subnet CIDR's don't overlap existing subnets (i.e. a /20 needs to allow space for the /24 terraform wants to create.
 
+<details>
+<summary> Creating NEW subnets in an Existing VPC</summary>
+  
 ### Creating NEW subnets in an Existing VPC
 
 ```json
@@ -82,6 +85,10 @@ cat > byoc.auto.tfvars.json <<EOF
 }
 EOF
 ```
+</details>
+
+<details>
+  <summary>Using EXISTING Subnets in an Existing VPC</summary>
 
 ### Using EXISTING Subnets in an Existing VPC
 
@@ -128,6 +135,8 @@ EOF
 ```
 
 It is recommended you cat the file to ensure your variables were interpolated correctly.
+
+</details>
 
 ---
 
