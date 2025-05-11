@@ -37,9 +37,10 @@ We actually deploy the agent into the cloud infra and start creating EKS & EC2 i
 
 ```bash
 export REDPANDA_COMMON_PREFIX=cnelson-byovpc
-export AWS_ACCOUNT_ID=
 export AWS_REGION=us-east-2
 export AWS_ZONES='["use2-az1", "use2-az2", "use2-az3"]'
+
+export AWS_ACCOUNT_ID=
 export AWS_VPC_ID=
 export REDPANDA_CLIENT_ID=
 export REDPANDA_CLIENT_SECRET=
@@ -49,6 +50,9 @@ export REDPANDA_RG_ID= #Retrieve the ID from the URL of the resource group when 
 Client ID & secret are found by navigating to the cloud UI, under service accts
 RG_ID is the resource group, thelast bit of the URL
 
+The zones here are not related to your cluster being multi-az or not.   The EKS Control Plane requires subnets in at least 2 zones.
+
+TODO:  what happens if your region has many AZ's but the az's selected here don't align with the AZ's where your existing subnets are deployed?
 
 ## Terraform Setup
 
