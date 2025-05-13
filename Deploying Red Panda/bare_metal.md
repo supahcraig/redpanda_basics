@@ -38,6 +38,15 @@ sudo rpk redpanda config bootstrap --self $(hostname -I) --ips 10.100.14.84,10.1
 sudo rpk redpanda config set redpanda.empty_seed_starts_cluster false
 ```
 
+NOTE:  wes uses something like this:
+```bash
+sudo rpk redpanda config bootstrap --self <listener-address> --advertised-kafka <advertised-kafka-address> --ips <seed-server1-ip>,<seed-server2-ip>,<seed-server3-ip>
+
+sudo rpk redpanda config set redpanda.empty_seed_starts_cluster false
+```
+
+
+
 ### Example of the incorrect bootstrap config file
 
 
