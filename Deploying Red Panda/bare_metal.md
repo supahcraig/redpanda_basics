@@ -8,6 +8,16 @@ https://docs.redpanda.com/current/deploy/deployment-option/self-hosted/manual/pr
 Customer facing PDF of these instructions:
 https://docs.google.com/document/d/1eYtScIL7wZWB-ae9E-2QoJMBox4mz_zM9Uf0eFIAkGg/edit?usp=sharing
 
+## Pre-Reqs
+
+| Port | Purpose |
+|---|---|
+|9092|Kafka API|
+|8082|HTTP Proxy|
+|8081|Schema Registry|
+|9644|Admin API and Prometheus|
+|33145|internal RPC|
+
 
 ## Install redpanda on all nodes
 ```
@@ -44,7 +54,7 @@ sudo rpk redpanda config bootstrap --self <listener-address> --advertised-kafka 
 
 sudo rpk redpanda config set redpanda.empty_seed_starts_cluster false
 ```
-
+Where advertised-kafka-address is the AWS DNS name.   If this were a public cluster you'd use the public DNS for advertised, for private clusters use the private DNS.
 
 
 ### Example of the incorrect bootstrap config file
@@ -192,6 +202,23 @@ sudo apt-get purge --auto-remove redpanda
 ```
 
 Then start over from the top.
+
+
+# Mounting NVMe storage
+
+This was taken from a client on-site:
+
+This is not a script to be run; just steps that can show if the NVMe drive is mounted, and also format as xfs & mount.
+```bash
+sudo file -s /dev/nvme1n1
+sudo mkfs -t xfs /dev/nvme1n1
+sudo mkdir /data
+sudo mount /dev/nvme1n1 /data
+
+sudo rpk redpanda mode production
+sudo rpk redpanda tune all
+sudo rpk iotune
+```
 
 
 
