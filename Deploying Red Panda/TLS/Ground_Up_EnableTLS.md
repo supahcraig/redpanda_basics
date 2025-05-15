@@ -394,3 +394,9 @@ touch index.txt
 echo '01' > serial.txt
 openssl ca -config ca.cnf -keyfile ca.key -cert ca.crt -extensions extensions -in broker.csr -out broker.crt -outdir . -batch
 ```
+
+
+# Other Notes
+
+We did an on-site multi-region mTLS build out, and some of the above instructions aren't 100% with what we did to make it work.   Some of that is likely due to updated docs.
+
