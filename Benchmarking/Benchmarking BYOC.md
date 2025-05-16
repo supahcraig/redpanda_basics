@@ -189,3 +189,37 @@ terraform destroy --auto-approve
 
 
 
+---
+
+
+# fixes?
+
+`deploy.yaml`
+
+Near line 432
+
+```yaml
+- name: Debug node_exporter_arch
+  hosts: redpanda, client
+  gather_facts: false
+  tasks:
+    - name: Show value of node_exporter_arch
+      debug:
+        var: node_exporter_arch
+
+# Install the monitoring stack
+- name: Install Node Exporter
+  hosts: redpanda, client
+  roles:
+  - geerlingguy.node_exporter
+  vars:
+    node_exporter_enabled_collectors: [ntp]
+    dist_architecture:
+      aarch64: arm64,
+      x86_64: amd64
+    node_exporter_arch: "{{ dist_architecture[ansible_architecture] | string }}"
+  tags:
+    - node_exporter
+```
+
+
