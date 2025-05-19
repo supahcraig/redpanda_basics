@@ -219,4 +219,10 @@ Near line 432
 #        var: node_exporter_arch
 ```
 
-
+```
+ansible-playbook --inventory  ${REDPANDA_CLOUD_PROVIDER}/hosts.ini \
+--ask-become-pass \
+-e "tls_enabled=true sasl_enabled=true sasl_username=cnelson sasl_password=cnelson" \
+-e bootstrapServers=${REDPANDA_BOOTSTRAP_SERVER} \
+deploy.yaml
+```
