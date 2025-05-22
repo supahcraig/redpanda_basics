@@ -163,6 +163,14 @@ testDurationMinutes: 5
 
 `keyDistributor: "RANDOM_NANO"` will give a more uniform distribution of connections, since the publishing will be to more random partitions.   It will also give an actual connection count closer to the target producer count.
 
+### Larger Message Sizes
+
+Run this to generate a new payload file for your desired message size.
+
+```bash
+dd if=/dev/urandom of=payload/payload-250Kb.data bs=1024 count=250
+```
+
 ## Run the workload
 
 ```bash
