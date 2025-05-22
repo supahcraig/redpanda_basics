@@ -111,7 +111,7 @@ export REDPANDA_BOOTSTRAP_SERVER="<seed-endpoint-from-BYOC-console.com:9092>"
 Note that this depends on the environment variable being set for the kafka api endpoint, and also a user created in your cluster with a sasl-scram-256 password (cnelson/cnelson in this example), and give it full ACLs.
 
 ```
-ansible-playbook --inventory  hosts.ini \
+ansible-playbook --inventory  gcp/hosts.ini \
 --ask-become-pass \
 -e "tls_enabled=true sasl_enabled=true sasl_username=cnelson sasl_password=cnelson" \
 -e bootstrapServers=${REDPANDA_BOOTSTRAP_SERVER} \
