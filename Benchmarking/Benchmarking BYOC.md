@@ -234,3 +234,24 @@ ansible-playbook --inventory  ${REDPANDA_CLOUD_PROVIDER}/hosts.ini \
 -e bootstrapServers=${REDPANDA_BOOTSTRAP_SERVER} \
 deploy.yaml
 ```
+
+
+## Large Workloads
+
+This should be good for ~4GB/sec in and 16GB/sec out
+
+```yaml
+name: 100-partitions-500K-rate-4-producer
+
+topics: 5
+partitionsPerTopic: 600
+messageSize: 4096
+payloadFile: "payload/payload-4Kb.data"
+subscriptionsPerTopic: 4
+consumerPerSubscription: 16
+producersPerTopic: 50
+producerRate: 100000
+consumerBacklogSizeGB: 0
+testDurationMinutes: 10
+warmupDurationMinutes: 4
+```
