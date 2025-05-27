@@ -3,7 +3,21 @@ Redpanda Docs:  https://docs.redpanda.com/redpanda-cloud/manage/terraform-provid
 They reference version `1.0` but that currently (as of 5/27/2025) has an issue where no cidr range is accepted.   Version `0.10.1` is a known working version.
 
 
-## Assumptions
+It is assumed you are already authenticated with your cloud provider.
+
+
+## Usage
+
+Set your specifics in `terraform.tfvars` and then apply the terraform.   Default is a single AZ in us-east-2
+
+
+```bash
+terraform init
+terraform plan
+terraform apply --auto-approve
+```
+
+## Provider Configuration
 
 The redpanda provider block can run off environment variables, or be specified in the block:
 
