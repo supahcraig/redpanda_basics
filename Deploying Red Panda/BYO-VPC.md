@@ -48,7 +48,7 @@ export REDPANDA_RG_ID= #Retrieve the ID from the URL of the resource group when 
 ```
 
 Client ID & secret are found by navigating to the cloud UI, under service accts
-RG_ID is the resource group, thelast bit of the URL
+RG_ID is the resource group, the last bit of the URL
 
 The zones here are not related to your cluster being multi-az or not.   The EKS Control Plane requires subnets in at least 2 zones.
 
@@ -189,7 +189,9 @@ export BEARER_TOKEN=$(curl --request POST \
 
 ## Create the Redpanda Network
 
-If you had your own subnets you wanted to use, you would paste the full arn's of those subnets as an array into the `private_subnets` field:  `["arn:subnet1", "arn:subnet2", etc]`
+If you had your own subnets you wanted to use, you would paste the full arn's of those subnets as an array into the `private_subnets` field: 
+
+`["arn:subnet1", "arn:subnet2", etc]`
 
 ```json
 cat > redpanda-network.json <<EOF
@@ -223,10 +225,12 @@ EOF
 
 Cat the file to ensure all your environment variables were correctly substituted.
 
-If you had existing subnets you wanted to deploy into, you would use the arn of your existing subnets.   >> I think
-something like this: ` ["arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0b79a7c3052ce4e82", "arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0b79a7c3052ce4e82"]` and not the array itself wrapped in quotes.
+If you had existing subnets you wanted to deploy into, you would use the arn of your existing subnets.   
+
+>> I think something like this: `["arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0b79a7c3052ce4e82", "arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0b79a7c3052ce4e82"]` and not the array itself wrapped in quotes.
 
 >>>> API call in the docs is wrong, missing the "network" wrapper.   Also, the `private subnets` section needs to have the individual arns quoted.
+>>>> 
 >>>> also the jq is wrong
 
 Run this to actually create the Redpanda Network
