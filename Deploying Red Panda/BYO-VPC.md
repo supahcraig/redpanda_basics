@@ -111,7 +111,7 @@ export PRIVATE_SUBNET_IDS='["subnet1", "subnet2", "subnet3"]'
 |---|---|
 |`kubernetes.io/role/internal-elb` | 1 |
 
-You can automate this by terateingover all of them to apply the tag:
+You can automate this by iterating over all of them to apply the tag:
 
 ```bash
 aws ec2 create-tags \
