@@ -56,6 +56,8 @@ TODO:  what happens if your region has many AZ's but the az's selected here don'
 
 ## Terraform Setup
 
+First cd into `customer-managed/aws/terraform`
+
 Generate a `byoc.auto.tfvars.json` to specify your VPC info.   This will create subnets, but if you already have subnets you want to use, I think you'll want to leave those as `[ ]`, since defaults are specified in `variables.tf`.   The CIDR ranges here are unique to my VPC, yours will be different.  Be certain your subnet CIDR's don't overlap existing subnets (i.e. a /20 needs to allow space for the /24 terraform wants to create.
 
 <details>
