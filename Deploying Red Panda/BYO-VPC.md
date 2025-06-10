@@ -157,6 +157,36 @@ terraform apply
 
 `terraform apply` will generate a number of terraform outputs that we will want to stick into environment variables:
 
+The terraform output will look like this:
+
+```bash
+Outputs:
+
+agent_instance_profile_arn = "arn:aws:iam::861276079005:instance-profile/cnelson-byovpc-agent-2025061018353677340000001b"
+byovpc_rpk_user_policy_arns = "[\"arn:aws:iam::861276079005:policy/cnelson-byovpc-rpk-user-1_20250610183550095200000039\",\"arn:aws:iam::861276079005:policy/cnelson-byovpc-rpk-user-2_2025061018355009530000003a\"]"
+cloud_storage_bucket_arn = "arn:aws:s3:::redpanda-cloud-storage-20250610183534306300000009"
+cluster_security_group_arn = "arn:aws:ec2:us-east-2:861276079005:security-group/sg-07635cd1fa8860e85"
+connectors_node_group_instance_profile_arn = "arn:aws:iam::861276079005:instance-profile/cnelson-byovpc-connect-20250610183537005000000020"
+connectors_security_group_arn = "arn:aws:ec2:us-east-2:861276079005:security-group/sg-011fcb991a10426b8"
+dynamodb_table_arn = "arn:aws:dynamodb:us-east-2:861276079005:table/rp-861276079005-us-east-2-mgmt-tflock-ntu28lfz5q"
+k8s_cluster_role_arn = "arn:aws:iam::861276079005:role/cnelson-byovpc-cluster-20250610183534301800000005"
+management_bucket_arn = "arn:aws:s3:::rp-861276079005-us-east-2-mgmt-20250610183536156300000012"
+node_security_group_arn = "arn:aws:ec2:us-east-2:861276079005:security-group/sg-069c47f39907c787c"
+permissions_boundary_policy_arn = "arn:aws:iam::861276079005:policy/cnelson-byovpc-agent-boundary-2025061018354092140000002c"
+private_subnet_ids = "[\"arn:aws:ec2:us-east-2:861276079005:subnet/subnet-02d30e8cfb39af740\",\"arn:aws:ec2:us-east-2:861276079005:subnet/subnet-0f9768fa35bfac9c3\",\"arn:aws:ec2:us-east-2:861276079005:subnet/subnet-03aa9d2b29324686c\"]"
+redpanda_agent_role_arn = "arn:aws:iam::861276079005:role/cnelson-byovpc-agent-20250610183534302400000006"
+redpanda_agent_security_group_arn = "arn:aws:ec2:us-east-2:861276079005:security-group/sg-076ee7182e85582ee"
+redpanda_connect_node_group_instance_profile_arn = "arn:aws:iam::861276079005:instance-profile/cnelson-byovpc-rpcn-20250610183536448800000017"
+redpanda_connect_security_group_arn = "arn:aws:ec2:us-east-2:861276079005:security-group/sg-0bacf4b193d108ec4"
+redpanda_node_group_instance_profile_arn = "arn:aws:iam::861276079005:instance-profile/cnelson-byovpc-rp-2025061018353689690000001d"
+redpanda_node_group_security_group_arn = "arn:aws:ec2:us-east-2:861276079005:security-group/sg-0123bceed90f1974c"
+utility_node_group_instance_profile_arn = "arn:aws:iam::861276079005:instance-profile/cnelson-byovpc-util-20250610183536503200000018"
+utility_security_group_arn = "arn:aws:ec2:us-east-2:861276079005:security-group/sg-07aa320e92512431b"
+vpc_arn = "arn:aws:ec2:us-east-2:861276079005:vpc/vpc-0342476ccc1ef05f4"
+```
+
+And we can turn that output into environment variables by running this eval block.
+
 ```bash
 eval $(terraform output -json | jq -r 'to_entries[] | "export " + (.key | ascii_upcase) + "=" + (.value.value|tostring)')
 ```
