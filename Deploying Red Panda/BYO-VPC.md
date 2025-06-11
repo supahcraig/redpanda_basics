@@ -227,7 +227,7 @@ export BEARER_TOKEN=$(curl --request POST \
 If you had your own subnets you wanted to use, you would paste the full arn's of those subnets as an array into the `private_subnets` field: 
 
 ```bash
-export PRIVATE_SUBNET_IDS='["arn:subnet1", "arn:subnet2", etc]'
+export PRIVATE_SUBNET_ARNS='["arn:subnet1", "arn:subnet2", etc]'
 ```
 
 
@@ -249,7 +249,7 @@ cat > redpanda-network.json <<EOF
           "arn": "${DYNAMODB_TABLE_ARN}"
         },
         "private_subnets": {
-          "arns": ${PRIVATE_SUBNET_IDS}
+          "arns": ${PRIVATE_SUBNET_ARNS}
         },
         "vpc": {
           "arn": "${VPC_ARN}"
