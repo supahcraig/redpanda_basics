@@ -434,3 +434,27 @@ It will take about 45 minutes from this point.   About 10 minutes in, the Redpan
 
 ![step3of3](https://github.com/user-attachments/assets/2e7adfd1-85a8-49f2-9761-194765c436fd)
 
+
+---
+
+# Teardown
+
+
+```bash
+export REDPANDA_ID=$(curl -X DELETE "https://api.redpanda.com/v1/clusters/${REDPANDA_ID}" \
+ -H "accept: application/json"\
+ -H "content-type: application/json" \
+ -H "authorization: Bearer ${BEARER_TOKEN}" | jq -r '.operation.resource_id')
+```
+
+```bash
+rpk cloud byoc aws destroy --redpanda-id ${REDPANDA_ID}
+```
+
+Then teardown everything that we created in terraform:
+
+```bash
+terraform destroy --auto-approve
+```
+
+
