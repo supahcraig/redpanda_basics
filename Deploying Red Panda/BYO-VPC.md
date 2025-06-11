@@ -19,7 +19,7 @@ No public subnets are _necessary_ but if you don't create any public subnets, th
 The general expectation is that the terraform will either build all the subnets, igw, natgw, routes, etc to make it work OR you will supply all that.  Depending on your specific VPC, you may need to add routes to natgw, igw, etc.   In general, the private subnets need routes to the NAT gateway in the public subnet(s).   The public subnet needs a route from `0.0.0.0/0` to the VPC's internet gateway.   Whether or not that gets built as part of this terraform depends on your specific setup.
 
 #### Using pre-existing subnets
-TBD:  I think the proper course of action is to remove the subnet cidr sections from the terraform, and then put the private subnets into `redpanda-cluster.json`.   You will need to provide 
+Instead of supplying the CIDR ranges of for subnets terraform will create, you will instead supply the subnet ID's of the existing subnets.   Then later on you will need to supply the ARNs of those subnets.   Proper natgw & igw routing is left to the user to complete, if not already in place.   Ultimatly the requirements are the same:  the private subnets need routes to the NAT gateway in the public subnet(s) and the public subnet needs a route to the igw.
 
 
 ### PHASE 2: 
