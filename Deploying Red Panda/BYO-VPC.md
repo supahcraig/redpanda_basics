@@ -226,7 +226,10 @@ export BEARER_TOKEN=$(curl --request POST \
 
 If you had your own subnets you wanted to use, you would paste the full arn's of those subnets as an array into the `private_subnets` field: 
 
-`["arn:subnet1", "arn:subnet2", etc]`
+```bash
+export PRIVATE_SUBNET_IDS='["arn:subnet1", "arn:subnet2", etc]'
+```
+
 
 ```json
 cat > redpanda-network.json <<EOF
