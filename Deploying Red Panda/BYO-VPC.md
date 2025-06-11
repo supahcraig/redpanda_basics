@@ -86,6 +86,7 @@ cat > byoc.auto.tfvars.json <<EOF
      "10.100.102.0/24"
   ],
   "enable_private_link": false,
+  "create_internet_gateway": true,
   "create_rpk_user": true,
   "force_destroy_cloud_storage": true
 }
