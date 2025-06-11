@@ -224,6 +224,17 @@ export BEARER_TOKEN=$(curl --request POST \
 
 ## Create the Redpanda Network
 
+<details>
+    <summary> Using your newly-created subnets</summary>
+
+No additional steps are necessary.
+
+</details>
+
+
+<details>
+    <summary> Using existing subnets</summary>
+
 If you had your own subnets you wanted to use, you would paste the full arn's of those subnets as an array into the `private_subnets` field: 
 
 Example environment variable:
@@ -238,6 +249,7 @@ This one-liner will genrate the subnet ARN's from the previously supplied list o
 export PRIVATE_SUBNET_ARNS=$(echo $PRIVATE_SUBNET_IDS | jq -r --arg region "$AWS_REGION" --arg account_id "$AWS_ACCOUNT_ID" '[.[] | "arn:aws:ec2:" + $region + ":" + $account_id + ":subnet/" + .] | @csv' | sed 's/^/[/;s/$/]/')
 ```
 
+</details>
 
 ```json
 cat > redpanda-network.json <<EOF
