@@ -409,4 +409,24 @@ rpk cloud byoc aws apply \
   --redpanda-id=${REDPANDA_ID}
 ```
   
+You should see output similar to this:
 
+```bash
+2025-06-10T20:04:42.907Z	INFO	.rpk.managed-byoc	validation/validate.go:75	Checking RPK User... PASSED
+2025-06-10T20:04:50.597Z	INFO	.rpk.managed-byoc	validation/validate.go:75	Checking IAM Instance Profiles... PASSED
+2025-06-10T20:04:51.227Z	INFO	.rpk.managed-byoc	validation/validate.go:75	Checking Storage... PASSED
+2025-06-10T20:04:52.825Z	INFO	.rpk.managed-byoc	validation/validate.go:75	Checking Network... PASSED
+2025-06-10T20:04:55.028Z	INFO	.rpk.managed-byoc	aws/apply.go:115	Reconciling agent infrastructure...
+2025-06-10T20:04:55.217Z	INFO	.rpk.managed-byoc	cli/cli.go:195	Running apply	{"provisioner": "redpanda-bootstrap"}
+2025-06-10T20:05:09.340Z	INFO	.rpk.managed-byoc	cli/cli.go:208	Finished apply	{"provisioner": "redpanda-bootstrap"}
+2025-06-10T20:05:09.340Z	INFO	.rpk.managed-byoc	cli/cli.go:195	Running apply	{"provisioner": "redpanda-network"}
+2025-06-10T20:05:09.343Z	INFO	.rpk.managed-byoc.network	aws/network.go:135	subnet IDs were provided by customer. Setting network as unmanaged
+2025-06-10T20:05:28.478Z	INFO	.rpk.managed-byoc	cli/cli.go:208	Finished apply	{"provisioner": "redpanda-network"}
+2025-06-10T20:05:28.478Z	INFO	.rpk.managed-byoc	cli/cli.go:195	Running apply	{"provisioner": "redpanda-agent"}
+2025-06-10T20:06:02.229Z	INFO	.rpk.managed-byoc	cli/cli.go:208	Finished apply	{"provisioner": "redpanda-agent"}
+2025-06-10T20:06:02.229Z	INFO	.rpk.managed-byoc	aws/apply.go:161	The Redpanda cluster is deploying. This can take up to 45 minutes. View status at https://cloud.redpanda.com/clusters/d148sdfafwvci89vpbdg/overview.
+```
+
+It will take about 45 minutes from this point.   About 10 minutes in, the Redpanda Cloud UI should switch to this screen:
+
+_image coming soon_
