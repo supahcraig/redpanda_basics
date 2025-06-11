@@ -16,10 +16,10 @@ We have terraform build out the subnets within your VPC, and a few other minor t
 
 No public subnets are _necessary_ but if you don't create any public subnets, then you will need to profide your own routes from the private subnet to the internet via NAT gateway.   This could mean you need to create your own NAT Gateway in a public subnet, with a public address & elastic IP.  ~~Creating a single public subnet avoids this hassle.~~  Multiple public subnets does not appear to add any value.
 
-The general expectation is that the terraform will either build all the subnets, igw, natgw, routes, etc to make it work.  Depending on your specific VPC, you may need to add routes.   In general, the private subnets need routes to the NAT gateway in the public subnet(s).   The public subnet needs a route from `0.0.0.0/0` to the VPC's internet gateway.
+The general expectation is that the terraform will either build all the subnets, igw, natgw, routes, etc to make it work OR you will supply all that.  Depending on your specific VPC, you may need to add routes to natgw, igw, etc.   In general, the private subnets need routes to the NAT gateway in the public subnet(s).   The public subnet needs a route from `0.0.0.0/0` to the VPC's internet gateway.   Whether or not that gets built as part of this terraform depends on your specific setup.
 
 #### Using pre-existing subnets
-TBD:  I think the proper course of action is to remove the subnet cidr sections from the terraform, and then put the private subnets into `redpanda-cluster.json`, although it is not clear how it will know what the public subnets are.
+TBD:  I think the proper course of action is to remove the subnet cidr sections from the terraform, and then put the private subnets into `redpanda-cluster.json`.   You will need to provide 
 
 
 ### PHASE 2: 
