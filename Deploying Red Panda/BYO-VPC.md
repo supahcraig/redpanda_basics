@@ -226,8 +226,16 @@ export BEARER_TOKEN=$(curl --request POST \
 
 If you had your own subnets you wanted to use, you would paste the full arn's of those subnets as an array into the `private_subnets` field: 
 
+Example environment variable:
+
 ```bash
 export PRIVATE_SUBNET_ARNS='["arn:subnet1", "arn:subnet2", etc]'
+```
+
+This one-liner will genrate the subnet ARN's from the previously supplied list of subnet ID's:
+
+```bash
+export PRIVATE_SUBNET_ARNS=$(echo $PRIVATE_SUBNET_IDS | jq -r --arg region "$AWS_REGION" --arg account_id "$AWS_ACCOUNT_ID" '[.[] | "arn:aws:ec2:" + $region + ":" + $account_id + ":subnet/" + .] | @csv' | sed 's/^/[/;s/$/]/')
 ```
 
 
