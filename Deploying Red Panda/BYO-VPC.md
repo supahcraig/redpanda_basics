@@ -451,6 +451,13 @@ export REDPANDA_ID=$(curl -X DELETE "https://api.redpanda.com/v1/clusters/${REDP
 rpk cloud byoc aws destroy --redpanda-id ${REDPANDA_ID}
 ```
 
+You may find that the Redpanda Network doesn't get removed...
+
+```bash
+curl -X DELETE "https://api.redpanda.com/v1/networks/${REDPANDA_NETWORK_ID}" \
+ -H 'accept: application/json'
+```
+
 Then teardown everything that we created in terraform:
 
 ```bash
