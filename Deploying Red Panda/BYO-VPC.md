@@ -455,7 +455,9 @@ You may find that the Redpanda Network doesn't get removed...
 
 ```bash
 curl -X DELETE "https://api.redpanda.com/v1/networks/${REDPANDA_NETWORK_ID}" \
- -H 'accept: application/json'
+ -H "accept: application/json"\
+ -H "content-type: application/json" \
+ -H "authorization: Bearer ${BEARER_TOKEN}" | jq -r '.operation.resource_id')
 ```
 
 Then teardown everything that we created in terraform:
