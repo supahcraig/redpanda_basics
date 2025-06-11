@@ -430,6 +430,7 @@ You should see output similar to this:
 2025-06-10T20:06:02.229Z	INFO	.rpk.managed-byoc	aws/apply.go:161	The Redpanda cluster is deploying. This can take up to 45 minutes. View status at https://cloud.redpanda.com/clusters/d148sdfafwvci89vpbdg/overview.
 ```
 
-It will take about 45 minutes from this point.   About 10 minutes in, the Redpanda Cloud UI should switch to this screen:
+It will take about 45 minutes from this point.   About 10 minutes in, the Redpanda Cloud UI should switch to this screen.   If it doesn't, the #1 cause is that your private subnets don't have a route to the internet.
 
-_image coming soon_
+![step3of3](https://github.com/user-attachments/assets/2e7adfd1-85a8-49f2-9761-194765c436fd)
+
