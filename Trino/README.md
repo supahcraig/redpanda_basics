@@ -1,6 +1,10 @@
 # Trino & Redpanda
 
 
+## Databricks seetup
+
+
+
 Running locally with a docker container:
 
 Minimal Trino instance with the Kafka connector working against a BYOC cluster.
@@ -38,6 +42,8 @@ sasl.jaas.config = org.apache.kafka.common.security.scram.ScramLoginModule requi
   username="trino" \
   password="trino";
 ```
+
+This properties file is only nessary if you want to set your default catalog/schema when the trino repl opens up.  It seems to be challenging to change this from within trino once it is set, so you may not want to actually do this.  YMMV.
 
 `trino.properties`
 ```ini
