@@ -69,6 +69,8 @@ docker run -d \
 
 # Iceberg
 
+The name of this file defines the name of the catalog within Trino.   You can call it whatever you want, but it probably makes sense to align it with your actual catalog name, unless you hate your sanity.  On the other hand, if you have special characters in the catalog name, you'll hae to wrap it in quotes in all your Trino queries.  Note that it seems to force everything to lower case, so a mixed case filename will cause you real problems.
+
 `trino-test.properties`
 ```ini
 connector.name=iceberg
@@ -79,7 +81,7 @@ iceberg.security=read_only
 iceberg.rest-catalog.security=OAUTH2
 iceberg.rest-catalog.oauth2.server-uri=https://dbc-XYZPDQ-2e36.cloud.databricks.com/oidc/v1/token
 iceberg.rest-catalog.oauth2.scope=all-apis
-iceberg.rest-catalog.oauth2.token=<Your personal acces token (PAT)>
+iceberg.rest-catalog.oauth2.token=<Your personal access token (PAT)>
 iceberg.rest-catalog.vended-credentials-enabled=true
 fs.native-s3.enabled=true
 s3.region=us-east-2
