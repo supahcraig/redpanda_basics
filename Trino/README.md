@@ -17,22 +17,26 @@ In the dialog, give it a nice catalog name, and then uncheck the box for using t
 
 ### 2. Create a new External Location
 
-Clicking on the Create a new external locaiton link will bring up another screen, where you will choose the AWS Quickstart option.  
+Clicking on the Create a new external location link will bring up another screen, where you will choose the AWS Quickstart option.  
 
 ![databricks-catalog-create-3](https://github.com/user-attachments/assets/4d7f8170-ff6f-4c23-8ec8-7b27d531d33f)
 
 
-#### Finding your Redpanda S3 bucket
-
-Databricks needs to know the name of our bucket, which is the bucket that Redpanda has already created.  From the Redpanda BYOC console, you'll find a link to a bucket.  It's not actually your bucket, it's a link to the AWS Console for that bucket, of the form `https://s3.console.aws.amazon.com/s3/buckets/redpanda-cloud-storage-curl3eo533cmsnt23dv00`  You can derive the bucket name from this link.   The bucket name is just this:  `redpanda-cloud-storage-curl3eo533cmsnt23dv00`.  
-
-![databricks-catalog-create-rpbucket](https://github.com/user-attachments/assets/ba1029ac-06b8-4662-9c65-0a962f29650e)
 
 ### 3. Configure the New External Location
 
-Once you have the bucket name, you'll paste it into the box back in Databricks.  Note that the box has the `s3://bucket_name` prompt but you actually only want the bucket name, not the s3 prefix.  Then you'll click the Generate new token, which will create a token you will need to copy for the next step.   FInally, click Launch in Quickstart.  This will bring up the AWS Console.
+Databricks needs to know some info about the bucket we're using so that it can create the necessary permissions & other stuff in AWS to allow it all to work. 
 
 ![databricks-catalog-create-4](https://github.com/user-attachments/assets/f69a313c-2302-4407-b0b7-57198c0c90d3)
+
+
+#### Finding your Redpanda S3 bucket
+
+Databricks needs to know the name of our bucket, which is the bucket that Redpanda has already created.  From the Redpanda BYOC console, you'll need to find your cluster ID.  The bucket name will be `redpanda-cloud-storage-<Redpanda Cluster ID>`  Paste that into the box back in Databricks.  Note that the box has the `s3://bucket_name` prompt but you actually only want the bucket name, not the s3 prefix.  Then you'll click the Generate new token, which will create a token you will need to copy for the next step.   
+
+Finally, click Launch in Quickstart.  This will bring up the AWS Console.
+
+![databricks-catalog-create-5](https://github.com/user-attachments/assets/2222a969-43d0-4412-a54d-789098890229)
 
 
 ### 4. 
