@@ -1,9 +1,44 @@
 # Trino & Redpanda
 
 
-## Databricks seetup
+## Catalog creation/setup
+
+### 1.  Create a new Catalog
+
+From the databricks console, under Catlog (1), then under the (+) click "Create a catalog"
+
+![databricks-catalog-create-1](https://github.com/user-attachments/assets/fb4d41c4-7a01-424e-8925-dbc23eb3c757)
+
+In the dialog, give it a nice catalog name, and then uncheck the box for using the default storage location; we're going to create a new external storage location.  
+
+>> why are other cloud providers not an option here?  Is this because our Databricks acct is set up on AWS?
+
+![databricks-catalog-create-2](https://github.com/user-attachments/assets/010dc6c5-21b5-4fce-aef1-51286474c933)
+
+### 2. Create a new External Location
+
+Clicking on the Create a new external locaiton link will bring up another screen, where you will choose the AWS Quickstart option.  
+
+![databricks-catalog-create-3](https://github.com/user-attachments/assets/4d7f8170-ff6f-4c23-8ec8-7b27d531d33f)
 
 
+#### Finding your Redpanda S3 bucket
+
+Databricks needs to know the name of our bucket, which is the bucket that Redpanda has already created.  From the Redpanda BYOC console, you'll find a link to a bucket.  It's not actually your bucket, it's a link to the AWS Console for that bucket, of the form `https://s3.console.aws.amazon.com/s3/buckets/redpanda-cloud-storage-curl3eo533cmsnt23dv00`  You can derive the bucket name from this link.   The bucket name is just this:  `redpanda-cloud-storage-curl3eo533cmsnt23dv00`.  
+
+![databricks-catalog-create-rpbucket](https://github.com/user-attachments/assets/ba1029ac-06b8-4662-9c65-0a962f29650e)
+
+### 3. Configure the New External Location
+
+Once you have the bucket name, you'll paste it into the box back in Databricks.  Note that the box has the `s3://bucket_name` prompt but you actually only want the bucket name, not the s3 prefix.  Then you'll click the Generate new token, which will create a token you will need to copy for the next step.   FInally, click Launch in Quickstart.  This will bring up the AWS Console.
+
+![databricks-catalog-create-4](https://github.com/user-attachments/assets/f69a313c-2302-4407-b0b7-57198c0c90d3)
+
+
+### 4. 
+
+
+## Spin up Trino with some connectors
 
 Running locally with a docker container:
 
