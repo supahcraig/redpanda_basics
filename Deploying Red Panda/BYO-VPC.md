@@ -122,6 +122,13 @@ aws ec2 create-tags \
   --tags Key=kubernetes.io/role/internal-elb,Value=1
 ```
 
+Similarly for the public subnets:
+
+```bash
+aws ec2 create-tags \
+  --resources $(echo "$PUBLIC_SUBNET_IDS" | jq -r '.[]') \
+  --tags Key=kubernetes.io/role/elb,Value=1
+```
 
 ```json
 cat > byoc.auto.tfvars.json <<EOF
