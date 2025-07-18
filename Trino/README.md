@@ -39,7 +39,20 @@ Finally, click Launch in Quickstart.  This will bring up the AWS Console.
 ![databricks-catalog-create-5](https://github.com/user-attachments/assets/2222a969-43d0-4412-a54d-789098890229)
 
 
-### 4. 
+### 4. Quick Create Stack
+
+When you click on Launch in Quickstart it will bring up the AWS Console for CloudFormation.  It will be pre-populated with nearly everything you need, but you will have to copy/paste your access token from step 3 into the Databricks Personal Access Token field.  
+
+![databricks-catalog-create-6](https://github.com/user-attachments/assets/806f6072-7d54-4151-9b04-98ceb3b7df83)
+
+Be sure to check the box that says you acknowledge that CloudFormation might do things, and then sroll down and click Create stack.   This will take some time to complete.  
+
+### 5. Monitor External Locations
+
+In the meanwhile you can return to your Databricks tab and go back to the Catalog Explorer to wait for your external location to show up.   
+
+![databricks-catalog-create-7](https://github.com/user-attachments/assets/399bb023-05c1-4ec7-97b5-78fc7c31ff6f)
+
 
 
 ## Spin up Trino with some connectors
