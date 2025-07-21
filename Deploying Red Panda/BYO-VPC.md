@@ -21,6 +21,10 @@ The general expectation is that the terraform will either build all the subnets,
 #### Using pre-existing subnets
 Instead of supplying the CIDR ranges of for subnets terraform will create, you will instead supply the subnet ID's of the existing subnets.   Then later on you will need to supply the ARNs of those subnets.   Proper natgw & igw routing is left to the user to complete, if not already in place.   Ultimatly the requirements are the same:  the private subnets need routes to the NAT gateway in the public subnet(s) and the public subnet needs a route to the igw.
 
+If you're bringing your own fully fleshed out network, then expect to spend time troubleshooting routing, firewalls, and NACLs.  Especially as your network/rules/governance becomes more complex.  Some gotchas I've encountered:
+* traffic must go back out through the same GWLBE it came in through, otherwise AWS will drop the traffic
+* the agent needs a path to the public internet
+* The agent _currently_ needs to get out to the internet on ports 443 & 80
 
 ### PHASE 2: 
 We build out some json that will be passed to the Redpanda control plane API to create the Redpanda Network and Redpand Cluster (which are really just logical "things" within Redpanda Cloud, not the actual network/resources in AWS).  The cluster create step is where you specify single- or multi-az, by setting the REDPANDA_ZONES env var.  The output from these API calls is essentially to just return the ID's of the network & cluster.  You can see the network in the cloud UI, but the cluster won't be there until into phase 3.   
@@ -52,7 +56,7 @@ export REDPANDA_RG_ID= #Retrieve the ID from the URL of the resource group when 
 Client ID & secret are found by navigating to the cloud UI, under service accts
 RG_ID is the resource group, the last bit of the URL
 
-The zones here are not related to your cluster being multi-az or not.   The EKS Control Plane requires subnets in at least 2 zones.
+The zones here are not related to your cluster being multi-az or not.   The EKS Control Plane simply requires subnets in at least 2 zones.
 
 TODO:  what happens if your region has many AZ's but the az's selected here don't align with the AZ's where your existing subnets are deployed?
 
@@ -60,7 +64,7 @@ TODO:  what happens if your region has many AZ's but the az's selected here don'
 
 First cd into `customer-managed/aws/terraform`
 
-Generate a `byoc.auto.tfvars.json` to specify your VPC info.   This will create subnets, but if you already have subnets you want to use, I think you'll want to leave those as `[ ]`, since defaults are specified in `variables.tf`.   The CIDR ranges here are unique to my VPC, yours will be different.  Be certain your subnet CIDR's don't overlap existing subnets (i.e. a /20 needs to allow space for the /24 terraform wants to create.
+Generate a `byoc.auto.tfvars.json` to specify your VPC info.   This will create subnets, but if you already have subnets you want to use, I think you'll want to leave those as `[ ]`, since defaults are specified in `variables.tf`.   The CIDR ranges here are unique to my VPC, yours will be different.  Be certain your subnet CIDR's don't overlap existing subnets (i.e. a /20 VPC needs to allow space for all the /24 subnets terraform wants to create.
 
 <details>
 <summary> Creating NEW subnets in an Existing VPC</summary>
@@ -101,18 +105,22 @@ EOF
 
 ### Using EXISTING Subnets in an Existing VPC
 
-If you have a set of private subnets which already exist that you want to deploy into, you will need to supply the subnet ID's (i.e. `subnet-xxxxxxxxxxxxx`) to terraform in the form of an array.   Put them into an environment variable.
+If you have a set of subnets which already exist that you want to deploy into, you will need to supply the subnet ID's (i.e. `subnet-xxxxxxxxxxxxx`) to terraform in the form of an array.   Put them into environment variables.
 
 ```bash
 export PRIVATE_SUBNET_IDS='["subnet1", "subnet2", "subnet3"]'
 ```
 
+```bash
+export PUBLIC_SUBNET_IDS='["public-subnet1", "public-subnet2", "public-subnet3"]'
+```
 
 **NOTE:**  it is undocumented, but the subnets you deploy into require a specifc tag or else it will fail during the `rpk cloud byoc aws apply` step.
 
-|key | value|
-|---|---|
-|`kubernetes.io/role/internal-elb` | 1 |
+| subnet type | key | value|
+|---|---|---|
+|private |`kubernetes.io/role/internal-elb` | 1 |
+|public |`kubernetes.io/role/elb` | 1 |
 
 You can automate this by iterating over all of them to apply the tag:
 
@@ -296,7 +304,7 @@ If you had existing subnets you wanted to deploy into, you would use the arn of 
 
 >>>> API call in the docs is wrong, missing the "network" wrapper.   Also, the `private subnets` section needs to have the individual arns quoted.
 >>>> 
->>>> also the jq is wrong
+>>>> also the jq is wrong in our docs
 
 Run this to actually create the Redpanda Network
 
@@ -308,7 +316,7 @@ export REDPANDA_NETWORK_ID=$(curl -X POST "https://api.redpanda.com/v1/networks"
  --data-binary @redpanda-network.json | jq -r '.operation.metadata.network_id')
 ```
 
-NOTE:  if the network already exists, it will put `null` into the env var.  Your network ID can be found after the fact from the Cloud UI.
+NOTE:  if the Redpanda network already exists, it will put `null` into the env var.  Your network ID can be found after the fact from the Cloud UI.
 
 >>> the docs should utilize the env vars created by terraform
 
