@@ -67,19 +67,17 @@ If you have iceberg topics on the source but the target is not configured for ic
 
 ```json
 {
-    "checkpoints.topic.replication.factor": "-1",
     "connector.class": "org.apache.kafka.connect.mirror.MirrorCheckpointConnector",
-    "name": "mirror-checkpoint-connector-4vgk",
-    "refresh.groups.interval.seconds": "60",
-    "replication.policy.class": "org.apache.kafka.connect.mirror.IdentityReplicationPolicy",
-    "source.cluster.alias": "source",
     "source.cluster.bootstrap.servers": "seed-6234e08e.curl3eo533cmsnt23dv0.byoc.prd.cloud.redpanda.com:9092",
-    "source.cluster.sasl.jaas.config": "org.apache.kafka.common.security.scram.ScramLoginModule required username='cnelson' password='${secretsManager:mirror-checkpoint-connector-4vgk-vdsw:source.cluster.sasl.password}';",
-    "source.cluster.sasl.mechanism": "SCRAM-SHA-256",
-    "source.cluster.sasl.password": "${secretsManager:mirror-checkpoint-connector-4vgk-vdsw:source.cluster.sasl.password}",
-    "source.cluster.sasl.username": "cnelson",
     "source.cluster.security.protocol": "SASL_SSL",
-    "sync.group.offsets.enabled": "true"
+    "source.cluster.sasl.mechanism": "SCRAM-SHA-256",
+    "source.cluster.sasl.username": "cnelson",
+    "source.cluster.sasl.password": "test",
+    "topics.exclude": "clusterA\\.*,.*[\\-\\.]internal,.*\\.replica,__consumer_offsets,_redpanda.audit_log,_redpanda_e2e_probe,__redpanda.*,_internal_connectors.*,_schemas",
+    "source.cluster.alias": "clusterA",
+    "sync.group.offsets.enabled": "true",
+    "checkpoints.topic.replication.factor": "-1",
+    "name": "mirror-checkpoint-connector-stih"
 }
 ```
 
