@@ -255,3 +255,47 @@ consumerBacklogSizeGB: 0
 testDurationMinutes: 10
 warmupDurationMinutes: 4
 ```
+
+
+## Peering OMB to the BYOC VPC
+
+Create a peering request from Redpanda to OMB, using the OMB cidr
+accept the request
+
+```bash
+aws ec2 accept-vpc-peering-connection --vpc-peering-connection-id pcx-009340551dc364b76
+```
+
+Add a route to the peering connection & OMB CIDR to the Redpanda route table(s)
+```bash
+aws ec2 create-route \
+    --route-table-id rtb-071c63a5f1b1982d3 \
+    --destination-cidr-block 10.90.0.0/16 \
+    --vpc-peering-connection-id pcx-009340551dc364b76
+```
+
+Add a route to the peering connection & Redpanda CIDR to the OMB route table(s)
+```bash
+aws ec2 create-route \
+    --route-table-id rtb-0a32d3126f6934811 \
+    --destination-cidr-block 10.25.0.0/16 \
+    --vpc-peering-connection-id pcx-009340551dc364b76
+```
+
+
+Unsure if this is necessary....
+Update security groups to allow traffic from each VPC
+
+```bash
+aws ec2 authorize-security-group-ingress \
+    --group-id sg-078e96209c244543e \
+    --protocol all \
+    --cidr 10.90.0.0/16
+```
+
+```bash
+aws ec2 authorize-security-group-ingress \
+    --group-id sg-0748a99e395e64a62 \
+    --protocol all \
+    --cidr 10.25.0.0/16
+```
