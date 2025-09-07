@@ -120,6 +120,32 @@ deploy.yaml
 
 It will prompt you for the admin password for your local machine.  If running from EC2, simply sudo prior to running ansible.
 
+Specifying the bootstrap server & SASL user/pass simply injects that info into each workload file.   So if you build a new cluster or change sasl info, you can simply replace it in your workload file without needing to re-deploy the workers.
+
+```yaml
+driverClass: io.openmessaging.benchmark.driver.redpanda.RedpandaBenchmarkDriver
+# Kafka client-specific configuration
+replicationFactor: 3
+reset: true
+
+topicConfig: |
+commonConfig: |
+  bootstrap.servers=seed-2df89778.yourClusterID.byoc.prd.cloud.redpanda.com:9092
+  sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username='cnelson' password='cnelson';
+  security.protocol=SASL_SSL
+  sasl.mechanism=SCRAM-SHA-256
+  request.timeout.ms=120000
+producerConfig: |
+  acks=all
+  linger.ms=1
+consumerConfig: |
+  group.id=benchGroup
+  auto.offset.reset=earliest
+  enable.auto.commit=false
+  fetch.max.wait.ms=50
+  fetch.min.bytes=1
+  max.partition.fetch.bytes=10485760
+```
 
 
 
