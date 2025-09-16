@@ -142,6 +142,12 @@ prometheus.scrape "redpanda_byoc" {
   metrics_path = "/api/cloud/prometheus/public_metrics"
   scheme       = "https"
 
+  // Your BYOC Prometheus credentials
+  basic_auth {
+    username = "prometheus"
+    password = "<prometheus password>"
+  }
+
   forward_to = [prometheus.remote_write.grafana_cloud.receiver]
 }
 
@@ -174,7 +180,7 @@ docker run -d \
   --server.http.listen-addr=0.0.0.0:12345
 ```
 
-Check the docker logs.  There is a 200% chance you got something wrong, Grafana Cloud _sucks_
+Check the docker logs.  There is a 200% chance you got something wrong, Grafana Cloud & their AI _sucks_
 
 ```bash
 # From your EC2 instance, test the exact credentials Alloy is using  
@@ -184,4 +190,10 @@ curl -u "2672937:glc_SomethingSomethingLCJtIjp7InIiOiJwcm9kLXVzLWVhc3QtMCJ9fQ=="
   https://prometheus-prod-56-prod-us-east-2.grafana.net/api/prom/push
 ```
 
+
+Test the prometheus endpoint from your EC2 instance, should return a huge list of metrics.
+
+```bash
+curl -u "prometheus:prom_password" https://prometheus.endpoint
+```
 
