@@ -285,6 +285,8 @@ warmupDurationMinutes: 4
 
 ## Peering OMB to the BYOC VPC
 
+
+
 Create a peering request from Redpanda to OMB, using the OMB cidr
 accept the request
 
@@ -292,21 +294,42 @@ accept the request
 aws ec2 accept-vpc-peering-connection --vpc-peering-connection-id pcx-009340551dc364b76
 ```
 
-Add a route to the peering connection & OMB CIDR to the Redpanda route table(s)
+
+> ignore this block; it is pending delete  
 ```bash
 aws ec2 create-route \
-    --route-table-id rtb-071c63a5f1b1982d3 \
+    --route-table-id rtb-0727ca9693fa2f04f \
     --destination-cidr-block 10.90.0.0/16 \
-    --vpc-peering-connection-id pcx-009340551dc364b76
+    --vpc-peering-connection-id pcx-01c09452d0c115976
 ```
 
 Add a route to the peering connection & Redpanda CIDR to the OMB route table(s)
+* route table is the OMB route table
+* destination CIDR is the CIDR of the Redpanda VPC
 ```bash
 aws ec2 create-route \
-    --route-table-id rtb-0a32d3126f6934811 \
-    --destination-cidr-block 10.25.0.0/16 \
-    --vpc-peering-connection-id pcx-009340551dc364b76
+    --route-table-id rtb-0eda7389a22072519 \
+    --destination-cidr-block 10.205.0.0/16 \
+    --vpc-peering-connection-id pcx-01c09452d0c115976
 ```
+
+Add a route to the peering connection & OMB CIDR to the Redpanda route table(s)
+* VPC_ID is the Repdanda VPC ID
+* DEST_CIDR is the CIDR of the Redpanda VPC
+
+```bash
+REGION=us-east-2 VPC_ID=vpc-06aa70084143eb76f PCX_ID=pcx-01c09452d0c115976 DEST_CIDR=10.90.0.0/16; \
+for rt in $(aws ec2 describe-route-tables --region "$REGION" \
+  --filters "Name=vpc-id,Values=$VPC_ID" \
+  --query 'RouteTables[].RouteTableId' --output text); do
+  aws ec2 create-route  --region "$REGION" --route-table-id "$rt" \
+    --destination-cidr-block "$DEST_CIDR" --vpc-peering-connection-id "$PCX_ID" \
+  || \
+  aws ec2 replace-route --region "$REGION" --route-table-id "$rt" \
+    --destination-cidr-block "$DEST_CIDR" --vpc-peering-connection-id "$PCX_ID";
+done
+```
+
 
 
 Unsure if this is necessary....
@@ -325,3 +348,4 @@ aws ec2 authorize-security-group-ingress \
     --protocol all \
     --cidr 10.25.0.0/16
 ```
+
