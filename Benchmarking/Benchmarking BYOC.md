@@ -349,3 +349,48 @@ aws ec2 authorize-security-group-ingress \
     --cidr 10.25.0.0/16
 ```
 
+# Validate Peering / Install rpk
+
+Once ssh'd into a worker:
+
+```bash
+sudo su -
+
+apt install unzip
+
+curl -LO https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-linux-arm64.zip &&
+  mkdir -p ~/.local/bin &&
+  export PATH="~/.local/bin:$PATH" &&
+  unzip rpk-linux-arm64.zip -d ~/.local/bin/
+```
+
+## Create rpk profile
+
+```bash
+rpk profile create bench
+rpk profile edit bench
+```
+
+Your actual profile, change the seed URL & your sasl user/pass
+
+```yaml
+name: bench
+description: ""
+prompt: ""
+from_cloud: false
+kafka_api:
+    brokers:
+        - seed-2d035973.d36pp0m3t7fl88r58lm0.byoc.prd.cloud.redpanda.com:9092
+    tls: {}
+    sasl:
+        user: cnelson
+        password: '[REDACTED]'
+        mechanism: SCRAM-SHA-256
+admin_api: {}
+schema_registry: {}
+```
+
+Then do an `rpk cluster info` to verify connectivity to the cluster.
+
+
+
