@@ -197,6 +197,12 @@ Run this to generate a new payload file for your desired message size.
 dd if=/dev/urandom of=payload/payload-250Kb.data bs=1024 count=250
 ```
 
+or this:
+
+```bash
+head -c 76 /dev/urandom > payload/payload-76b.data
+```
+
 ## Run the workload
 
 ```bash
