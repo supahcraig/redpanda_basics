@@ -189,7 +189,7 @@ testDurationMinutes: 5
 
 `keyDistributor: "RANDOM_NANO"` will give a more uniform distribution of connections, since the publishing will be to more random partitions.   It will also give an actual connection count closer to the target producer count.
 
-### Larger Message Sizes
+### Different Message Sizes
 
 Run this to generate a new payload file for your desired message size.
 
@@ -219,6 +219,24 @@ nohup sudo bin/benchmark -d driver-redpanda/redpanda-ack-all-group-linger-10ms.y
 
 
 then you can `tail -f ~/nohup.out` to continue watching the progress and not worry if your terminal window closes.
+
+
+## Quick Looks at E2E Latency
+
+This will scan your output json file for the E2E latency for whataver Pxx you want
+
+```bash
+jq '.endToEndLatency999pct | max' <results>.json
+```
+
+Show min/max/avg of the p99.9 series
+
+```bash
+jq -r '
+  .endToEndLatency999pct as $a |
+  "p999_e2e: min=\($a|min) max=\($a|max) avg=\($a|add/length)"
+' <results>.json
+```
 
 ---
 
@@ -300,14 +318,6 @@ accept the request
 aws ec2 accept-vpc-peering-connection --vpc-peering-connection-id pcx-009340551dc364b76
 ```
 
-
-> ignore this block; it is pending delete  
-```bash
-aws ec2 create-route \
-    --route-table-id rtb-0727ca9693fa2f04f \
-    --destination-cidr-block 10.90.0.0/16 \
-    --vpc-peering-connection-id pcx-01c09452d0c115976
-```
 
 Add a route to the peering connection & Redpanda CIDR to the OMB route table(s)
 * route table is the OMB route table
