@@ -30,3 +30,4 @@ Navigate your browser to the public IP of your worker:  `http://public.ip:8888`
 
 
 
+Copying multiple json outputs into the results folder and then re-running the chart generator will give you a nice overlaid set of charts for multiple runs.
