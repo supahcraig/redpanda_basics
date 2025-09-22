@@ -315,7 +315,7 @@ Create a peering request from Redpanda to OMB, using the OMB cidr
 accept the request
 
 ```bash
-aws ec2 accept-vpc-peering-connection --vpc-peering-connection-id pcx-009340551dc364b76
+aws ec2 accept-vpc-peering-connection --vpc-peering-connection-id pcx-04fd789aaae878884
 ```
 
 
@@ -325,8 +325,8 @@ Add a route to the peering connection & Redpanda CIDR to the OMB route table(s)
 ```bash
 aws ec2 create-route \
     --route-table-id rtb-0eda7389a22072519 \
-    --destination-cidr-block 10.205.0.0/16 \
-    --vpc-peering-connection-id pcx-01c09452d0c115976
+    --destination-cidr-block 10.203.0.0/16 \
+    --vpc-peering-connection-id pcx-04fd789aaae878884
 ```
 
 Add a route to the peering connection & OMB CIDR to the Redpanda route table(s)
@@ -334,7 +334,7 @@ Add a route to the peering connection & OMB CIDR to the Redpanda route table(s)
 * DEST_CIDR is the CIDR of the Redpanda VPC
 
 ```bash
-REGION=us-east-2 VPC_ID=vpc-06aa70084143eb76f PCX_ID=pcx-01c09452d0c115976 DEST_CIDR=10.90.0.0/16; \
+REGION=us-east-2 VPC_ID=vpc-06029858c0205cf0b PCX_ID=pcx-04fd789aaae878884 DEST_CIDR=10.90.0.0/16; \
 for rt in $(aws ec2 describe-route-tables --region "$REGION" \
   --filters "Name=vpc-id,Values=$VPC_ID" \
   --query 'RouteTables[].RouteTableId' --output text); do
