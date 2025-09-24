@@ -309,7 +309,10 @@ warmupDurationMinutes: 4
 
 ## Peering OMB to the BYOC VPC
 
+The easiest way to do the peering is to use the `peer_vpcs.sh` shell script (found under Benchmarking in this repo).   Set the values in `vpcs.env` and then execute the shell script and the peering & all routes will be created for you.
 
+
+If you need to do it more manually, these are the steps.
 
 Create a peering request from Redpanda to OMB, using the OMB cidr
 accept the request
@@ -346,24 +349,6 @@ for rt in $(aws ec2 describe-route-tables --region "$REGION" \
 done
 ```
 
-
-
-Unsure if this is necessary....
-Update security groups to allow traffic from each VPC
-
-```bash
-aws ec2 authorize-security-group-ingress \
-    --group-id sg-078e96209c244543e \
-    --protocol all \
-    --cidr 10.90.0.0/16
-```
-
-```bash
-aws ec2 authorize-security-group-ingress \
-    --group-id sg-0748a99e395e64a62 \
-    --protocol all \
-    --cidr 10.25.0.0/16
-```
 
 # Validate Peering / Install rpk
 
