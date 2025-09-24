@@ -69,7 +69,7 @@ if [[ -z "$FILE" ]]; then
   exit 1
 fi
 
-echo "=== Latency (milliseconds) ==="
+echo "=== e2e Latency (milliseconds) ==="
 jq -r '
   def round3: ((.*1000 | round) / 1000);   # 👈 define jq function here
 
