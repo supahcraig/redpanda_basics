@@ -56,7 +56,14 @@ publish  499674.66251596157  510762.9416454764   500360.4015304407
 consume  499640.74537333904  510827.25542777375  500361.428917911
 ```
 
-Save this script as `/opt/benchmark/agg_results.sh`
+First install `jq`:
+
+```bash
+apt install -y jq
+```
+
+
+Then save this script as `/opt/benchmark/agg_results.sh`
 
 ```bash
 #!/usr/bin/env bash
