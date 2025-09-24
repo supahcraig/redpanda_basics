@@ -1,3 +1,5 @@
+# Generating & serving up the charts locally (on the worker)
+
 If you want to see a static version of the output from your OMB run, you can do it directly on the broker without too much effort.
 
 
