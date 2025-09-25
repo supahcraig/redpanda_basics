@@ -209,7 +209,7 @@ dd if=/dev/urandom of=payload/payload-250Kb.data bs=1024 count=250
 or this:
 
 ```bash
-head -c 76 /dev/urandom > payload/payload-76b.data
+head -c 75 /dev/urandom > payload/payload-75b.data
 ```
 
 ## Run the workload
