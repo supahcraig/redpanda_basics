@@ -38,7 +38,7 @@ Set the password to blank.
 ## Initialize Terraform
 
 ```bash
-cd driver-redpanda/deploy
+cd driver-redpanda/deploy/aws
 cp terraform.tfvars.example terraform.tfvars
 ```
 
@@ -81,6 +81,15 @@ num_instances = {
 
 Then actually run terraform apply.
 
+First move back to the deploy folder.
+
+```bash
+terraform -chdir=aws init
+terraform -chdir=aws apply --auto-approve
+```
+
+OR.....
+
 ```bash
 terraform init
 terraform apply --auto-approve
@@ -111,7 +120,7 @@ export REDPANDA_BOOTSTRAP_SERVER="<seed-endpoint-from-BYOC-console.com:9092>"
 Note that this depends on the environment variable being set for the kafka api endpoint, and also a user created in your cluster with a sasl-scram-256 password (cnelson/cnelson in this example), and give it full ACLs.
 
 ```
-ansible-playbook --inventory  hosts.ini \
+ansible-playbook --inventory  aws/hosts.ini \
 --ask-become-pass \
 -e "tls_enabled=true sasl_enabled=true sasl_username=cnelson sasl_password=cnelson" \
 -e bootstrapServers=${REDPANDA_BOOTSTRAP_SERVER} \
@@ -156,7 +165,7 @@ consumerConfig: |
 ### SSH into one of the client machines
 
 ```bash
-ssh -i ~/.ssh/redpanda_aws ubuntu@$(terraform output --raw client_ssh_host)
+ssh -i ~/.ssh/redpanda_aws ubuntu@$(terraform -chdir=aws output --raw client_ssh_host)
 ```
 
 ### Become root
