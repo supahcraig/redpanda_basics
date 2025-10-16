@@ -65,4 +65,60 @@ Redpanda Migrator uses the kafka_franz input/output under the covers, and its de
 * Failing backward is hard.
   * (why?)
 * Failing forward involves creating a new empty cluster and then re-replicating from the remaining cluster to seed the new cluster.   This would require an additional pipeline that only runs while seeding, and stops once the recovery is complete.   The pipeline would need to copy ALL messages, and would need to strip the provenance header from messages that originated on the failed cluster, and then add the provenance header to the messages that originated on the remaining cluster.  This will result in both clusters looking exactly as they did prior to the outage.
-  * Care needs to be taken here, because if you start producing to the recovered cluster before it is fully caught back up, messages will be out of order on the recoverd cluster.    
+  * Care needs to be taken here, because if you start producing to the recovered cluster before it is fully caught back up, messages will be out of order on the recoverd cluster.
+
+#### Message timestamps are not preserved
+
+Since migrator is simply re-publishing the messages, they will get a new timestamp when they are re-seeded on the replacement cluster.    Maybe this is expected?   The timestamps aren't preserved on migration in the first place, but in the steady state they will be very close.   On re-seed they will be wildly different, although order should still be preserved.
+
+
+### Re-Seeding/Fail Forward
+
+This hasn't been _completely_ thought through yet, but the general idea is thee treat the remaining cluster as the source of truth & use it to re-create the lost cluster as it was.   We do this by looking at the provenance header on the remaining cluster and "inverting" it-- if the provenance header is null, that means it originated on this cluster so we need to replicate to the replacement cluster with a provenance header indicating it came from the remaining cluster.  If the provenance header is not null, that means it came from the failed cluster, so we need to remove the provenance header when we write it to the replacement cluster.   This will push all messages back to the other cluster with the provenance headers as they were prior to the failure.
+
+Prior to bringing up the new cluster, the existing replication pipeline should be halted (it will most likely need to be updated to point to the new cluster bootstrap URL).   Producers & consumers should still work off the remaining cluster until the re-seed is complete.   Then the clients that need to move back to the new cluster should be halted, then the re-seed pipeline should be restarted, then the normal replication pipeline should be restarted, then the clients can be restarted.
+
+TODO:   think about what needs to happen to the migrator consumer groups in this scenario, since traffic will continue to be written to the remaining cluster but the messages will be replicated via a different consumer group.   Might need to set it to `latest` but this requires more thought and testing.
+
+```yaml
+input:
+  redpanda_migrator:
+    seed_brokers: 
+      - ${REDPANDA_BROKERS}
+    tls:
+      enabled: true
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: cnelson
+        password: REDACTED
+    topics:
+      - provenance
+    consumer_group: cg_B2A_reseed
+    start_from_oldest: true
+
+pipeline:
+  processors:
+    - mapping: |
+        meta origin = if metadata("origin") != null {
+          deleted()
+        } else {
+          "cluster-b"
+        }
+
+output:
+  redpanda_migrator:
+    seed_brokers:
+      - d03auajb92dfgde42s7g.any.us-east-1.mpx.prd.cloud.redpanda.com:9092
+    tls:
+      enabled: true
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: cnelson
+        password: REDACTED
+    topic: provenance
+    metadata:
+      include_prefixes: [ "origin" ]
+
+
+
+
