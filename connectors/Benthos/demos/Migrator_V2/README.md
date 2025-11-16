@@ -9,6 +9,35 @@
 
 ## Data Generator RPCN config
 
+You'll need a SASL user/pass with ACLs, and you'll need to pre-create the topics the generator will write into.
+
+```yaml
+input:
+  generate:
+    interval: 1s
+    mapping: |
+      root.ID = uuid_v4()
+      root.Name = ["frosty", "spot", "oodles"].index(random_int() % 3)
+      root.Gooeyness = (random_int() % 5)
+
+
+output:
+  kafka_franz:
+    seed_brokers:
+        - ${REDPANDA_BROKERS}
+    topic: '${! json("Name")}'
+    key: ${! this.ID }
+    partitioner: murmur2_hash
+
+    tls:
+      enabled: true
+
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: serverless_user
+        password: ${secrets.SERVERLESS_USER_PASS}
+
+```
 
 ## (minimal) Migrator V2 pipeline config
 
@@ -17,37 +46,33 @@
 input:
   redpanda_migrator:
     seed_brokers:
-       - ${REDPANDA_BROKERS}
+       - cu38sb80u72l8kq21rf0.any.us-east-1.mpx.prd.cloud.redpanda.com:9092
     tls: 
       enabled: true
     sasl:
       - mechanism: SCRAM-SHA-256
-        username: cnelson
-        password: cnelson
+        username: serverless_user
+        password: serverless_user
     topics: 
-      - topicA
-      - topicB
+      - frosty
+      - oodles
+      - spot
     consumer_group: migrator_consumer_group
     start_offset: earliest
-    schema_registry:
-      url: "https://schema-registry-2eb3ee18.d41p9tuc4cape6v42hgg.byoc.prd.cloud.redpanda.com:30081"
-      basic_auth:
-        enabled: true
-        username: cnelson
-        password: cnelson
+
 
 output:
   redpanda_migrator:
     seed_brokers:
-      - seed-1f06b5ea.d41p9tuc4cape6v42hgg.byoc.prd.cloud.redpanda.com:9092
+      - ${REDPANDA_BROKERS}
     tls:
       enabled: true
     sasl:
       - mechanism: SCRAM-SHA-256
-        username: cnelson
-        password: cnelson
+        username: migrator_user
+        password: migrator_user
     allow_auto_topic_creation: true
-    topic: migrator.${! @kafka_topic }
+    # topic: migrator.${! @kafka_topic }. #requires 4.69.0
     consumer_groups:
       enabled: true
       fetch_timeout: 10s
@@ -56,13 +81,8 @@ output:
       interval: 5s
       only_empty: false
     metadata_max_age: 5s
-    schema_registry:
-      enabled: true
-      url: https://schema-registry-2eb3ee18.d41p9tuc4cape6v42hgg.byoc.prd.cloud.redpanda.com:30081
-      basic_auth:
-        enabled: true
-        username: cnelson
-        password: cnelson
+```
+
 
 #logger:
 #  level: DEBUG
