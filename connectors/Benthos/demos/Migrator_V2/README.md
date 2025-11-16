@@ -81,8 +81,7 @@ output:
       interval: 5s
       only_empty: false
     metadata_max_age: 5s
-```
-
 
 #logger:
 #  level: DEBUG
+```
