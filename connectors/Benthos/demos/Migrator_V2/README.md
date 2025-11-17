@@ -54,9 +54,10 @@ input:
         username: serverless_user
         password: serverless_user
     topics: 
-      - frosty
-      - oodles
-      - spot
+      #- generator.*
+      - generator.foo
+      - generator.bar
+      - generator.baz
     consumer_group: migrator_consumer_group
     start_offset: earliest
 
