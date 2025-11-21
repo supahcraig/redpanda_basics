@@ -168,6 +168,13 @@ consumerConfig: |
 ssh -i ~/.ssh/redpanda_aws ubuntu@$(terraform -chdir=aws output --raw client_ssh_host)
 ```
 
+OR
+
+```bash
+ssh -i ~/.ssh/redpanda_aws ubuntu@$(terraform output --raw client_ssh_host)
+```
+
+
 ### Become root
 
 ```bash
