@@ -2,6 +2,8 @@
 
 This writeup is barebones for now, ideally could be a 1-click deployment with some automation work.   
 
+**NOTE:** this is not yet available for BYOC (as of Nov 21, 2025)
+
 ## High level steps
 
 1.  Create 2 clusters
