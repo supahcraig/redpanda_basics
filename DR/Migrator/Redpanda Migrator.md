@@ -1,3 +1,5 @@
+**NOTE** some of this may be outdated with the introcuction of Migrator V2
+
 # Redpanda Migrator
 
 
