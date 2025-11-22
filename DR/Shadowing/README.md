@@ -15,11 +15,16 @@ This writeup is barebones for now, ideally could be a 1-click deployment with so
 
 Perhaps the easiest thing to do is use OMB to spin up a cluster, and then create another OMB environment to be used as the shadow cluster.  The advantage of doing it this way is that you can immediately run load tests & benchmarks against either cluster.
 
-When you create the first cluster, leaving the peering components disabled in `terraform.tfvars`, which is the default behavior anyway.  When you create the 2nd cluster, you _should_ be able to configure the peering based on the VPC ID & CIDR of the first cluster, but I spun it up without peering as well.  Then I modified the first clusters tfvars to allow for peering to the 2nd cluster and then re-applied the terraform on that side.
+When you create the first cluster, leaving the peering components disabled in `terraform.tfvars`, which is the default behavior anyway.  When you create the 2nd cluster, you should be able to configure the peering based on the VPC ID & CIDR of the first cluster, but I spun it up without peering on either side.  Then I modified the first cluster's tfvars to allow for peering to the 2nd cluster and then re-applied the terraform on that side.
+
+### Security Group Rules
+
+I added firewall rules to the security group attached to the brokers.  To side 1, I allowed all traffic from the CIDR range of the cluster on side 2.  On side 2, I added a similar rule allowing all traffic from the CIDR range of the cluster on side 1.   We could be much more secure with this, but I don't (yet) know what ports are required for shadowing to work.
+
 
 ## Configure Shadowing
 
-On the _source_ cluster, you need to enable shadowing, and this must be done via rpk.  This command is given to you in the Console under Shadow Links.   
+On the _target_ cluster, you need to enable shadowing, and this must be done via rpk.  This command is given to you in the Console under Shadow Links.  Shadow Linking runs as a PULL operation.
 
 ```bash
 rpk cluster config set enable_shadow_linking true
@@ -39,7 +44,7 @@ This is a somewhat barebones config that will bring over topics, consumer groups
 
 The docs have much more detail around shadowing options:  https://docs.redpanda.com/current/manage/disaster-recovery/shadowing/setup/
 
-Obviously you'll need to change the bootstrap servers to point to the target cluster.
+Obviously you'll need to change the bootstrap servers to point to the _source_ cluster, since shadow linking runs on the target cluster and pulls from the source.   If you enable sasl, you would similarly use a sasl user on the _source_ cluster.
 
 ```bash
 rpk shadow create --config-file shadow-link.yaml
