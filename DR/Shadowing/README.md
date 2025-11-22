@@ -39,7 +39,7 @@ rpk cluster config set enable_shadow_linking true
 
 Once you run it, the console page will turn into a button allowing you to further configure shadowing.  You can do a lot from the console "wizard," but not everything.   At the time of this writing, you cannot configure schema registry replication from the console, you must do it via rpk.
 
-**NOTE:**  I have not set it up for TLS yet, as this doesn't yet work in BYOC and I have not bothered to set up TLS on a SH cluster.   
+**NOTE:**  I have not set it up for TLS yet, as this doesn't yet work in BYOC and I have not taken the time to set up TLS on a SH cluster.   
 
 ---
 
