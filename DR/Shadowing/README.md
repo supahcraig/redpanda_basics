@@ -108,7 +108,22 @@ schema_registry_sync_options:
 
 ## Testing
 
-Testing will be dependent on your topic filters, but it is quite simple.   Using the topic filters in the above config, try this:
+Testing will be dependent on your topic filters, but it is quite simple.   I strongly recommend using two terminal windows, one for each cluster.  And then configuring an rpk profile in each session to help you keep things straight as we will be running commands from both sides to validate the shadowing behavior.
+
+### rpk profile
+
+A barebones rpk profile to facilitate this testing would look like this for Cluster A, and similar for Cluster B.
+
+```yaml
+name: clusterB
+from_cloud: false
+kafka_api:
+    brokers:
+        - clusterA.broker0.address:9092
+        - clusterA.broker1.address:9092
+        - clusterA.broker2.address:9092
+schema_registry: {}
+```
 
 ### Create topics on Cluster A (the source)
 
@@ -117,7 +132,23 @@ rpk topic create clusterA.topic_to_replicate
 rpk topic create do_not_replicate
 ```
 
+### List topics on Cluster B (the target)
+
 If shadowing is working, you should see 2 topics on the source side (you should see this regardless!), and on the target side you should see ONE topic, `clusterA.topic_to_replicate`   No messages need to be produced to the topic for the topic itself to replicate.
+
+```bash
+rpk topic list
+```
+
+Produces output similart to this:
+
+```bash
+NAME                         PARTITIONS  REPLICAS
+_schemas                     1           3
+clusterA.topic_to_replicate  1           1
+```
+
+Note that our `do_not_replicate` topic did not replicate to Cluster B due to the filter we applied in our shadow config.
 
 ### Produce messages to Cluster A (the source)
 
