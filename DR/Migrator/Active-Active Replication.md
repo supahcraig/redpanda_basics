@@ -1,3 +1,5 @@
+**NOTE** much of this has been handled in Migrator V2, including loop detection via provenance headers
+
 # Active-Active DR with Loop Detection
 
 We don't actully do active-active replication.  Instead we do a pair of one-way replications, where we filter out things that have already been replicated.   There are 2 basic ways to do this:
