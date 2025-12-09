@@ -520,4 +520,59 @@ sudo docker run --rm \
   run /rds.yaml
 
 
+### RPCN pipeline
+
+```yaml
+logger:
+  level: DEBUG
+
+input:
+  label: "postgres_cdc"
+  postgres_cdc:
+    dsn: "postgres://iamuser@aurora-pg-iam-demo.cluster-c3uaqo244uj7.us-east-2.rds.amazonaws.com:5432/exampledb?sslmode=require"
+    include_transaction_markers: false
+    slot_name: "rpcn_iam_test"
+    snapshot_batch_size: 1
+    checkpoint_limit: 1
+    stream_snapshot: false
+    temporary_slot: true
+    unchanged_toast_value: null
+    schema: public
+    tables:
+      - "iamuser_test"
+
+    tls:
+      # for a quick dev test – *don’t* leave this in production:
+      skip_cert_verify: true
+
+    aws:
+      enabled: true
+      region: "us-east-2" # No default (optional)
+
+      endpoint: "aurora-pg-iam-demo.cluster-c3uaqo244uj7.us-east-2.rds.amazonaws.com:5432"
+      roles:
+        - role: "arn:aws:iam::861276079005:role/cross-account-db-access-role"
+          role_external_id: ""
+
+output:
+  stdout: {}
+```
+
+```yaml
+output:
+  kafka_franz:
+    seed_brokers:
+      - ${REDPANDA_BROKERS}
+
+    topic: iam_test
+
+    tls:
+      enabled: true
+
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: cnelson
+        password: cnelson
+```
+
   
