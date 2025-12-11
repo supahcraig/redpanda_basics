@@ -437,10 +437,12 @@ resource "aws_iam_instance_profile" "rpconnect_app_profile" {
 
 `brew install libpq`
 
+Install postgres client
 ```bash
 sudo apt-get update
 sudo apt install postgresql-client -y
 ```
+
 
 ```bash
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
@@ -448,6 +450,7 @@ unzip awscliv2.zip
 sudo ./aws/install
 ```
 
+Install AWS CLI, postgres, docker, etc.
 ```bash
 sudo apt update
 
@@ -459,7 +462,13 @@ sudo apt install -y \
   docker.io
 ```
 
-
+Install rpk
+```bash
+curl -LO https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-linux-amd64.zip &&
+  mkdir -p ~/.local/bin &&
+  export PATH="~/.local/bin:$PATH" &&
+  unzip rpk-linux-amd64.zip -d ~/.local/bin/
+```
 
 
 (this would all be easier had I run terraform from ec2)
