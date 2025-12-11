@@ -154,6 +154,8 @@ NOTE:  currently blocked by an AWS limitation that logical replication doesn't w
 
 NOTE:  this assumes everything lives in the same AWS acct.
 
+NOTE:  this does _not_ build the EC2 instance to test with.
+
 `main.tf`
 
 ```terraform
