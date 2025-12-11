@@ -466,7 +466,6 @@ resource "aws_iam_instance_profile" "rpconnect_app_profile" {
 
 ### DB setup
 
-`brew install libpq`
 
 Install postgres client
 ```bash
@@ -474,24 +473,13 @@ sudo apt-get update
 sudo apt install postgresql-client -y
 ```
 
-
+Install aws cli
 ```bash
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
 ```
 
-Install AWS CLI, postgres, docker, etc.
-```bash
-sudo apt update
-
-# AWS CLI v2 is usually already there on recent Ubuntu AMIs, but this is safe:
-sudo apt install -y \
-  awscli \
-  jq \
-  postgresql-client \
-  docker.io
-```
 
 Install rpk
 ```bash
@@ -512,7 +500,7 @@ AURORA_HOST=$(terraform output -raw aurora_endpoint)
 Connect to the db
 
 ```bash
-psql "host=$(terraform output -raw aurora_endpoint) \
+psql "host=$AURORA_HOST \
       port=5432 \
       dbname=exampledb \
       user=postgres \
@@ -520,6 +508,7 @@ psql "host=$(terraform output -raw aurora_endpoint) \
       sslmode=require"
 ```
 
+Grant the necessary privs to `iamuser`
 
 ```sql
 -- Create the DB user that maps to your IAM identity
@@ -528,39 +517,17 @@ CREATE USER iamuser WITH LOGIN;
 -- Allow this DB user to authenticate via IAM tokens
 GRANT rds_iam TO iamuser;
 
+-- Give iamuser replication privileges for WAL sender
+GRANT rds_replication TO iamuser;
+
 -- Give it some privileges (for now, make it simple)
 GRANT ALL PRIVILEGES ON DATABASE exampledb TO iamuser;
 ```
 
 
-## IAM stuff
-
-Even though you’re in one AWS account, we’ll simulate:
-
-Role A – “App role” (Redpanda Connect side)
-Think: account B role that Redpanda runs as → can call sts:AssumeRole on the DB role.
-
-Role B – “DB access role” (Aurora side)
-Think: account A role that owns Aurora → can call rds-db:connect on the Aurora cluster as iamuser.
-
-Flow will be:
-
-Role A (rpconnect-app-role)
-→ sts:AssumeRole into
-Role B (cross-account-db-access-role)
-→ uses that role’s rds-db:connect permissions to generate IAM auth tokens for iamuser.
-
-All the IAM stuff is baked into the terraform, including the last bit which allows the role to be attached to an EC2 instance for testing.
-
-
-
-sudo docker run --rm \
-  -v /tmp/rpcn-postgres-iam.yaml:/rds.yaml \
-  docker.redpanda.com/redpandadata/connect \
-  run /rds.yaml
-
-
 ### RPCN pipeline
+
+This will read the cdc records and print to stdout.
 
 ```yaml
 logger:
@@ -594,9 +561,22 @@ input:
         - role: "arn:aws:iam::861276079005:role/cross-account-db-access-role"
           role_external_id: ""
 
+pipeline:
+  processors:
+    - mapping: |
+        root = this
+        root._pg_meta = {
+          "table": meta("table"),
+          "operation": meta("operation"),
+          "lsn": meta("lsn")
+        }
+
 output:
   stdout: {}
 ```
+
+
+Use this output section for running on BYOC, you'll have to create the topic first.
 
 ```yaml
 output:
