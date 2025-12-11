@@ -9,7 +9,9 @@ First, set RDS to allow IAM authentication.    This basically tells the database
 
 Second, we need a role (`cross-account-db-access-role`), that has a policy that allows anyone who assumes this role to connect to the db via user `iamuser` using IAM auth.
 
-This says "allow someone with the `rpconnect-app-role` to assume _this_ role.  You can find this in the trust relationship for the role.   
+This says "allow someone with the `rpconnect-app-role` from acct id `861276079005` to assume _this_ role.  You can find this in the trust relationship for the role.   This role will live in the acct that owns the RDS instance.   In this example `861276079005` is the acct ID that owns the EC2 instance.
+
+The `Condition:` section provides for a check that the external ID matches.  The external ID is just a string that you can use as an extra condition to allow assumption of the role.   What you set here will need to match the external ID we will set in the RPCN pipeline.
 
 ```json
 {
@@ -21,6 +23,10 @@ This says "allow someone with the `rpconnect-app-role` to assume _this_ role.  Y
                 "AWS": "arn:aws:iam::861276079005:role/rpconnect-app-role"
             },
             "Action": "sts:AssumeRole"
+            #"Condition": {
+            #  "StringEquals": {
+            #    "sts:ExternalId": "some-external-id"
+            #  }
         }
     ]
 }
@@ -28,7 +34,7 @@ This says "allow someone with the `rpconnect-app-role` to assume _this_ role.  Y
 
 #### Permissions policy
 
-This says that this role is allowed to connect to the RDS instance (and db user) given by that ARN, which is specifically the ARN for the `iamuser` database user.    The wrinkle here is that RDS users have their own ARN.
+This says that this role is allowed to connect to the RDS instance (and db user) given by that ARN, which is specifically the ARN for the `iamuser` database user.    The wrinkle here is that RDS users have their own ARN.  This policy is attached to the cross-acct role owned by the RDS acct.
 
 ```json
 {
@@ -49,7 +55,7 @@ This says that this role is allowed to connect to the RDS instance (and db user)
 
 ### RPConnect role
 
-Lastly, the EC2 instance where connections will happen from needs a role (`rpconnect_app_role`).   This allows the EC2 instance to assume the cross-ccount-db-access-role.  
+Lastly, the EC2 instance where connections will happen from needs a role (`rpconnect_app_role`).   This allows the EC2 instance to assume the cross-ccount-db-access-role.  This role would live in the same AWS acct as the EC2 instance.
 
 This role allows an EC2 instance to assume this role.
 
@@ -69,6 +75,8 @@ This role allows an EC2 instance to assume this role.
 ```
 
 #### Permissions
+
+Here `861276079005` is the account id of the account that owns the EC2 instance.
 
 ```json
 {
