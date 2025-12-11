@@ -122,8 +122,8 @@ From a tokens standpoint:
               │ IMDS gives temporary creds
               ▼
 ┌───────────────────────────┐
-│ rpconnect-app-role       │
-│ (first STS session)      │
+│ rpconnect-app-role        │
+│ (first STS session)       │
 └─────────────┬─────────────┘
               │ sts:AssumeRole
               ▼
