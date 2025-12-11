@@ -1,3 +1,112 @@
+Here is how the IAM stuff works.   It's all laid out in the terraform below, but this is my attempt to explain that which is being built.
+
+## RDS IAM authentication
+
+First, set RDS to allow IAM authentication.    This basically tells the database that "I will be sending you IAM-signed tokens, please be prepared to validate them."   In order for this to work, we'll need a user (`iamuser`) that has `rds_iam` granted to it.
+
+
+### Cross Account DB Access Role
+
+Second, we need a role (`cross-account-db-access-role`), that has a policy that allows anyone who assumes this role to connect to the db via user `iamuser` using IAM auth.
+
+This says "allow someone with the `rpconnect-app-role` to assume _this_ role.  You can find this in the trust relationship for the role.   
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::861276079005:role/rpconnect-app-role"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+```
+
+#### Permissions policy
+
+This says that this role is allowed to connect to the RDS instance given by that ARN, but specifically for the `iamuser` database user.
+
+```json
+{
+    "Statement": [
+        {
+            "Action": [
+                "rds-db:connect"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:rds-db:us-east-2:861276079005:dbuser:cluster-5TTGRZ4AROUYJM2WZ6VKDJ535Q/iamuser"
+            ]
+        }
+    ],
+    "Version": "2012-10-17"
+}
+```
+
+### RPConnect role
+
+Lastly, the EC2 instance where connections will happen from needs a role (`rpconnect_app_role`).   This allows the EC2 instance to assume the cross-ccount-db-access-role.  
+
+This role allows an EC2 instance to assume this role.
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "ec2.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+```
+
+#### Permissions
+
+```json
+{
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Effect": "Allow",
+            "Resource": "arn:aws:iam::861276079005:role/cross-account-db-access-role"
+        }
+    ],
+    "Version": "2012-10-17"
+}
+```
+
+
+### Overall permissions flow
+
+```text
+EC2 Instance
+   |
+   | (role assigned on instance)
+   v
+rpconnect-app-role
+   |
+   | sts:AssumeRole
+   v
+cross-account-db-access-role
+   |
+   | rds-db:connect
+   v
+aurora dbuser ARN  --->  IAM token  ---> PostgreSQL user 'iamuser'
+
+Aurora validates token, maps to DB user `iamuser` (who has rds_iam, rds_replication)
+```
+
+
+---
+
 This is just a regurgitation of what Joe Woodward sent me
 
 Acct A with RPCN:  acct `927854233827`
