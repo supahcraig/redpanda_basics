@@ -468,6 +468,18 @@ resource "aws_iam_instance_profile" "rpconnect_app_profile" {
 
 ### DB setup
 
+On a separate EC2 instance, attach the `rpconnect-app-role` and verify that this role is in use by running this:
+
+```bash
+aws sts get-caller-identity
+```
+
+which should return something like this, where the important part is that the role you attached to the instance is in the response.
+
+```bash
+"Arn": "arn:aws:sts::861276079005:assumed-role/rpconnect-app-role/i-01218b4ad9808accd"
+```
+
 
 Install postgres client
 ```bash
