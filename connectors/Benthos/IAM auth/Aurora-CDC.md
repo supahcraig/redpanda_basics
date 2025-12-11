@@ -28,7 +28,7 @@ This says "allow someone with the `rpconnect-app-role` to assume _this_ role.  Y
 
 #### Permissions policy
 
-This says that this role is allowed to connect to the RDS instance given by that ARN, but specifically for the `iamuser` database user.
+This says that this role is allowed to connect to the RDS instance (and db user) given by that ARN, which is specifically the ARN for the `iamuser` database user.    The wrinkle here is that RDS users have their own ARN.
 
 ```json
 {
