@@ -143,148 +143,16 @@ From a tokens standpoint:
 
 ---
 
-This is just a regurgitation of what Joe Woodward sent me
 
-Acct A with RPCN:  acct `927854233827`
-Acct B with Aurora:  acct `082958828786`
-
-
-## IAM Owned by Acct A
-
-### x-account policy
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "sts:AssumeRole",
-      "Resource": "arn:aws:iam::082958828786:role/cross-account-db-access-role",
-      "Condition": {
-        "StringEquals": {
-          "sts:ExternalId": "my-secret-external-id-123"
-        }
-      }
-    }
-  ]
-}
-```
-
-### Potentially unecessary
-
-### my cross acct policy
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "sts:AssumeRole",
-      "Resource": "arn:aws:iam::082958828786:role/cross-account-db-access-role"
-    }
-  ]
-}
-```
-
-### Trust policy
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::082958828786:root"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-```
-
-### Administrator Access
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "*",
-      "Resource": "*"
-    }
-  ]
-}
-```
-
-
-## IAM Owned by Acct B
-
-###  cross-acct db access role
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "rds-db:connect"
-      ],
-      "Resource": [
-        "arn:aws:rds-db:eu-west-2:082958828786:dbuser:db-XQI7DHAJQW3MY5CITYCAKNYPUQ/iamuser",
-        "arn:aws:rds-db:eu-west-2:082958828786:dbuser:cluster-U7CPSIZSCX2MPYNHKRETJG0HGE/iamuser"
-      ]
-    }
-  ]
-}
-```
-
-### AssumeSecondRole (Customer inline)
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "sts:AssumeRole",
-      "Resource": "arn:aws:iam::082958828786:role/cross-account-db-access-2"
-    }
-  ]
-}
-```
-
-### RDS IAM Auth Policy (Customer inline)
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "rds-db:connect"
-      ],
-      "Resource": [
-        "arn:aws:rds-db:eu-west-2:082958828786:dbuser:cluster-VFTS67PYYPYLEBGOH3EXF2HKYA/iamuser",
-        "arn:aws:rds-db:eu-west-2:082958828786:dbuser:cluster-U7CPSIZSCX2MPYNHKRETJG0HGE/iamuser"
-      ]
-    }
-  ]
-}
-```
-
----
 
 
 ### Terraform for Aurora RDS w/IAM
 
 This will build an Aurora RDS instance with IAM & user/pass auth into an existing VPC, and create the necessary roles for an EC2 instance to assume the role & allow for IAM auth into the database. 
 
-NOTE:  currently blocked by an AWS limitation that logical replication doesn't work with IAM.   Allegedly this can be gotten around but I have no idea how.
+NOTE:  currently blocked by an AWS limitation that logical replication doesn't work with IAM.   Allegedly this can be gotten around but I have no idea how.  ==> you have to set `rds.logical_replication` to 1.
+
+NOTE:  this assumes everything lives in the same AWS acct.
 
 `main.tf`
 
@@ -395,7 +263,7 @@ resource "aws_rds_cluster" "aurora_pg" {
   preferred_backup_window             = "03:00-04:00"
   skip_final_snapshot                 = true
   iam_database_authentication_enabled = true
-  #db_cluster_parameter_group_name     = aws_rds_cluster_parameter_group.aurora_pg_iam.name
+  db_cluster_parameter_group_name     = aws_rds_cluster_parameter_group.aurora_pg_iam.name
 
   tags = {
     Name = "aurora-pg-iam-demo"
@@ -420,6 +288,24 @@ resource "aws_rds_cluster_instance" "aurora_pg_instance" {
   }
 }
 
+
+resource "aws_rds_cluster_parameter_group" "aurora_pg_iam" {
+  name   = "aurora-pg-iam-parameter-group"
+  family = "aurora-postgresql17"   # or whatever matches your engine
+  #parameter {
+  #  name  = "rds.iam_authentication"
+  #  value = "1"
+  #}
+  parameter {
+    name  = "rds.logical_replication"
+    value = "1"
+  }
+  # **This is the key one**
+  parameter {
+    name  = "rds.iam_auth_for_replication"
+    value = "1"
+  }
+}
 
 ########################
 # Outputs
