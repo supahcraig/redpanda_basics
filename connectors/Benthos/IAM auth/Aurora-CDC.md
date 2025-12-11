@@ -536,12 +536,25 @@ GRANT rds_replication TO iamuser;
 
 -- Give it some privileges (for now, make it simple)
 GRANT ALL PRIVILEGES ON DATABASE exampledb TO iamuser;
+
+-- Who am I?
+SELECT current_user, session_user;
+
+-- Where am I connected?
+\conninfo
+
+-- Optional: create a tiny test table just to prove permissions
+CREATE TABLE iamuser_test(x int);
+INSERT INTO iamuser_test VALUES (1);
+SELECT * FROM iamuser_test;
 ```
 
 
 ### RPCN pipeline
 
-This will read the cdc records and print to stdout.
+This will read the cdc records and print to stdout.  If you set up an external ID in your IAM roles, you should also include it here.  If you did not, use "" (empty quotes).
+
+`rds.yaml`
 
 ```yaml
 logger:
@@ -609,4 +622,27 @@ output:
         password: cnelson
 ```
 
-  
+### Run the pipeline
+
+```bash
+rpk connect run rds.yaml
+```
+
+you should see the output of it firing up...
+
+
+```
+INFO[2025-12-11T05:03:29Z] Running main config from specified file       @service=redpanda-connect benthos_version=4.72.0 path=rds.yaml
+DEBU[2025-12-11T05:03:29Z] Loaded Redpanda Enterprise license from default file path  @service=redpanda-connect
+INFO[2025-12-11T05:03:29Z] Successfully loaded Redpanda license          @service=redpanda-connect expires_at="2026-12-09T06:30:35Z" license_org=cnelson license_type="free trial"
+INFO[2025-12-11T05:03:29Z] Launching a Redpanda Connect instance, use CTRL+C to close  @service=redpanda-connect
+INFO[2025-12-11T05:03:29Z] Output type stdout is now active              @service=redpanda-connect label="" path=root.output
+DEBU[2025-12-11T05:03:29Z] Successfully assumed role 'arn:aws:iam::861276079005:role/cross-account-db-access-role' with identity 'arn:aws:sts::861276079005:assumed-role/cross-account-db-access-role/aws-go-sdk-1765429409839823121'  @service=redpanda-connect label=postgres_cdc path=root.input
+DEBU[2025-12-11T05:03:29Z] IAM authentication token generated successfully  @service=redpanda-connect label=postgres_cdc path=root.input
+INFO[2025-12-11T05:03:30Z] Creating publication pglog_stream_rpcn_iam_test for tables: ["public"."iamuser_test"]  @service=redpanda-connect label=postgres_cdc path=root.input
+INFO[2025-12-11T05:03:30Z] Input type postgres_cdc is now active         @service=redpanda-connect label=postgres_cdc path=root.input
+DEBU[2025-12-11T05:03:30Z] Started logical replication on slot slot-name: rpcn_iam_test  @service=redpanda-connect label=postgres_cdc path=root.input
+{"_pg_meta":{"lsn":"00000000/065D53CF","operation":"insert","table":"iamuser_test"},"x":67}
+```
+
+That last line is because in a separate session I inserted a row into the table `iamuser_test.
