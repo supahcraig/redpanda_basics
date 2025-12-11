@@ -104,6 +104,34 @@ aurora dbuser ARN  --->  IAM token  ---> PostgreSQL user 'iamuser'
 Aurora validates token, maps to DB user `iamuser` (who has rds_iam, rds_replication)
 ```
 
+From a tokens standpoint:
+
+```text
+┌───────────────────────────┐
+│ EC2 Instance              │
+│ (no initial creds)        │
+└─────────────┬─────────────┘
+              │ IMDS gives temporary creds
+              ▼
+┌───────────────────────────┐
+│ rpconnect-app-role       │
+│ (first STS session)      │
+└─────────────┬─────────────┘
+              │ sts:AssumeRole
+              ▼
+┌───────────────────────────┐
+│ cross-account-db-access   │
+│ (second STS session)      │
+└─────────────┬─────────────┘
+              │ rds-db:connect
+              │ generate auth token
+              ▼
+┌───────────────────────────┐
+│ Aurora PostgreSQL         │
+│ validates IAM token       │
+│ logs in as iamuser        │
+└───────────────────────────┘
+```
 
 ---
 
