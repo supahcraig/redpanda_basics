@@ -1,6 +1,11 @@
-Here is how the IAM stuff works.   It's all laid out in the terraform below, but this is my attempt to explain that which is being built.
+# Using IAM authentication with Redpanda Connect Postgres CDC connector (Aurora RDS)
+
+Logical replication may not be allowed with IAM authentication on regular Postgres RDS, documentation is questionable/confusing.
+
 
 ## RDS IAM authentication
+
+Here is how the IAM stuff works.   It's all laid out in the terraform below, but this is my attempt to explain that which is being built.
 
 First, set RDS to allow IAM authentication.    This basically tells the database that "I will be sending you IAM-signed tokens, please be prepared to validate them."   In order for this to work, we'll need a user (`iamuser`) that has `rds_iam` granted to it.
 
