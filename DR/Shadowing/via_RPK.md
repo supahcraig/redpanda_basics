@@ -17,7 +17,7 @@ which will generate a boilerplate shadow config you can edit.
 
 * `bootstrap_servers` will be the boostrap urls of your source cluster, which are optional (but not mutually exclusive)
 * `source_cluster_id` will be the Redpanda ID if you have a cloud cluster.   You can use this in conjuction with bootstrap servers, if they don't match it will fail on create
-* `tls_setting` for BYOC you just need it to be enabled
+* `tls_setting` for BYOC you just need it to be enabled; you don't need the tls file setting sectin.
 * 
 
 ```yaml
@@ -102,8 +102,9 @@ And then inject the relevant values:
 * remove the tls pem settings unless you happen to need them
 * `scram_configuration`
   * `username` is the username of your sasl user _on the source cluster_
-  * `password` is slightly confusing.   It actually needs a secret name, not an actual scram password.   The secret must exist on the SHADOW cluster, and the value of the secret is the password of your sasl user _on the source cluster_.
-* Then set whichever filters you would like
+  * `password` is slightly confusing.   It actually needs a secret name, not an actual scram password.   The secret must exist on the SHADOW cluster, and the value of the secret is the password of your sasl user _on the source cluster_
+* Then set whichever filters you would like for topics & consumer groups
+* The existence of the 
 
 ```yaml
 name: sample-shadow-link
