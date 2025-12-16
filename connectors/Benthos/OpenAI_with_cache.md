@@ -1,4 +1,3 @@
-```yaml
 http:
   enabled: true
   address: 0.0.0.0:4195
@@ -23,7 +22,8 @@ input:
       seed_brokers:
         - seed-6234e08e.curl3eo533cmsnt23dv0.byoc.prd.cloud.redpanda.com:9092
       topics:
-        - tjforum.thread_sample
+        - tjforum.thread_discovered
+        #- tjforum.thread_sample
 
       consumer_group: tj_classification
 
@@ -33,7 +33,7 @@ input:
       sasl:
         - mechanism: SCRAM-SHA-256
           username: cnelson
-          password: 
+          password: cnelson
 
 
 pipeline:
@@ -55,11 +55,13 @@ pipeline:
         meta message = this.message.or("").slice(0, 2000)
 
         root = this
+        root.thread_id = meta("thread_id") # force thread_id to be a string throughout
 
     # 1) cached OpenAI classification (only runs on cache miss)
     - cached:
         cache: tj_mongo_cache
         key: ${! meta("thread_id") }
+
         processors:
           - log:
               level: INFO
@@ -93,12 +95,34 @@ pipeline:
               model: gpt-4o-mini
               system_prompt: |
                 You classify Jeep Wrangler TJ how-to threads into exactly ONE primary category.
-                You MUST choose one from allowed_categories. "Odds & Ends" is acceptable.
+
+                You MUST choose exactly one from allowed_categories.
+
+                IMPORTANT: "Odds & Ends" is a last-resort category. Only choose it if none of the other categories reasonably fit.
+                If the thread is about a Jeep TJ modification, repair, maintenance task, troubleshooting, parts install, or upgrade,
+                you should almost always choose a more specific category than "Odds & Ends".  Do not invent new categories.
+
+                Category guidance (apply if the category name exists in allowed_categories):
+                - "Off-Road / Trail Mods":
+                  Use for modifications intended to improve off-road or trail capability/durability, including: lift,
+                  bump stops, control arms, skid plates/armor, rock sliders,
+                  bumpers/winch mounts, recovery points, winches, , lockers,
+                  tummy tuck/high-clearance, articulation improvements, gear/tools storage.
+
+                Tie-breakers:
+                1) Prefer the category that matches the main task a reader would follow the how-to for.
+                2) If multiple categories could fit, choose the most specific one.
+                3) Do NOT choose "Odds & Ends" due to vagueness; pick the closest applicable category.
+
               prompt: |
                 Title: ${! json("title") }
                 Body: ${! json("message") }
                 Allowed categories: ${! json("allowed_categories").join(", ") }
-                Return JSON only.
+
+                Return JSON only that matches the schema.
+                Set primary_category to one of the Allowed categories EXACTLY (case/punctuation must match).
+                rationale must be one sentence citing keywords/phrases from Title/Body.
+
               response_format: json_schema
               json_schema:
                 name: tj_primary_category
@@ -114,7 +138,7 @@ pipeline:
                     "required":["primary_category","confidence","rationale"]
                   }
 
-    # 2) emit unified output
+    # ✅ This runs for BOTH cache hits and misses.
     - mapping: |
         root = {
           "thread_id": meta("thread_id"),
@@ -124,21 +148,38 @@ pipeline:
         }
 
 
+
 output:
-  kafka_franz:
-    seed_brokers:
-      - seed-6234e08e.curl3eo533cmsnt23dv0.byoc.prd.cloud.redpanda.com:9092
+  broker:
+    pattern: fan_out
+    outputs:
+      - kafka_franz:
+          seed_brokers:
+            - seed-6234e08e.curl3eo533cmsnt23dv0.byoc.prd.cloud.redpanda.com:9092
+          topic: tjforum.thread_classified
+          key: ${! json("thread_id").or("") }
+          tls:
+            enabled: true
+          sasl:
+            - mechanism: SCRAM-SHA-256
+              username: cnelson
+              password: cnelson
 
-    topic: tjforum.thread_classified
-    key: ${! json("thread_id").string() }
+      - mongodb:
+          url: mongodb://localhost:27017
+          database: tjforum
+          collection: thread_classifications
+          operation: update-one
+          write_concern:
+            w: "majority"
+          filter_map: |
+            root = { "_id": this.thread_id }
+          document_map: |
+            root = {
+              "$set": this
+            }
+          upsert: true
 
-    tls:
-      enabled: true
-
-    sasl:
-      - mechanism: SCRAM-SHA-256
-        username: cnelson
-        password: 
 
 logger:
   level: INFO
