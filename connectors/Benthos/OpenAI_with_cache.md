@@ -1,3 +1,4 @@
+```yaml
 http:
   enabled: true
   address: 0.0.0.0:4195
@@ -183,3 +184,4 @@ output:
 
 logger:
   level: INFO
+```
