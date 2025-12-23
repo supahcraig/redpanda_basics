@@ -373,19 +373,59 @@ curl -LO https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-
 
 
 
+### Database Permissions
 
+#### Create the user + enable IAM auth
 
-
-
-
+The user here must match the database user in the arn of the cross-account role.
 
 ```sql
--- Create the DB user that maps to your IAM identity
-CREATE USER iamuser WITH LOGIN;
+CREATE ROLE iam_user LOGIN;
+GRANT rds_iam TO iam_user;
+```
 
--- Allow this DB user to authenticate via IAM tokens
-GRANT rds_iam TO iamuser;
+#### Give replication capability
 
+```sql
+GRANT rds_replication TO iam_user;
+```
+
+#### Minimal DB/schema privs
+
+```sql
+GRANT CONNECT ON DATABASE app TO iam_user;
+GRANT USAGE  ON SCHEMA public TO iam_user;
+```
+
+####  Sample table/insert
+
+```sql
+CREATE TABLE IF NOT EXISTS public.iamuser_test (
+  id bigserial primary key,
+  msg text not null,
+  created_at timestamptz not null default now()
+);
+
+-- give SELECT so publication can include it
+GRANT SELECT ON TABLE public.iamuser_test TO iam_user;
+
+-- (optional) if you want the pipeline to be able to snapshot/see inserts etc.
+GRANT INSERT, UPDATE, DELETE ON TABLE public.iamuser_test TO iam_user;
+
+INSERT INTO public.iamuser_test (msg)
+VALUES
+  ('first event'),
+  ('second event'),
+  ('third event');
+```
+
+
+
+
+
+This also works, but is probalby heavy-handed
+
+```sql
 -- Give it some privileges (for now, make it simple)
 GRANT ALL PRIVILEGES ON DATABASE exampledb TO iamuser;
 ```
@@ -468,4 +508,8 @@ output:
         password: cnelson
 ```
 
+
+## Troubleshooting
+
+If you see "Waiting to ping..." very likely you have a networking problem where Redpanda can't get to Aurora.  Double check your peering, routes, and make sure that Aurora's security group allows ingress on 5432.
   
