@@ -33,17 +33,20 @@ RP_DATAPLANE_URL=$(
 }
 ```
 
-
-
-## make a call
+Then use the dataplane URL to find your pipeline's Gateway URL.
 
 ```bash
-curl "${RP_DATAPLANE_URL}/v1/redpanda-connect/pipelines/d53gd91slkmc738b6jgg" \
+PIPELINE_ID=d53gd91slkmc738b6jgg
+```
+
+```bash
+curl "${RP_DATAPLANE_URL}/v1/redpanda-connect/pipelines/${PIPELINE_ID}" \
   -H "Authorization: Bearer ${TOKEN}" \
 | jq '.pipeline.url'
 ```
 
-And then call your RPCN Gateway input:
+
+## Call your RPCN Gateway input
 
 ```bash
 curl -i -X POST "${GATEWAY_URL}${WEBHOOK_ROUTE}" \
