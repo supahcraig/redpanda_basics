@@ -434,4 +434,10 @@ schema_registry: {}
 Then do an `rpk cluster info` to verify connectivity to the cluster.
 
 
+```bash
+JVM_MEM="-Xms8G -Xmx8G" \
+JAVA_TOOL_OPTIONS="-XX:+UseG1GC -XX:MaxGCPauseMillis=50 -Xlog:gc*:stdout:time,level,tags" \
+  bin/benchmark --drivers driver-redpanda/redpanda-ack-all-group-linger-10ms.yaml test_workload.yaml
+```
+
 
