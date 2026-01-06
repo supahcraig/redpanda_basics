@@ -221,6 +221,30 @@ head -c 75 /dev/urandom > payload/payload-75b.data
 
 ## Run the workload
 
+
+### Basic Workload Test
+
+driver file:  `redpanda-ack-all-group-linger-10ms.yaml`
+
+workload file:  
+
+```yaml
+topics: 1
+partitionsPerTopic: 10
+messageSize: 1024
+payloadFile: "payload/payload-1Kb.data"
+subscriptionsPerTopic: 1
+consumerPerSubscription: 1
+producersPerTopic: 10
+producerRate: 10000
+consumerBacklogSizeGB: 0
+testDurationMinutes: 20
+warmupDurationMinutes: 5
+```
+
+That will give you ~10MB/sec:   total producers = topics x producers per topic; produce rate is in message/sec (total across all producers)
+
+
 ```bash
 bin/benchmark --drivers driver-redpanda/redpanda-ack-all-group-linger-10ms.yaml workloads/8k-producers.yaml
 ```
