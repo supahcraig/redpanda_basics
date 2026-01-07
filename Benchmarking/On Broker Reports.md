@@ -65,6 +65,13 @@ apt install -y jq
 
 Then save this script as `/opt/benchmark/agg_results.sh`
 
+You can invoke it on the most recent json output file this way:
+
+```bash
+./agg_results.sh "$(ls -t *.json | head -n 1)"
+```
+
+
 ```bash
 #!/usr/bin/env bash
 #
