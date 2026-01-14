@@ -17,6 +17,13 @@ GRANT rds_iam TO iam_user;
 -- (optional) give it a simple capability for testing
 GRANT CONNECT ON DATABASE app TO iam_user;
 
--- if you want it to be able to do logical replication later:
+-- if you want it to be able to do logical replication later:  // this is not necessary/recommended
 -- ALTER ROLE iam_user WITH REPLICATION;
+
+GRANT rds_replication TO iam_user;
+
 ```
+
+
+
+modified the cross-account role trust relationship, changing the principal from cnelson-aurpg-rpconnect-app-role to arn:aws:iam::861276079005:role/redpanda-curl3eo533cmsnt23dv0-redpanda-connect-pipeline
