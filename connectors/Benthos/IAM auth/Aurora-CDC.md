@@ -492,12 +492,21 @@ sudo apt-get update
 sudo apt install postgresql-client -y
 ```
 
+Or on AL2023:
+
+```bash
+sudo dnf update -y
+sudo dnf install postgresql15 -y
+```
+
+
 Install aws cli
 ```bash
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
 ```
+
 
 
 Install rpk
