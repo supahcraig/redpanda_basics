@@ -22,6 +22,10 @@ GRANT CONNECT ON DATABASE app TO iam_user;
 
 GRANT rds_replication TO iam_user;
 
+GRANT CREATE ON DATABASE app TO iam_user;
+
+CREATE PUBLICATION pglog_stream_rpcn_iam_test FOR TABLE public.iamuser_test;
+
 ```
 
 
