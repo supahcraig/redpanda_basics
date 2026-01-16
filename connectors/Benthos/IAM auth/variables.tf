@@ -3,6 +3,11 @@ variable "region" {
   description = "AWS region"
 }
 
+variable "aws_profile" {
+  type        = string
+  description = "Name of the AWS profile to use (from ~/.aws/config)"
+}
+
 variable "name_prefix" {
   type        = string
   description = "Prefix used for naming resources"
@@ -14,10 +19,15 @@ variable "vpc_cidr" {
   default     = "10.200.0.0/16"
 }
 
-variable "home_ip_cidr" {
+variable "redpanda_cidr" {
   type        = string
-  description = "Your home public IP in CIDR form, e.g. 1.2.3.4/32"
+  description = "CIDR/IP that RDS will need to allow traffic from, either the CIDR range of the cluster or the IP of the NAT Gateway"
 }
+
+#variable "home_ip_cidr" {
+#  type        = string
+#  description = "Your home public IP in CIDR form, e.g. 1.2.3.4/32"
+#}
 
 variable "db_name" {
   type        = string
@@ -36,6 +46,11 @@ variable "db_password" {
   description = "Master password"
   sensitive   = true
   default     = "postgres"
+}
+
+variable "iam_auth_user" {
+  type        = string
+  description = "Database user that IAM with use to auth into"
 }
 
 variable "serverlessv2_min_acu" {
