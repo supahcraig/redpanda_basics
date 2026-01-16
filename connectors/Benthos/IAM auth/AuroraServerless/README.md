@@ -124,3 +124,41 @@ This trust policy must reference the shipped role as the principal.
     ]
 }
 ```
+
+
+The role on the RDS side needs this tag to allow for the assuming of the role
+
+aws iam tag-role \
+  --role-name demo-aurora-iam-demo-user \
+  --tags Key=redpanda_scope_redpanda_connect,Value=true \
+  --profile se_demo
+
+
+psql "host=demo-aurora-pg.cluster-cz84a4eu2syk.us-east-2.rds.amazonaws.com \
+  port=5432 \
+  dbname=demo_db \
+  user=postgres \
+  sslmode=require"
+
+
+-- Example replication user that will authenticate via IAM token (no password needed)
+CREATE USER iam_demo_user;
+
+-- Allow IAM token auth for this user
+GRANT rds_iam TO iam_demo_user;
+
+-- Allow logical replication privileges
+GRANT rds_replication TO iam_demo_user;
+
+-- (Optional but common) allow connecting to your DB
+GRANT CONNECT, CREATE ON DATABASE demo_db TO iam_demo_user;
+
+-- Create the publication as the table owner
+CREATE PUBLICATION pglog_stream_rpcn_iam_test FOR TABLE public.iamuser_test;
+
+
+
+
+"arn:aws:iam::211125444193:role/demo-aurora-iam-demo-user"
+
+
