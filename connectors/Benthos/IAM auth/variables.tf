@@ -24,11 +24,6 @@ variable "redpanda_cidr" {
   description = "CIDR/IP that RDS will need to allow traffic from, either the CIDR range of the cluster or the IP of the NAT Gateway"
 }
 
-#variable "home_ip_cidr" {
-#  type        = string
-#  description = "Your home public IP in CIDR form, e.g. 1.2.3.4/32"
-#}
-
 variable "db_name" {
   type        = string
   description = "Initial database name"
