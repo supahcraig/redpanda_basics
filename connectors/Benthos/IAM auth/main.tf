@@ -11,7 +11,7 @@ terraform {
 
 provider "aws" {
   region = var.region
-  profile = "se_demo"
+  profile = var.aws_profile
 }
 
 data "aws_availability_zones" "available" {
@@ -77,17 +77,26 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
+data "http" "home_ip" {
+  url = "https://api.ipify.org"
+}
+
+locals {
+  home_ip_cidr = "${chomp(data.http.home_ip.response_body)}/32"
+}
+
+
 resource "aws_security_group" "db" {
   name        = "${var.name_prefix}-db-sg"
   description = "Allow Postgres from home IP"
   vpc_id      = aws_vpc.this.id
 
   ingress {
-    description = "Postgres from home"
+    description = "Allow traffic to Postgres from home/Redpanda"
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = [var.home_ip_cidr]
+    cidr_blocks = [local.home_ip_cidr, var.redpanda_cidr]
   }
 
   egress {
@@ -213,7 +222,7 @@ resource "aws_rds_cluster_instance" "aurora_instance" {
 
 data "aws_caller_identity" "current" {}
 
-data "aws_region" "current" {}
+#data "aws_region" "current" {}
 
 # Role that will be assumed by the principal you pass in via tfvars
 resource "aws_iam_role" "aurora_iam_demo_user" {
@@ -236,11 +245,10 @@ resource "aws_iam_role" "aurora_iam_demo_user" {
   tags = {
     redpanda_scope_redpanda_connect = "true"
   }
-
 }
 
-# Permission to connect as database user `iam_demo_user`
-# IMPORTANT: rds-db:connect uses the *instance* resource_id: aws_rds_cluster_instance.<...>.resource_id
+# Permission to connect as database user given by var.iam_auth_user
+# IMPORTANT: rds-db:connect uses the *cluster* resource_id: aws_rds_cluster_instance.<...>.resource_id
 resource "aws_iam_role_policy" "aurora_iam_demo_user_connect" {
   name = "${var.name_prefix}-aurora-iam-demo-user-connect"
   role = aws_iam_role.aurora_iam_demo_user.id
@@ -255,12 +263,11 @@ resource "aws_iam_role_policy" "aurora_iam_demo_user_connect" {
           "rds-db:connect"
         ]
         Resource = [
-          "arn:aws:rds-db:${var.region}:${data.aws_caller_identity.current.account_id}:dbuser:${aws_rds_cluster.aurora.cluster_resource_id}/iam_demo_user"
+          "arn:aws:rds-db:${var.region}:${data.aws_caller_identity.current.account_id}:dbuser:${aws_rds_cluster.aurora.cluster_resource_id}/${var.iam_auth_user}"
         ]
       }
     ]
   })
-
 }
 
 
