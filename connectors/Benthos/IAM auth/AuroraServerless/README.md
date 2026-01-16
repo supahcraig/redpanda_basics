@@ -2,6 +2,10 @@
 
 Run the serverless-specific terraform.
 
+# Networking/Security
+
+You may need to peer VPCs, depending on your delpoyment.   Also, terraform creates a security group for Aurora that allows inbound traffic on 5432 from it's own SG.  So if you need to peer, you'll also need to add a firewall rule to allow 5432 from the Redpanda CIDR.
+
 
 # Database setup
 
