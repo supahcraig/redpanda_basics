@@ -6,6 +6,7 @@ Repdanda will typically live in a separate account from other customer cloud res
 
 On an EC2 instance, it is much easier since the EC2 instance can have an IAM role attached, but since BYOC & RPCN on BYOC runs in EKS, it is more complicated, involving IRSA among other way in the weeds details.
 
+```text
 ┌──────────────────────────────────────────────┐
 │ Kubernetes Pod                               │
 │ redpanda-connect                             │
@@ -49,7 +50,7 @@ On an EC2 instance, it is much easier since the EC2 instance can have an IAM rol
 │                                              │
 │ Authenticates as iam_demo_user               │
 └──────────────────────────────────────────────┘
-
+```
 
 ---
 
