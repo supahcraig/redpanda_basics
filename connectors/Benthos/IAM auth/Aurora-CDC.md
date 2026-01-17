@@ -1,3 +1,5 @@
+This is an early attempt at getting this going on self-hosted from an EC2 instance.  It ultimately works, but this document likely doesn't reflect my current understanding of the IAM components.
+
 # Using IAM authentication with Redpanda Connect Postgres CDC connector (Aurora RDS)
 
 Logical replication may not be allowed with IAM authentication on regular Postgres RDS, documentation is questionable/confusing.
