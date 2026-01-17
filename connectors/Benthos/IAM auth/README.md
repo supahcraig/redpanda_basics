@@ -6,6 +6,51 @@ Repdanda will typically live in a separate account from other customer cloud res
 
 On an EC2 instance, it is much easier since the EC2 instance can have an IAM role attached, but since BYOC & RPCN on BYOC runs in EKS, it is more complicated, involving IRSA among other way in the weeds details.
 
+┌──────────────────────────────────────────────┐
+│ Kubernetes Pod                               │
+│ redpanda-connect                             │
+│ ServiceAccount: redpanda-connect-pipeline-sa │
+│                                              │
+│ (no static AWS creds)                        │
+└───────────────┬──────────────────────────────┘
+                │ projected OIDC token
+                │ /var/run/secrets/eks.amazonaws.com/serviceaccount/token
+                ▼
+┌──────────────────────────────────────────────┐
+│ IRSA / Web Identity                          │
+│ sts:AssumeRoleWithWebIdentity                │
+│                                              │
+│ redpanda-connect-pipeline role               │
+│ (first STS session, in RP account)           │
+└───────────────┬──────────────────────────────┘
+                │ sts:AssumeRole
+                │ (tag-gated: redpanda_scope_*)
+                ▼
+┌──────────────────────────────────────────────┐
+│ DB-account IAM Role                          │
+│ demo-aurora-iam-demo-user                    │
+│ (second STS session, DB account)             │
+│                                              │
+│ Policy: rds-db:connect                       │
+│ Resource:                                    │
+│ arn:aws:rds-db:REGION:DB_ACCT:               │
+│   dbuser:cluster-XXXX/iam_demo_user          │
+└───────────────┬──────────────────────────────┘
+                │ aws rds generate-db-auth-token
+                │ (host, port, region, username)
+                ▼
+┌──────────────────────────────────────────────┐
+│ Aurora PostgreSQL (Serverless v2)            │
+│                                              │
+│ Validates IAM token against:                 │
+│ - cluster resource ID                        │
+│ - DB account                                 │
+│ - DB user has rds_iam                        │
+│                                              │
+│ Authenticates as iam_demo_user               │
+└──────────────────────────────────────────────┘
+
+
 ---
 
 # Walkthrough
