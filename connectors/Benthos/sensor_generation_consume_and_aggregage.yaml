@@ -1,0 +1,50 @@
+input:
+  kafka_franz:
+    seed_brokers:
+      - ${REDPANDA_BROKERS}
+    topics: [ iot_raw ]
+    consumer_group: agg_demo
+
+    tls:
+      enabled: true
+
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: ${secrets.CNELSON_SASL_USER}
+        password: ${secrets.CNELSON_SASL_PASSWORD}
+
+buffer:
+  system_window:
+    timestamp_mapping: root = now()
+    size: 1s
+    allowed_lateness: 999ms
+
+pipeline:
+  processors:
+    # cap messages per emitted payload (prevents unbounded arrays)
+    - split:
+        size: 20
+
+    - archive:
+        format: json_array
+
+    - mapping: |
+        #!blobl
+        let window_start = @window_end_timestamp.ts_sub_iso8601("PT1S")
+        root.ts = $window_start.ts_format("2006-01-02 15:04:05", "UTC")
+        root.count = this.length()
+        root.messages = this
+
+output:
+  kafka_franz:
+    seed_brokers:
+      - seed-6234e08e.curl3eo533cmsnt23dv0.byoc.prd.cloud.redpanda.com:9092
+    topic: iot_aggregated
+
+    tls:
+      enabled: true
+
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: ${secrets.CNELSON_SASL_USER}
+        password: ${secrets.CNELSON_SASL_PASSWORD}
