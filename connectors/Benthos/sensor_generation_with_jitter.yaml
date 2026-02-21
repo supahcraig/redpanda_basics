@@ -1,0 +1,28 @@
+input:
+  generate:
+    interval: ""          # generate as fast as downstream can consume
+    mapping: |
+      #!blobl
+      root.device_id = "device-" + random_int(max: 10).string()
+      root.event_ts  = now().ts_format()
+      root.value     = random_int(max: 1000)
+
+pipeline:
+   # Create jitter (0–200ms) between messages (bursty-ish)
+   processors:
+    - sleep:
+        duration: '${! random_int(max:200) }ms'
+
+output:
+  kafka_franz:
+    seed_brokers: 
+      - ${REDPANDA_BROKERS}
+    topic: iot_raw
+
+    tls:
+      enabled: true
+
+    sasl:
+      - mechanism: SCRAM-SHA-256
+        username: ${secrets.CNELSON_SASL_USER}
+        password: ${secrets.CNELSON_SASL_PASSWORD}
