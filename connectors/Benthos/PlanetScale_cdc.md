@@ -9,7 +9,7 @@ From anywhere, connect in via psql.   I got this connection string by going to "
 
 
 ```bash
-psql 'host=aws-us-east-2-2.pg.psdb.cloud port=5432 user=postgres.3qo6fzyr5s2s password=pscale_pw_ABUNCHOFJUNKSUPPLIEDBYPLANETSCALE dbname=postgres sslnegotiation=direct sslmode=verify-full sslrootcert=system'
+psql 'host=aws-us-east-2-2.pg.psdb.cloud port=5432 user=postgres.3qo6fzyr5s2s password=<supplied by planetscale> dbname=postgres sslnegotiation=direct sslmode=verify-full sslrootcert=system'
 ```
 
 
@@ -20,7 +20,7 @@ CREATE TABLE test_events (
     message TEXT
 );
 
-CREATE PUBLICATION my_cdc_publication FOR TABLE table1, table2;
+CREATE PUBLICATION my_cdc_publication FOR TABLE test_events;
 
 SELECT pg_create_logical_replication_slot(
   'my_cdc_slot',
