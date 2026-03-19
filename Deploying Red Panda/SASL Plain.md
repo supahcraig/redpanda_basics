@@ -65,6 +65,49 @@ rpk:
     coredump_dir: /var/lib/redpanda/coredump
 ```
 
+Or the two-listener approach:
+
+```yaml
+redpanda:
+    data_directory: /var/lib/redpanda/data
+    seed_servers:
+        - host:
+            address: 10.100.1.11
+            port: 33145
+    rpc_server:
+        address: 0.0.0.0
+        port: 33145
+    kafka_api:
+        - name: internal
+          address: 0.0.0.0
+          port: 9092
+          authentication_method: sasl
+        - name: external
+          address: 0.0.0.0
+          port: 19092
+          authentication_method: sasl
+    admin:
+        - address: 0.0.0.0
+          port: 9644
+    advertised_kafka_api:
+        - name: internal
+          address: 10.100.1.11
+          port: 9092
+        - name: external
+          address: 13.59.253.84
+          port: 19092
+    advertised_rpc_api:
+        address: 10.100.1.11
+        port: 33145
+    enable_sasl: true
+    superusers:
+        - admin
+    admin_api_require_auth: true
+rpk:
+    coredump_dir: /var/lib/redpanda/coredump
+```
+
+
 ## (2) Restart Redpanda
 
 Once you have edited the yaml on all brokers, each broker must be restarted for the change to take effect.
@@ -176,4 +219,31 @@ kcat -b localhost:9092 \
 ```
 
 Should return some info on your topics via SASL PLAIN.  You can further verify this is working by setting the sasl_mechanisms back to SCRAM and re-running kcat.  It should fail with a SASL error.
+
+## (9) Test remotely
+
+On your local machine (for example), create a new profile and prove you have clean connectivity & auth, albeit via SCRAM.
+
+```bash
+rpk profile create sasl_remote \
+  --set kafka_api.brokers=13.59.253.84:19092 \
+  --set kafka_api.sasl.user=cnelson \
+  --set kafka_api.sasl.password=yourpassword \
+  --set kafka_api.sasl.mechanism=SCRAM-SHA-256
+
+rpk profile use remote
+rpk topic list
+```
+
+Use kcat to test SASL PLAIN.
+
+```bash
+kcat -b 13.59.253.84:19092 \
+  -X security.protocol=SASL_PLAINTEXT \
+  -X sasl.mechanism=PLAIN \
+  -X sasl.username=myuser \
+  -X sasl.password=yourpassword \
+  -L
+```
+
 
