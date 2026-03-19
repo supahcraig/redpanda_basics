@@ -146,3 +146,26 @@ So the existing profile already has everything it needs.
 ---
 
 # Redpanda Console
+
+```yaml
+kafka:
+    brokers:
+        - 10.100.1.11:9092
+    tls:
+        enabled: true
+        insecureSkipTlsVerify: true        # since we're using self-signed certs
+    sasl:
+        enabled: true
+        username: admin
+        password: adminpassword
+        mechanism: PLAIN
+
+redpanda:
+    adminApi:
+        enabled: true
+        urls:
+            - https://10.100.1.11:9644
+        tls:
+            enabled: true
+            insecureSkipTlsVerify: true
+```
