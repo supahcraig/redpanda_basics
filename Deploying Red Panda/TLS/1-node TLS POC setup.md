@@ -4,6 +4,23 @@ They already have their signed certs, but we need to generate our own using the 
 
 ## Install terraform on EC2
 
+```bash
+# Install prerequisites
+sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+
+# Add HashiCorp's GPG key
+wget -O- https://apt.releases.hashicorp.com/gpg | \
+  gpg --dearmor | \
+  sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+
+# Add the HashiCorp repo
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
+  https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
+  sudo tee /etc/apt/sources.list.d/hashicorp.list
+
+# Install Terraform
+sudo apt-get update && sudo apt-get install -y terraform
+```
 
 
 ## Generate the certs
