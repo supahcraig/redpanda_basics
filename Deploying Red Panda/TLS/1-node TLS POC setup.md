@@ -164,6 +164,20 @@ So the existing profile already has everything it needs.
 
 # Redpanda Console
 
+## Install Redpanda Console
+
+```bash
+curl -1sLf 'https://dl.redpanda.com/nzc4OOIPU8YsaGar/redpanda/cfg/setup/bash.deb.sh' | sudo bash
+sudo apt-get install -y redpanda-console
+```
+
+This will put a default console config under `/etc/redpanda/redpanda-console.yaml` but we'll need to modify it before we go any further.
+
+
+## redpanda-console.yaml
+
+Again, we have to use `insecureSkipTlsVerify` because my certs are self-signed.  Properly signed certs can omit those lines.
+
 ```yaml
 kafka:
     brokers:
@@ -186,3 +200,5 @@ redpanda:
             enabled: true
             insecureSkipTlsVerify: true
 ```
+
+And then restart the redpanda-console service.
