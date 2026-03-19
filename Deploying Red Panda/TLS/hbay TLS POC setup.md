@@ -135,6 +135,14 @@ admin_api:
 schema_registry: {}
 ```
 
+### Why no admin auth section?
+
+Great question. The admin API uses HTTP Basic Auth, not SASL — they're completely separate authentication mechanisms.
+SASL is a Kafka protocol concept and only applies to the kafka_api section. The admin API is a plain REST API, so it uses HTTP Basic Auth instead.
+rpk handles this automatically — when admin_api_require_auth: true is set in redpanda.yaml, rpk pulls the credentials from the sasl block in your profile's kafka_api section and uses them as the HTTP Basic Auth username/password when talking to the admin API.
+
+So the existing profile already has everything it needs.
+
 ---
 
 # Redpanda Console
