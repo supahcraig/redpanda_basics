@@ -1,6 +1,6 @@
 Setup:   I have a single node RP "cluster" in ec2 that we need to set up TLS on.
 
-They already have their signed certs, but we need to generate our own using the terraform in this folder.   
+You may already have signed certs, but we need to generate our own using the terraform in this folder.   
 
 ## Install terraform on EC2
 
@@ -42,7 +42,7 @@ terraform apply --auto-approve
 
 I ran this from `/etc/redpanda` because that's where I wanted the certs.  You'll see where this matters in a bit.
 
-### Cert ownership/permissions
+## IMPORTANT:  Cert ownership/permissions
 
 `redpanda:redpanda` must own the certs, and they will need these permissions or else the service won't even start.
 
