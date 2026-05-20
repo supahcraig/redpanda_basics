@@ -14,6 +14,11 @@ Disclaimer:  This is currently slightly BYOC-centric.
 
 ### ssh to an OMB worker
 
+Probably something like this, although the ssh key name will be cloud-specific.
+
+```bash
+ssh -i ~/.ssh/redpanda_aws ubuntu@$(terraform output --raw client_ssh_host)
+```
 
 ## Step 3:  
 
