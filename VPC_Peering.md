@@ -1,5 +1,7 @@
 # Peering a BYOC Cluster
 
+__NOTE__: peering to redpanda does not require any security group work.
+
 * create a private BYOC cluster
 * pick a cidr range that doesn't overlap (10.50.0.0/16 is good)
 * Have another VPC ready (I keep a VPC with cidr 10.100.0.0/16 to reduce the liklihood of an overlap since everybody loves 10.0.0.0/16
